@@ -1,5 +1,8 @@
 import * as sass from "sass";
 import { readFileSync } from "node:fs";
+import { dirname } from "node:path";
+
+import { argv } from "./argv.mjs";
 
 /**
  * Esbuild Plugin that compiles the defined scss imports with the Sass library.
@@ -11,14 +14,13 @@ import { readFileSync } from "node:fs";
  * cannot define all styles within a Shadow DOM ans should mainly be used for
  * defining body related properties like typography and inline element layouts.
  */
-export const SassPlugin = {
+export const SassPlugin = () => ({
   name: "Sass",
   setup(build) {
-    // Load ".txt" files and return an array of words
     build.onLoad({ filter: /\.scss$/ }, async (args) => {
       const data = readFileSync(args.path);
       const { css } = sass.compileString(data.toString(), {
-        loadPaths: ["./src", "./node_modules"],
+        loadPaths: [process.cwd(), dirname(args.path), "./node_modules"],
       });
 
       // Use the dynamic name alias in order to resolve to actual Enlightment
@@ -26,17 +28,20 @@ export const SassPlugin = {
       // the first CLI argument. This enables the usage of this Esbuild Plugin
       // outside the actual Enlightment package and will resolve Sass imports:
       // import { SassPlugin } from '@toolbarthomas/Enlightment'
-      const [name] = process.argv.slice(2);
+      const { r, resolve, s, split } = argv;
+      const name = r || resolve || "@toolbarthomas/Enlightment";
 
       // Enclose the rendered style as a Component stylesheet if the
       // defined stylesheet exists within the components directory.
-      return {
-        contents: [
-          `import { css } from '${name || "@toolbarthomas/Enlightment"}'`,
-          `export default css\`${css}\``,
-        ].join("\n"),
-        loader: "js",
-      };
+      return s || split
+        ? { contents: css, loader: "css" }
+        : {
+            contents: [
+              `import { css } from '${name}'`,
+              `export default css\`${css}\``,
+            ].join("\n"),
+            loader: "js",
+          };
     });
   },
-};
+});
