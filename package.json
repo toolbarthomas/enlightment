@@ -1,0 +1,25 @@
+{
+  "name": "@toolbarthomas/enlightment",
+  "version": "0.1.0",
+  "description": "Web component workflow with Sass & Lit Element",
+  "main": "dist/Enlightment.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/toolbarthomas/enlightment.git"
+  },
+  "keywords": [
+    "Lit",
+    "Components",
+    "Sass",
+    "Esbuild"
+  ],
+  "author": "Thomas van der velde <contact@toolbarthomas.net>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/toolbarthomas/enlightment/issues"
+  },
+  "homepage": "https://github.com/toolbarthomas/enlightment#readme"
+}
