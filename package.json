@@ -4,7 +4,8 @@
   "description": "Web component workflow with Sass & Lit Element",
   "main": "dist/Enlightment.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "node node/esbuild.enlightment.mjs src/Enlightment"
   },
   "repository": {
     "type": "git",
@@ -21,5 +22,13 @@
   "bugs": {
     "url": "https://github.com/toolbarthomas/enlightment/issues"
   },
-  "homepage": "https://github.com/toolbarthomas/enlightment#readme"
+  "homepage": "https://github.com/toolbarthomas/enlightment#readme",
+  "dependencies": {
+    "esbuild": "^0.18.16",
+    "lit": "^2.7.6",
+    "sass": "^1.64.1"
+  },
+  "devDependencies": {
+    "@webcomponents/webcomponentsjs": "^2.8.0"
+  }
 }
