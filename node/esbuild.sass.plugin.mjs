@@ -2,12 +2,14 @@ import * as sass from "sass";
 import { readFileSync } from "node:fs";
 
 /**
- * Sass Plugin that should be used to process the styles for the components
- * and DOM. The DOM components are returned as plain stylesheet; these styles
- * should be structured within src/styles.
+ * Esbuild Plugin that compiles the defined scss imports with the Sass library.
+ * The rendered styles are included within the actual Enlightment Web Component
+ * source script.
  *
- * Other stylesheets are resolved as JSON so it can be included within the
- * custom element as UnsafeCSS.
+ * Global styles should not be defined within the root Enlightment class, but
+ * included as static file from the <HEAD>. Keep in mind that the global styling
+ * cannot define all styles within a Shadow DOM ans should mainly be used for
+ * defining body related properties like typography and inline element layouts.
  */
 export const SassPlugin = {
   name: "Sass",

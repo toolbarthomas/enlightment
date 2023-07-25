@@ -4,7 +4,15 @@ import path from "node:path";
 import { SassPlugin } from "./esbuild.sass.plugin.mjs";
 
 /*
- * Creates a new production bundle with
+ * Creates a new Enlightment bundle with optional styles that will be included
+ * on classes that are extending from the Enlightment package. Enlightment
+ * packages should import the required Lit Element Class, Decorators & Helpers
+ * from this package: '@toolbarthomas/enlightment'.
+ *
+ * This means that each package
+ * should be included as module: <script type="module" ...> in order to import
+ * the actual Enlightment exports. The Enlightment package should also be
+ * loaded before everything else.
  */
 (async () => {
   const defaults = {

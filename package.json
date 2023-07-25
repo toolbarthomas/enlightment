@@ -12,10 +12,11 @@
     "url": "git+https://github.com/toolbarthomas/enlightment.git"
   },
   "keywords": [
-    "Lit",
-    "Components",
-    "Sass",
-    "Esbuild"
+    "esbuild",
+    "lit",
+    "sass",
+    "typescript",
+    "webcomponents"
   ],
   "author": "Thomas van der velde <contact@toolbarthomas.net>",
   "license": "MIT",
