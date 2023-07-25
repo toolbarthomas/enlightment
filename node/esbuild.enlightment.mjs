@@ -3,6 +3,8 @@ import path from "node:path";
 
 import { SassPlugin } from "./esbuild.sass.plugin.mjs";
 
+import { argv } from "./argv.mjs";
+
 /*
  * Creates a new Enlightment bundle with optional styles that will be included
  * on classes that are extending from the Enlightment package. Enlightment
@@ -21,10 +23,10 @@ import { SassPlugin } from "./esbuild.sass.plugin.mjs";
     format: "esm",
     keepNames: true,
     metafile: false,
-    minify: false,
+    minify: argv.m || argv.minify || false,
     outdir: "dist",
     platform: "node",
-    plugins: [SassPlugin],
+    plugins: [SassPlugin()],
   };
 
   const node = await esbuild.build(defaults);
