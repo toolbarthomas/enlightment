@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "baseUrl": "./",
+    "baseUrl": "sr",
     "declaration": true,
     "lib": [
       "dom",
@@ -16,7 +16,14 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "outDir": "./types",
-    "paths": {},
+    "paths": {
+      "@toolbarthomas/enlightment": [
+        "node_modules/@toolbarthomas/enlightment"
+      ],
+      "@toolbarthomas/enlightment/*": [
+        "node_modules/@toolbarthomas/enlightment/*"
+      ]
+    },
     "plugins": [
       {
         "name": "ts-lit-plugin",
