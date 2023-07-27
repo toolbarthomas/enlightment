@@ -14,7 +14,7 @@ import { argv } from "./argv.mjs";
  * cannot define all styles within a Shadow DOM ans should mainly be used for
  * defining body related properties like typography and inline element layouts.
  */
-export const SassPlugin = () => ({
+export const sassPlugin = () => ({
   name: "Sass",
   setup(build) {
     build.onLoad({ filter: /\.scss$/ }, async (args) => {
@@ -27,9 +27,9 @@ export const SassPlugin = () => ({
       // package. The development version uses the relative path defined from
       // the first CLI argument. This enables the usage of this Esbuild Plugin
       // outside the actual Enlightment package and will resolve Sass imports:
-      // import { SassPlugin } from '@toolbarthomas/Enlightment'
+      // import { sassPlugin } from '@toolbarthomas/enlightment'
       const { r, resolve, s, split } = argv;
-      const name = r || resolve || "@toolbarthomas/Enlightment";
+      const name = r || resolve || "@toolbarthomas/enlightment";
 
       // Enclose the rendered style as a Component stylesheet if the
       // defined stylesheet exists within the components directory.

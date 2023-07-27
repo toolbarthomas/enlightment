@@ -1,7 +1,7 @@
 import esbuild from "esbuild";
 import path from "node:path";
 
-import { SassPlugin } from "./esbuild.sass.plugin.mjs";
+import { sassPlugin } from "./esbuild.sass.plugin.mjs";
 
 import { argv } from "./argv.mjs";
 
@@ -26,7 +26,7 @@ import { argv } from "./argv.mjs";
     minify: argv.m || argv.minify || false,
     outdir: "dist",
     platform: "node",
-    plugins: [SassPlugin()],
+    plugins: [sassPlugin()],
   };
 
   const node = await esbuild.build(defaults);

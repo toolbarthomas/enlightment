@@ -5,6 +5,7 @@
   "main": "dist/Enlightment.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "npm run build && node node/esbuild.serve.mjs",
     "build": "node node/esbuild.enlightment.mjs -r=src/Enlightment -s"
   },
   "repository": {

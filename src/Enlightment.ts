@@ -30,7 +30,7 @@ export const html = _html;
 export const property = _property;
 export const ref = _ref;
 
-import styles from "src/styles.scss";
+// import styles from "src/styles.scss";
 
 /**
  * Enlightment is a toolset based on the Lit Element Web Component library with
@@ -83,8 +83,9 @@ import styles from "src/styles.scss";
  * <script src="my-component.js" type="module"></script>
  */
 export class Enlightment extends LitElement {
+  //@TODO should remove?
   // Defines the default styles to include for the defined Enlightment instance.
-  static styles?: _CSSResultGroup | undefined = [styles];
+  // static styles?: _CSSResultGroup | undefined = [styles];
 
   // Should define the ref value of the root context.
   rootRef: Ref<Element> = createRef();

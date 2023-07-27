@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "baseUrl": "sr",
+    "baseUrl": "./",
     "declaration": true,
     "lib": [
       "dom",
