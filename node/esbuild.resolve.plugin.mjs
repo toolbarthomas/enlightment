@@ -1,3 +1,7 @@
+import { existsSync, copyFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, join, resolve } from "node:path";
+
 /**
  * Resolve the requested Enlightment package from @toolbarthomas/enlightment
  * to the actual compiled source (default: '/Enlightment.js'). A custom
@@ -13,12 +17,30 @@ export const resolvePlugin = (options) => ({
   name: "resolve-plugin",
   setup: (build) => {
     const { destination, namespace } = options || {};
+    const d = destination || "/Enlightment.js";
+    const n = namespace || "enlightment";
+    const { initialOptions } = build || {};
+    const { outdir } = initialOptions;
+
+    if (d && !existsSync(d)) {
+      const from = resolve(
+        fileURLToPath(import.meta.url),
+        "../../dist/Enlightment.js"
+      );
+      const to = join(process.cwd(), outdir || "", d);
+
+      try {
+        existsSync(from) && copyFileSync(from, to);
+      } catch (exception) {
+        exception && Error(exception);
+      }
+    }
 
     build.onResolve({ filter: /@toolbarthomas\/enlightment$/ }, (args) => {
       return {
-        path: destination || "/Enlightment.js",
+        path: d,
         external: true,
-        namespace: namespace || "enlightment",
+        namespace: n,
       };
     });
   },

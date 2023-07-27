@@ -1,4 +1,10 @@
 node_modules
 dist/*
 !dist/index.html
+example/*
+!example/esbuild.cjs
+!example/esbuild.mjs
+!example/index.cjs
+!example/index.mjs
+!example/index.ts
 .vscode

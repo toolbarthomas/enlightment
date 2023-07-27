@@ -35,5 +35,5 @@ import { argv } from "./argv.mjs";
 
   const node = await esbuild.build(defaults);
 
-  console.info(`Enlightment bundle created`);
+  console.info(`Enlightment ${format} bundle created`);
 })();
