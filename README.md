@@ -111,7 +111,7 @@ class MyComponent extends Enlightment {...}
 <a id="esbuild-tooling"></a>
 ## Esbuild Tooling
 
-Enlightment provides multiple Esbuild plugins to enable the usage of the Ecmascript module format. It is adviced to include these plugins within your ESbuild environment to correctly setup the actual components as bundle or modular ESM structure.
+Enlightment provides multiple Esbuild plugins to setup modular Web Components with Sass compiled stylesheets. It is adviced to include these plugins within your ESbuild environment to correctly setup the actual components as bundle or modular ESM structure.
 
 **Note:** A bundle and modular ESM example have been defined within the example directory. Use the example configuration according to the desired format within your current Esbuild environment.
 
@@ -132,6 +132,8 @@ A standard Web Component will use an internal Stylesheet for the rendered result
 Enlightment provides an Esbuild Sass Plugin that enables the import of external `.scss` filetypes within your component while using Esbuild within your environment.
 
 You need to include the actual plugin from the Enlightment package: `@toolbarthomas/enlightment/node/esbuild.sass.plugin.mjs` within your [Esbuild](https://esbuild.github.io/api/) setup, in order to resolve the imported Sass stylesheets as component stylesheet.
+
+The actual requested stylesheet will be transformed with the Sass package during the compilation of the initial entry file. The styling will be inlined within the exported `css` template literal and should be included as `static styles` property from the actual Enlightment element:
 
 ```mjs
 // ./esbuild.mjs
