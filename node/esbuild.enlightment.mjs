@@ -17,14 +17,18 @@ import { argv } from "./argv.mjs";
  * loaded before everything else.
  */
 (async () => {
+  const format = argv.f || argv.format || "esm";
+  const outExtension = { ".js": format === "cjs" ? ".cjs" : ".js" };
+
   const defaults = {
     bundle: true,
     entryPoints: ["./src/Enlightment.ts"],
-    format: "esm",
+    format,
     keepNames: true,
     metafile: false,
     minify: argv.m || argv.minify || false,
     outdir: "dist",
+    outExtension,
     platform: "node",
     plugins: [sassPlugin()],
   };
