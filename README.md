@@ -2,7 +2,7 @@
 
 Enlightment is a toolset based on the [Lit Element 2.0](https://github.com/lit/lit/) Web Component library and includes extra features to speed up your Web Component journey.
 
-Enlightment does not expect any build tools to be installed in order to use within your project. This means you can directly include the compiled Enlightment library within your browser and create Enlightment components within the ESM format without any bundling. But is is also possible to include it within [bundle environments](#advanced-setup)
+Enlightment does not expect any build tools to be installed in order to use within your project. This means you can directly include the compiled Enlightment library within the browser and create Enlightment components within the ESM format without any bundling. But is is also possible to include it within [bundle environments](#advanced-setup)
 
 ## Installation
 
