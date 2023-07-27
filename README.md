@@ -44,10 +44,10 @@ Your module should import from the actual library destination (we assume it is a
 
 ```js
 /**
- * Actual import has been resolved from the compiled library:
+ * We asume the import has been resolved before hand from the compiled library:
  * @toolbarthomas/enlightenment/dist/Enlightenment.js
  */
-import { Enlightenment, html } from '@toolbarthomas/enlightenment/dist/Enlightenment.js'
+import { Enlightenment, html } from '/Enlightenment.js'
 
 /**
  * Setup the custom component: custom-component with the default
