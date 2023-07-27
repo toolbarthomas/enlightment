@@ -1,30 +1,30 @@
-# Enlightment
+# Enlightenment
 
-Enlightment is a toolset based on the [Lit Element 2.0](https://github.com/lit/lit/) Web Component library and includes extra features to speed up your Web Component journey.
+Enlightenment is a toolset based on the [Lit Element 2.0](https://github.com/lit/lit/) Web Component library and includes extra features to speed up your Web Component journey.
 
-Enlightment does not expect any build tools to be installed in order to use within your project. This means you can directly include the compiled Enlightment library within the browser and create ESM formatted components without any bundling. But of course it is also possible to include it within [compilation environments](#advanced-setup) like Typescript or Esbuild.
+Enlightenment does not expect any build tools to be installed in order to use within your project. This means you can directly include the compiled Enlightenment library within the browser and create ESM formatted components without any bundling. But of course it is also possible to include it within [compilation environments](#advanced-setup) like Typescript or Esbuild.
 
 ## Installation
 
-You can install Enlightment via [NPM](https://npmjs.com) ([Node.js]([http:](https://nodejs.org/)) is required to continue.)
+You can install Enlightenment via [NPM](https://npmjs.com) ([Node.js]([http:](https://nodejs.org/)) is required to continue.)
 
 ```
-$ npm install @toolbarthomas/enlightment
+$ npm install @toolbarthomas/enlightenment
 ```
 
 
 <a id="browser-setup"></a>
 ## Browser Setup
 
-After the installation you can directly use the compiled Enlightment browser library from the installation directory:
+After the installation you can directly use the compiled Enlightenment browser library from the installation directory:
 
 ```
-node_modules/@toolbarthomas/enlightment/dist/Enlightment.js
+node_modules/@toolbarthomas/enlightenment/dist/Enlightenment.js
 ```
 
 You should include the actual module as Ecmascript module script within your template:
 
-**Note:** No build tools are required for compiling `my-component.js`.<br/>See the [Advanced Setup](#advanced-setup) for using Enlightment within your development toolset.
+**Note:** No build tools are required for compiling `my-component.js`.<br/>See the [Advanced Setup](#advanced-setup) for using Enlightenment within your development toolset.
 
 
 ```html
@@ -38,22 +38,22 @@ You should include the actual module as Ecmascript module script within your tem
 </body>
 ```
 
-**Note:** It is encouraged to setup the actual sources within the ESM format and include the core `Enlightment` library as a single source. Bundling is possible by using the package name within your include: `@toolbarthomas/enlightment`. See [Advanced Setup](#advanced-setup) for more information regarding this workflow.
+**Note:** It is encouraged to setup the actual sources within the ESM format and include the core `Enlightenment` library as a single source. Bundling is possible by using the package name within your include: `@toolbarthomas/enlightenment`. See [Advanced Setup](#advanced-setup) for more information regarding this workflow.
 
 Your module should import from the actual library destination (we assume it is absolute to your public directory in this example...):
 
 ```js
 /**
  * Actual import has been resolved from the compiled library:
- * @toolbarthomas/enlightment/dist/Enlightment.js
+ * @toolbarthomas/enlightenment/dist/Enlightenment.js
  */
-import { Enlightment, html } from '/Enlightment.js'
+import { Enlightenment, html } from '/Enlightenment.js'
 
 /**
  * Setup the custom component: custom-component with the default
  * lit-element methods since we don't use any build tool:
  */
-class MyComponent extends Enlightment {
+class MyComponent extends Enlightenment {
   constructor() {
     super()
   }
@@ -62,47 +62,47 @@ class MyComponent extends Enlightment {
   render() html`<h1>My Component</h1>...`
 };
 
-// Register the actual custom element with the created Enlightment instance.
+// Register the actual custom element with the created Enlightenment instance.
 window.customElements.define('my-component', MyComponent)
 
 ```
-This will load the Enlightment library as external source and prevents the issue where multiple Enlightment libraries are included when including multiple Enlightment elements.
+This will load the Enlightenment library as external source and prevents the issue where multiple Enlightenment libraries are included when including multiple Enlightenment elements.
 
 **Pro tip:** No build tools are required for this method but you should resolve the actual library to a logical destination since exposing the `node_modules` directory can introduce security issues for your project.
 
 <a id="advanced-setup"></a>
 ## Advanced Setup
 
-Enlightment is also supported within Node & Typescript environments with additional build tooling. You should resolve to the correct entry within the `@toolbarthomas/enlightment` package according to your environment (cjs or mjs).
+Enlightenment is also supported within Node & Typescript environments with additional build tooling. You should resolve to the correct entry within the `@toolbarthomas/Enlightenment` package according to your environment (cjs or mjs).
 
 #### CommonJS
 
 ```cjs
-const { Enlightment } = require("@toolbarthomas/enlightment/index.cjs");
+const { Enlightenment } = require("@toolbarthomas/Enlightenment/index.cjs");
 
-class MyComponent extends Enlightment {...}
+class MyComponent extends Enlightenment {...}
 
 ```
-This will actually resolve to `@toolbarthomas/enlightment/index.cjs`, since the
+This will actually resolve to `@toolbarthomas/enlightenment/index.cjs`, since the
 default Node CJS format is expected within this example.
 
 #### Ecmascript
 
 ```mjs
-import { Enlightment } from "@toolbarthomas/enlightment/index.mjs";
+import { Enlightenment } from "@toolbarthomas/Enlightenment/index.mjs";
 
-class MyComponent extends Enlightment {...}
+class MyComponent extends Enlightenment {...}
 
 ```
 
-The ESM format is also supported but resolves to `@toolbarthomas/enlightment/index.mjs` or `@toolbarthomas/enlightment/index.ts` (when using [Typescript](https://www.typescriptlang.org/)) instead:
+The ESM format is also supported but resolves to `@toolbarthomas/Enlightenment/index.mjs` or `@toolbarthomas/Enlightenment/index.ts` (when using [Typescript](https://www.typescriptlang.org/)) instead:
 
 #### Typescript
 
 ```ts
-import { Enlightment } from "@toolbarthomas/enlightment";
+import { Enlightenment } from "@toolbarthomas/enlightenment";
 
-class MyComponent extends Enlightment {...}
+class MyComponent extends Enlightenment {...}
 
 ```
 
@@ -111,34 +111,36 @@ class MyComponent extends Enlightment {...}
 <a id="esbuild-tooling"></a>
 ## Esbuild Tooling
 
-Enlightment provides multiple Esbuild plugins to setup modular Web Components with Sass compiled stylesheets. It is adviced to include these plugins within your ESbuild environment to correctly setup the actual components as bundle or modular ESM structure.
+Enlightenment provides multiple Esbuild plugins to setup modular Web Components with Sass compiled stylesheets. It is adviced to include these plugins within your ESbuild environment to correctly setup the actual components as bundle or modular ESM structure.
 
 **Note:** A bundle and modular ESM example have been defined within the example directory. Use the example configuration according to the desired format within your current Esbuild environment.
 
 ### Resolve Plugin
 
-The resolve plugin is used in order to resolve the actual package path `@toolbarthomas/enlightment` within your component source to a static path.
-It will resolve to `/Enlightment.js` by default but a custom destination can be defined. The resolve Plugin will also create a copy of the initial Enlightment package script to the Esbuild entry destination.
-An example is defined within `example/esbuild.mjs` that will transform the defined `example/index.ts` as module within the ESM format and write to `example/dist` directory with the Enlightment library as `example/dist/framework.js`.
+The resolve plugin is used in order to resolve the actual package path `@toolbarthomas/enlightenment` within your component source to a static path.
+It will resolve to `/Enlightenment.js` by default but a custom destination can be defined. The resolve Plugin will also create a copy of the initial Enlightenment package script to the Esbuild entry destination.
+
+**Note**
+An [example](https://github.com/toolbarthomas/enlightenment/tree/develop/example) is defined within `example/esbuild.mjs` that will transform the defined `example/index.ts` as module within the ESM format and write to `example/dist` directory with the Enlightenment library as `example/dist/framework.js`.
 
 | Name        | Type   | Description                                                   |
 | ----------- | ------ | ------------------------------------------------------------- |
-| destination | string | Source to the Enlightment browser compatible library.         |
+| destination | string | Source to the Enlightenment browser compatible library.       |
 | namespace   | string | Optional Plugin namespace to use within the Esbuild instance. |
 
 ### Sass Plugin
 
 A standard Web Component will use an internal Stylesheet for the rendered result.
-Enlightment provides an Esbuild Sass Plugin that enables the import of external `.scss` filetypes within your component while using Esbuild within your environment.
+Enlightenment provides an Esbuild Sass Plugin that enables the import of external `.scss` filetypes within your component while using Esbuild within your environment.
 
-You need to include the actual plugin from the Enlightment package: `@toolbarthomas/enlightment/node/esbuild.sass.plugin.mjs` within your [Esbuild](https://esbuild.github.io/api/) setup, in order to resolve the imported Sass stylesheets as component stylesheet.
+You need to include the actual plugin from the Enlightenment package: `@toolbarthomas/enlightenment/node/esbuild.sass.plugin.mjs` within your [Esbuild](https://esbuild.github.io/api/) setup, in order to resolve the imported Sass stylesheets as component stylesheet.
 
-The actual requested stylesheet will be transformed with the Sass package during the compilation of the initial entry file. The styling will be inlined within the exported `css` template literal and should be included as `static styles` property from the actual Enlightment element:
+The actual requested stylesheet will be transformed with the Sass package during the compilation of the initial entry file. The styling will be inlined within the exported `css` template literal and should be included as `static styles` property from the actual Enlightenment element:
 
 ```mjs
 // ./esbuild.mjs
 import esbuild from "esbuild"
-import { sassPlugin } from "@toolbarthomas/enlightment/node/esbuild.sass.plugin.mjs"
+import { sassPlugin } from "@toolbarthomas/enlightenment/node/esbuild.sass.plugin.mjs"
 
 esbuild.build({
   ...
@@ -150,11 +152,11 @@ esbuild.build({
 **Note:** The Sass plugin can resolve from the current working directory, the base directory, the initial entry point or the local node_modules directory:
 
 ```ts
-import { Enlightment } from "@toolbarthomas/enlightment";
+import { Enlightenment } from "@toolbarthomas/enlightenment";
 
 import styles from 'my-component.scss'
 
-class MyComponent extends Enlightment {
+class MyComponent extends Enlightenment {
   static styles = [styles]
 
   ...
@@ -162,4 +164,36 @@ class MyComponent extends Enlightment {
 
 ```
 
-**Note:** There are currently no customization options for the included sassPlugin since it is bound to the Esbuild context.
+**Note:** Optional Sass configuration can be defined within near future but is not relevant in the current state of the Enlightenment Node package.
+
+## Enlightenment Interface
+
+Enlightenment uses under the hood the [Lit Element Library](https://lit.dev/docs/) and inherits the actual interface of [LitElement](https://lit.dev/docs/components/defining/).
+It introduces extra methods to use within the Web Component context that improves the overall user experience and development of the initial component:
+
+| Property                 | Description                                                                                                       |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| _testImageSource         | Validates if the defined image source is a valid image extension (this does not test any headers!).               |
+| commit                   | Updates the defined property value or handler within the component and use the requestUpdate callback afterwards. |
+| context                  | Default component ref to use on the parent element within the component context.                                  |
+| currentElement           | Boolean to check if the current element is within the component context.                                          |
+| exitKeyCodes             | Defines the keys (like escape) to exit from a state within the component context within Keyboard events.          |
+| focusContext             | Optional component ref to use where the Focus Trap library should lock from.                                      |
+| focusTrap.activate       | Enables the usage of the Focus Trap library that holds the focus within the defined focus context.                |
+| focusTrap.deactivate     | Disables the activated Focus Trap.                                                                                |
+| FPS                      | Default throttle delay value as 60fps in ms.                                                                      |
+| hasFocusTrap             | Boolean flag to check outside the component context if the focus trap is enabled.                                 |
+| hook                     | Dispatch additional callbacks within the selected context or the initial component context.                       |
+| ignoredKeyCodes          | Defines the keys to ignore within Keyboard events. (Any meta key is expected within the actual array.)            |
+| isComponentContext       | Validates if the selected HTMLElement target is within the component context.                                     |
+| log                      | Optional tracking of console usage within the component context.                                                  |
+| renderImage              | Inserts an SVG as default image or inline within the inline SVG format.                                           |
+| root                     | Alias to the root window Object.                                                                                  |
+| root.Enlightenment       | Alias to the Enlightenment global Object that is assigned from the initial Enlightenment component construction.  |
+| slots                    | Stores the used component slots to enable component callback during a 'slotchange' event.                         |
+| spriteSource             | Includes any inline svg as sprite with the defined spriteSource value.                                            |
+| subscribeGlobalEvent     | Assigns the defined handler and event name as Global event.                                                       |
+| supportedImageExtensions | Fixes array with the valid image extensions to check.                                                             |
+| throttle                 | Prevents the defined function to be called within the throttle duration.                                          |
+| throttleDelay            | Optional delay value in milliseconds to use instead of the default FPS value.                                     |
+| unsubscribeGlobalEvent   | Removes the assigned global event from the component context.                                                     |

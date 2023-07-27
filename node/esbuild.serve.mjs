@@ -4,7 +4,7 @@ import { resolvePlugin } from "./esbuild.resolve.plugin.mjs";
 import { sassPlugin } from "./esbuild.sass.plugin.mjs";
 
 /**
- * Esbuild example workflow for transforming an actual Enlightment Element.
+ * Esbuild example workflow for transforming an actual Enlightenment Element.
  *
  * The initial element will include any Sass stylesheet within the component
  * bundle and is only exposed within the element context, see the
@@ -17,7 +17,7 @@ import { sassPlugin } from "./esbuild.sass.plugin.mjs";
   const context = await esbuild.context({
     bundle: true,
     entryPoints: ["./src/hello-world.ts"],
-    external: ["@toolbarthomas/enlightment"],
+    external: ["@toolbarthomas/enlightenment"],
     format: "esm",
     outdir: "dist",
     platform: "browser",
@@ -30,7 +30,7 @@ import { sassPlugin } from "./esbuild.sass.plugin.mjs";
     })
     .then((result) => {
       console.log(
-        `Enlightment test server starter: ${result.host}:${result.port}`
+        `Enlightenment test server starter: ${result.host}:${result.port}`
       );
     });
 })();

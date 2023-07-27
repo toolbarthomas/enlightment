@@ -2,7 +2,7 @@ const esbuild = require("esbuild");
 
 (async () => {
   const { sassPlugin } = await import(
-    "@toolbarthomas/enlightment/node/esbuild.sass.plugin.mjs"
+    "@toolbarthomas/enlightenment/node/esbuild.sass.plugin.mjs"
   );
 
   esbuild

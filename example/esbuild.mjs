@@ -1,5 +1,5 @@
 import esbuild from "esbuild";
-import { sassPlugin } from "@toolbarthomas/enlightment/node/esbuild.sass.plugin.mjs";
+import { sassPlugin } from "@toolbarthomas/enlightenment/node/esbuild.sass.plugin.mjs";
 import { resolvePlugin } from "../node/esbuild.resolve.plugin.mjs";
 
 (async () => {

@@ -6,15 +6,14 @@ import { sassPlugin } from "./esbuild.sass.plugin.mjs";
 import { argv } from "./argv.mjs";
 
 /*
- * Creates a new Enlightment bundle with optional styles that will be included
- * on classes that are extending from the Enlightment package. Enlightment
+ * Creates a new Enlightenment bundle with optional styles that will be included
+ * on classes that are extending from the Enlightenment package. Enlightenment
  * packages should import the required Lit Element Class, Decorators & Helpers
- * from this package: '@toolbarthomas/enlightment'.
+ * from this package: '@toolbarthomas/enlightenment'.
  *
- * This means that each package
- * should be included as module: <script type="module" ...> in order to import
- * the actual Enlightment exports. The Enlightment package should also be
- * loaded before everything else.
+ * This means that each package should be included as module:
+ * <script type="module" ...> in order to import the actual Enlightenment
+ * exports. The package should also be loaded before everything else.
  */
 (async () => {
   const format = argv.f || argv.format || "esm";
@@ -22,7 +21,7 @@ import { argv } from "./argv.mjs";
 
   const defaults = {
     bundle: true,
-    entryPoints: ["./src/Enlightment.ts"],
+    entryPoints: ["./src/Enlightenment.ts"],
     format,
     keepNames: true,
     metafile: false,
@@ -35,5 +34,5 @@ import { argv } from "./argv.mjs";
 
   const node = await esbuild.build(defaults);
 
-  console.info(`Enlightment ${format} bundle created`);
+  console.info(`Enlightenment ${format} bundle created`);
 })();

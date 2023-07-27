@@ -17,11 +17,11 @@
     "noUnusedParameters": false,
     "outDir": "./types",
     "paths": {
-      "@toolbarthomas/enlightment": [
-        "node_modules/@toolbarthomas/enlightment"
+      "@toolbarthomas/enlightenment": [
+        "node_modules/@toolbarthomas/enlightenment"
       ],
-      "@toolbarthomas/enlightment/*": [
-        "node_modules/@toolbarthomas/enlightment/*"
+      "@toolbarthomas/enlightenment/*": [
+        "node_modules/@toolbarthomas/enlightenment/*"
       ]
     },
     "plugins": [

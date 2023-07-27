@@ -1,17 +1,17 @@
 {
-  "name": "@toolbarthomas/enlightment",
+  "name": "@toolbarthomas/enlightenment",
   "version": "0.1.0",
   "description": "Web component workflow with Sass & Lit Element",
-  "main": "dist/Enlightment.js",
+  "main": "dist/enlightenment.js",
   "type": "module",
   "files": [
-    "dist/Enlightment.js",
+    "dist/enlightenment.js",
     "index.cjs",
     "index.mjs",
     "index.ts",
     "node/",
     "README.md",
-    "src/Enlightment.ts",
+    "src/enlightenment.ts",
     "src/mixins/",
     "tsconfig.json"
   ],
@@ -19,11 +19,11 @@
     "prepublish": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "node node/esbuild.serve.mjs",
-    "build": "node node/esbuild.enlightment.mjs -r=src/Enlightment -s & node node/esbuild.enlightment.mjs -r=src/Enlightment -s -f=cjs"
+    "build": "node node/esbuild.enlightenment.mjs -r=src/enlightenment -s & node node/esbuild.enlightenment.mjs -r=src/enlightenment -s -f=cjs"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/toolbarthomas/enlightment.git"
+    "url": "git+https://github.com/toolbarthomas/enlightenment.git"
   },
   "keywords": [
     "esbuild",
@@ -35,9 +35,9 @@
   "author": "Thomas van der velde <contact@toolbarthomas.net>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/toolbarthomas/enlightment/issues"
+    "url": "https://github.com/toolbarthomas/enlightenment/issues"
   },
-  "homepage": "https://github.com/toolbarthomas/enlightment#readme",
+  "homepage": "https://github.com/toolbarthomas/enlightenment#readme",
   "dependencies": {
     "lit": "^2.7.6",
     "sass": "^1.64.1"

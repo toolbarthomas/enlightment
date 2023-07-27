@@ -1,20 +1,20 @@
 import {
   customElement,
-  Enlightment,
+  Enlightenment,
   html,
   property,
-} from "@toolbarthomas/enlightment";
+} from "@toolbarthomas/enlightenment";
 
 import styles from "./hello-world.scss";
 
 @customElement("hello-world")
-class HelloWorl extends Enlightment {
+class HelloWorl extends Enlightenment {
   static styles = [styles];
 
   @property({ type: String })
   name = "World";
 
   render() {
-    return html`<h1>Hello ${this.name}</h1>`;
+    return html`<h1>Hello ${this.name || "World"}</h1>`;
   }
 }

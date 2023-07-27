@@ -6,10 +6,10 @@ import { argv } from "./argv.mjs";
 
 /**
  * Esbuild Plugin that compiles the defined scss imports with the Sass library.
- * The rendered styles are included within the actual Enlightment Web Component
+ * The rendered styles are included within the actual enlightenment Web Component
  * source script.
  *
- * Global styles should not be defined within the root Enlightment class, but
+ * Global styles should not be defined within the root Enlightenment class, but
  * included as static file from the <HEAD>. Keep in mind that the global styling
  * cannot define all styles within a Shadow DOM ans should mainly be used for
  * defining body related properties like typography and inline element layouts.
@@ -23,13 +23,13 @@ export const sassPlugin = () => ({
         loadPaths: [process.cwd(), dirname(args.path), "./node_modules"],
       });
 
-      // Use the dynamic name alias in order to resolve to actual Enlightment
+      // Use the dynamic name alias in order to resolve to actual Enlightenment
       // package. The development version uses the relative path defined from
       // the first CLI argument. This enables the usage of this Esbuild Plugin
-      // outside the actual Enlightment package and will resolve Sass imports:
-      // import { sassPlugin } from '@toolbarthomas/enlightment'
+      // outside the actual enlightenment package and will resolve Sass imports:
+      // import { sassPlugin } from '@toolbarthomas/enlightenment'
       const { r, resolve, s, split } = argv;
-      const name = r || resolve || "@toolbarthomas/enlightment";
+      const name = r || resolve || "@toolbarthomas/enlightenment";
 
       // Enclose the rendered style as a Component stylesheet if the
       // defined stylesheet exists within the components directory.

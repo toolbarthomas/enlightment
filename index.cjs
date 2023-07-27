@@ -2,17 +2,17 @@ const {
   createRef,
   css,
   customElement,
-  Enlightment,
+  Enlightenment,
   html,
   property,
   ref,
-} = require("./dist/Enlightment.cjs");
+} = require("./dist/Enlightenment.cjs");
 
 module.exports = {
   createRef,
   css,
   customElement,
-  Enlightment,
+  Enlightenment,
   html,
   property,
   ref,

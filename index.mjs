@@ -1,6 +1,6 @@
-import * as instance from "./dist/Enlightment.js";
+import * as instance from "./dist/Enlightenment.js";
 
-const { createRef, css, customElement, Enlightment, html, property, ref } =
+const { createRef, css, customElement, Enlightenment, html, property, ref } =
   instance;
 
-export { createRef, css, customElement, Enlightment, html, property, ref };
+export { createRef, css, customElement, Enlightenment, html, property, ref };

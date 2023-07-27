@@ -2,26 +2,26 @@
 <html>
 
 <head>
-  <title>Hello World with Enlightment</title>
+  <title>Hello World with Enlightenment</title>
 
   <!--
       ATTENTION!
 
-      The following example requires the default Enlightment workflow in order
+      The following example requires the default Enlightenment workflow in order
       to load correctly. The actual script has not been bundled with the
       required library.
 
-      The following module will import the required Enlightment library from the
-      defined destination: '/Enlightment.js' (The default source for the
-      compiled Enlightment package).
+      The following module will import the required Enlightenment library from the
+      defined destination: '/enlightenment.js' (The default source for the
+      compiled Enlightenment package).
 
       You can ignore the workflow if your component will be bundled with the
-      actual Enlightment library within your working development.
+      actual Enlightenment library within your working development.
   -->
   <script src="hello-world.js" type="module"></script>
   <script>
     const element = document.createElement('hello-world');
-    element.setAttribute('name', "Enlightment")
+    element.setAttribute('name', "Enlightenment")
 
     window.addEventListener('load', (event) =>
     {

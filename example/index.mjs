@@ -1,6 +1,6 @@
-import { Enlightment } from "@toolbarthomas/enlightment/index.mjs";
+import { enlightenment } from "@toolbarthomas/enlightenment/index.mjs";
 
-class FooBar extends Enlightment {
+class FooBar extends enlightenment {
   render() {
     html`EJS`;
   }

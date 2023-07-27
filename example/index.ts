@@ -1,7 +1,7 @@
-import { Enlightment, html, property } from "@toolbarthomas/enlightment";
+import { Enlightenment, html, property } from "@toolbarthomas/enlightenment";
 
 @property("foo-bar")
-class FooBar extends Enlightment {
+class FooBar extends enlightenment {
   render() {
     html`FooBar`;
   }
