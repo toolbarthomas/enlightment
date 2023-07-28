@@ -16,7 +16,10 @@ class HelloWorld extends Enlightenment {
 
   render() {
     return html`<div>
-      <slot>Hello ${this.name || "World"}<span>bbb</span></slot>
+      <h1>Hello ${this.name}</h1>
+      <div>
+        <slot></slot>
+      </div>
     </div>`;
   }
 }

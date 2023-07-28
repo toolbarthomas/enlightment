@@ -249,7 +249,8 @@ export class Enlightenment extends LitElement {
               ? undefined
               : slots[i];
 
-            this.addEventListener("slotchange", this.isEmptySlot);
+            slots[i].removeEventListener("slotchange", this.isEmptySlot);
+            slots[i].addEventListener("slotchange", this.isEmptySlot);
           }
 
           this.isEmptySlot({ target: slots[i] } as any);
@@ -301,13 +302,16 @@ export class Enlightenment extends LitElement {
   }
 
   /**
-   * Mark the parentElement as hidden if the defined slot is empty.
+   * Mark the wrapping element as hidden for each empty slot.
+   * This should trigger during a slotchange event within the created element
+   * context.
    */
-  isEmptySlot = (event: Event) => {
+  protected isEmptySlot = (event: Event) => {
+    console.log("isEmpty");
     const { parentElement } = event.target as Element;
 
     if (parentElement) {
-      if (isEmptyComponentSlot(event.target as HTMLSlotElement)) {
+      if (!isEmptyComponentSlot(event.target as HTMLSlotElement)) {
         return parentElement.removeAttribute("aria-hidden");
       }
 
@@ -318,7 +322,7 @@ export class Enlightenment extends LitElement {
   /**
    * Alias for the default console to use during development.
    */
-  log(message: any | any[], type?: string) {
+  protected log(message: any | any[], type?: string) {
     //@ts-ignore
     if (typeof console[type || "log"] !== "function") {
       return;
@@ -376,13 +380,10 @@ export class Enlightenment extends LitElement {
       delete this.throttler.handlers[index];
     }
 
-    const fn = () =>
-      setTimeout(
-        handler,
-        isNaN(parseFloat(String(delay))) ? this.throttler.delay : delay
-      );
-
-    const timeout = fn();
+    const timeout = setTimeout(
+      handler,
+      isNaN(parseFloat(String(delay))) ? this.throttler.delay : delay
+    );
 
     this.throttler.handlers.push([handler, timeout]);
 
@@ -413,20 +414,8 @@ export class Enlightenment extends LitElement {
    * Setup the actual featuers for the constructed Enlightenment component.
    */
   protected firstUpdated(): void {
+    // Assign the rendered slots within the element context and mark any empty
+    // slot as hidden within the initial render.
     this.assignSlots();
-
-    // // Marks the current rendered slots as hidden if the actual contents is
-    // // undefined. This is helpfull while styling the component with an empty
-    // // slot.
-    // this.shadowRoot &&
-    //   this.shadowRoot.querySelectorAll("slot").forEach((node) => {
-    //     if (!this.slots.includes(node)) {
-    //       this.slots.push(node);
-
-    //       node.addEventListener("slotchange", this.isEmptySlot);
-    //     }
-
-    //     this.isEmptySlot({ target: node } as any);
-    //   });
   }
 }

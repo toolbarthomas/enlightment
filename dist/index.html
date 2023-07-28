@@ -20,14 +20,19 @@
   -->
   <script src="hello-world.js" type="module"></script>
   <script>
-    const element = document.createElement('hello-world');
+    const element = document.createElement('hello-world')
     element.setAttribute('name', "Enlightenment")
-    element.innerHTML = "<h2>Mama mia</h2>"
+    element.innerHTML = "<p>Consequat duis culpa fugiat ut et in.</p>"
+
+    const emptyElement = document.createElement('hello-world')
 
     window.addEventListener('load', (event) =>
     {
       document.body.appendChild(element)
+      document.body.appendChild(emptyElement)
     })
+
+    setTimeout(() => element.querySelector("p").remove(), 10000)
   </script>
 </head>
 
