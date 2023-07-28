@@ -53,6 +53,14 @@ export type GlobalEvent = [
 ];
 
 /**
+ * Optional options to use for Enlightenment.hook method.
+ */
+export type hookOptions = {
+  context?: Element;
+  data: any;
+};
+
+/**
  * Re-export the required Lit Element libraries to ensure the imports are
  * comming a single source.
  */
@@ -175,6 +183,18 @@ export class Enlightenment extends LitElement {
     exit: [27],
   };
 
+  /**
+   * Ensures any whitespace is removed from the given string.
+   */
+  static strip(value: string) {
+    typeof value === "string"
+      ? value
+          .split(" ")
+          .join("")
+          .replace(/\r?\n|\r/g, "")
+      : String(value);
+  }
+
   // Defines the renderable image type for the renderImage method.
   static supportedImageExtensions = [
     ".apng",
@@ -293,6 +313,8 @@ export class Enlightenment extends LitElement {
 
     const slots = this.shadowRoot?.querySelectorAll("slot");
 
+    this.clearGlobalEvent("slotchange", slots);
+
     this.commit("slots", () => {
       if (!slots || !slots.length) {
         this.slots = {};
@@ -305,8 +327,7 @@ export class Enlightenment extends LitElement {
               ? undefined
               : slots[i];
 
-            slots[i].removeEventListener("slotchange", this.isEmptySlot);
-            slots[i].addEventListener("slotchange", this.isEmptySlot);
+            this.assignGlobalEvent("slotchange", this.isEmptySlot, slots[i]);
           }
 
           this.isEmptySlot({ target: slots[i] } as any);
@@ -315,6 +336,68 @@ export class Enlightenment extends LitElement {
         this.log([`Found ${slots.length} slot(s) from:`, this.slots]);
       }
     });
+  }
+
+  /**
+   * Removes the defined assigned global Events from the selected type.
+   */
+  protected clearGlobalEvent(type: GlobalEventType, context?: any | any[]) {
+    const queue = Array.isArray(context) ? context : [context];
+
+    console.log("queue", queue);
+
+    for (let i = 0; i < queue.length; i += 1) {
+      const listeners = this.listeners.filter(
+        ([t, fn, ctx]) => t === type && (queue[i] || this) === ctx
+      );
+
+      console.log("clear1?");
+
+      if (!listeners || !listeners.length) {
+        continue;
+      }
+
+      console.log("clear?");
+
+      let completed = 0;
+      listeners.forEach(([t, fn, ctx]) => {
+        ctx.removeEventListener(t, fn as any);
+
+        this.log([`Global ${t} event removed:`, fn], "log");
+
+        completed += 1;
+      });
+
+      if (completed === listeners.length) {
+        this.listeners = this.listeners.filter(
+          (listener) => !listeners.includes(listener)
+        );
+
+        this.log(`Global ${type} event cleared`, "log");
+      }
+    }
+  }
+
+  /**
+   * Cleanup the defined throttler handlers and stop any defined throttle
+   * timeout.
+   */
+  protected clearThrottler() {
+    const { handlers } = this.throttler;
+
+    if (!handlers || !handlers.length) {
+      return;
+    }
+
+    handlers.forEach(([fn, timeout], index) => {
+      if (timeout) {
+        clearTimeout(timeout);
+
+        this.log(["Throttle cleared:", fn], "log");
+      }
+    });
+
+    this.throttler.handlers = [];
   }
 
   /**
@@ -367,6 +450,8 @@ export class Enlightenment extends LitElement {
     this.assignGlobalEvent("keydown", this.handleGlobalKeydown);
     this.assignGlobalEvent("focus", this.handleGlobalFocus);
     this.assignGlobalEvent("focusin", this.handleGlobalFocus);
+
+    this.hook("connected");
   }
 
   /**
@@ -380,6 +465,13 @@ export class Enlightenment extends LitElement {
       this.omitGlobalEvent("keydown", this.handleGlobalKeydown);
       this.omitGlobalEvent("focus", this.handleGlobalFocus);
       this.omitGlobalEvent("focusin", this.handleGlobalFocus);
+
+      this.clearGlobalEvent(
+        "slotchange",
+        this.shadowRoot && this.shadowRoot.querySelectorAll("slot")
+      );
+
+      this.hook("disconnected");
 
       super.disconnectedCallback();
     } catch (error) {
@@ -481,6 +573,31 @@ export class Enlightenment extends LitElement {
   }
 
   /**
+   * Event Dispatcher interface to call Event handlers that are defined outside
+   * the Enlightenment element context.
+   */
+  public hook(name: string, options?: hookOptions) {
+    const { context, data } = options || {};
+
+    if (!name) {
+      this.log("Unable to use undefined hook", "error");
+
+      return;
+    }
+
+    const event = new CustomEvent(name, {
+      bubbles: true,
+      detail: data || {},
+    });
+
+    if (context && context !== this) {
+      return context.dispatchEvent(event);
+    }
+
+    return this.dispatchEvent(event);
+  }
+
+  /**
    * Validates if the defined element exists within the created Enlightenment
    * context.
    */
@@ -500,11 +617,20 @@ export class Enlightenment extends LitElement {
 
     if (parentElement) {
       if (!isEmptyComponentSlot(event.target as HTMLSlotElement)) {
-        return parentElement.removeAttribute("aria-hidden");
+        parentElement.removeAttribute("aria-hidden");
+      } else {
+        parentElement.setAttribute("aria-hidden", "true");
       }
-
-      return parentElement.setAttribute("aria-hidden", "true");
     }
+
+    console.log("EVENT", event);
+
+    this.hook &&
+      this.hook("slotchange", {
+        data: {
+          foo: "bar",
+        },
+      });
   }
 
   /**
@@ -544,27 +670,6 @@ export class Enlightenment extends LitElement {
       //@ts-ignore
       this.root[this.namespace].currentElements = commit;
     }
-  }
-
-  /**
-   *
-   */
-  clearThrottler() {
-    const { handlers } = this.throttler;
-
-    if (!handlers || !handlers.length) {
-      return;
-    }
-
-    handlers.forEach(([fn, timeout], index) => {
-      if (timeout) {
-        clearTimeout(timeout);
-
-        this.log(["Throttle cleared:", fn], "log");
-      }
-    });
-
-    this.throttler.handlers = [];
   }
 
   /**
@@ -666,15 +771,22 @@ export class Enlightenment extends LitElement {
   protected updated(
     properties: PropertyValueMap<any> | Map<PropertyKey, unknown>
   ): void {
-    console.log("Protected update", this.currentElement);
-
     if (this.currentElement) {
       this.assignCurrentElement();
     } else {
       this.omitCurrentElement();
     }
 
+    this.hook("updated");
+
     super.updated(properties);
+  }
+
+  /**
+   * Returns the root node of the defined Enlightenment instance.
+   */
+  public useContext() {
+    return this.context && this.context.value ? this.context.value : this;
   }
 
   /**
