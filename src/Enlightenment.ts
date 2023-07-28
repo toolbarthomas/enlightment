@@ -292,8 +292,17 @@ export class Enlightenment extends LitElement {
       return;
     }
 
-    const fn = handler.bind(this);
     const ctx = context || document;
+
+    const fn = () => {
+      handler.bind(this);
+
+      // Only apply the hook method if the actual context is not the initial
+      // Enlightenment element.
+      if (ctx !== this) {
+        this.hook(type);
+      }
+    };
 
     this.listeners.push([type, fn, ctx]);
 
@@ -344,20 +353,14 @@ export class Enlightenment extends LitElement {
   protected clearGlobalEvent(type: GlobalEventType, context?: any | any[]) {
     const queue = Array.isArray(context) ? context : [context];
 
-    console.log("queue", queue);
-
     for (let i = 0; i < queue.length; i += 1) {
       const listeners = this.listeners.filter(
         ([t, fn, ctx]) => t === type && (queue[i] || this) === ctx
       );
 
-      console.log("clear1?");
-
       if (!listeners || !listeners.length) {
         continue;
       }
-
-      console.log("clear?");
 
       let completed = 0;
       listeners.forEach(([t, fn, ctx]) => {
@@ -590,6 +593,8 @@ export class Enlightenment extends LitElement {
       detail: data || {},
     });
 
+    this.log([`Hook assigned as ${name}`, event], "log");
+
     if (context && context !== this) {
       return context.dispatchEvent(event);
     }
@@ -622,15 +627,6 @@ export class Enlightenment extends LitElement {
         parentElement.setAttribute("aria-hidden", "true");
       }
     }
-
-    console.log("EVENT", event);
-
-    this.hook &&
-      this.hook("slotchange", {
-        data: {
-          foo: "bar",
-        },
-      });
   }
 
   /**
@@ -670,6 +666,8 @@ export class Enlightenment extends LitElement {
       //@ts-ignore
       this.root[this.namespace].currentElements = commit;
     }
+
+    this.hook("omit");
   }
 
   /**
@@ -712,6 +710,8 @@ export class Enlightenment extends LitElement {
       .filter((l) => l);
 
     this.log(`Global ${type} event removed:`);
+
+    this.hook("omit");
   }
 
   /**
