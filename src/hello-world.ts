@@ -8,13 +8,15 @@ import {
 import styles from "./hello-world.scss";
 
 @customElement("hello-world")
-class HelloWorl extends Enlightenment {
+class HelloWorld extends Enlightenment {
   static styles = [styles];
 
   @property({ type: String })
   name = "World";
 
   render() {
-    return html`<h1>Hello ${this.name || "World"}</h1>`;
+    return html`<div>
+      <slot>Hello ${this.name || "World"}<span>bbb</span></slot>
+    </div>`;
   }
 }

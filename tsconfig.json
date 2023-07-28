@@ -33,7 +33,9 @@
     "rootDir": "./src",
     "strict": true,
     "types": [],
-    "typeRoots": [],
+    "typeRoots": [
+      "./enlightenment.d.ts"
+    ],
   },
   "include": [
     "src/*.ts"

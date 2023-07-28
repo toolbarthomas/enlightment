@@ -18,6 +18,7 @@ import { argv } from "./argv.mjs";
 (async () => {
   const format = argv.f || argv.format || "esm";
   const outExtension = { ".js": format === "cjs" ? ".cjs" : ".js" };
+  const watch = argv.w || argv.watch || false;
 
   const defaults = {
     bundle: true,
@@ -32,7 +33,11 @@ import { argv } from "./argv.mjs";
     plugins: [sassPlugin()],
   };
 
-  const node = await esbuild.build(defaults);
-
-  console.info(`Enlightenment ${format} bundle created`);
+  if (watch) {
+    console.log(`Watching on Enlightment source changes...`);
+    (await esbuild.context(defaults)).watch();
+  } else {
+    await esbuild.build(defaults);
+    console.log(`Enlightenment ${format} bundle created`);
+  }
 })();

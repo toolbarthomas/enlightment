@@ -16,10 +16,12 @@
     "tsconfig.json"
   ],
   "scripts": {
+    "prebuild": "npm run tsc",
+    "build": "node node/esbuild.enlightenment.mjs -r=src/enlightenment -s & node node/esbuild.enlightenment.mjs -r=src/enlightenment -s -f=cjs",
+    "dev": "node node/esbuild.enlightenment.mjs -r=src/enlightenment -s -w & node node/esbuild.serve.mjs",
     "prepublish": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "node node/esbuild.serve.mjs",
-    "build": "node node/esbuild.enlightenment.mjs -r=src/enlightenment -s & node node/esbuild.enlightenment.mjs -r=src/enlightenment -s -f=cjs"
+    "tsc": "tsc --noEmit"
   },
   "repository": {
     "type": "git",
@@ -43,6 +45,7 @@
     "sass": "^1.64.1"
   },
   "devDependencies": {
-    "esbuild": "^0.18.17"
+    "esbuild": "^0.18.17",
+    "typescript": "^5.1.6"
   }
 }
