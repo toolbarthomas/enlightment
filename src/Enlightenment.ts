@@ -231,12 +231,6 @@ export class Enlightenment extends LitElement {
 
     const slots = this.shadowRoot?.querySelectorAll("slot");
 
-    // if (!this.slots.includes(node)) {
-    //   this.slots.push(node);
-
-    //   node.addEventListener("slotchange", this.isEmptySlot);
-    // }
-
     this.commit("slots", () => {
       if (!slots || !slots.length) {
         this.slots = {};

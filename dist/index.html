@@ -20,6 +20,7 @@
   -->
   <script src="hello-world.js" type="module"></script>
   <script>
+    // Test if the slot is updated from isEmpty slotchange event.
     const element = document.createElement('hello-world')
     element.setAttribute('name', "Enlightenment")
     element.innerHTML = "<p>Consequat duis culpa fugiat ut et in.</p>"
@@ -33,6 +34,7 @@
     })
 
     setTimeout(() => element.querySelector("p").remove(), 10000)
+    setTimeout(() => emptyElement.innerHTML = "<p>Id ad laboris fugiat eiusmod id tempor qui ad ex.</p>", 10000)
   </script>
 </head>
 
