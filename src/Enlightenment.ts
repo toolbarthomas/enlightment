@@ -43,7 +43,14 @@ export type EnlightenmentThrottle = [Function, ReturnType<typeof setTimeout>];
  * Contains the active document Event listeners that are created from the
  * constructed Class context.
  */
-export type GlobalEvent = [Event["type"], Function, any];
+export type GlobalEventType = Event["type"];
+export type GlobalEventHandler = Function;
+export type GlobalEventContext = EventTarget;
+export type GlobalEvent = [
+  GlobalEventType,
+  GlobalEventHandler,
+  GlobalEventContext
+];
 
 /**
  * Re-export the required Lit Element libraries to ensure the imports are
@@ -126,6 +133,9 @@ export class Enlightenment extends LitElement {
   // Should insert the defined classnames within the root context.
   classes: string[] = [];
 
+  // Pushes the element context to the global state when TRUE.
+  currentElement: boolean = false;
+
   // Flag that returns the current state of the optional Focus Trap instance.
   hasFocusTrap: boolean = false;
 
@@ -133,7 +143,7 @@ export class Enlightenment extends LitElement {
   listeners: GlobalEvent[] = [];
 
   // Value to use for the naming of the Global state.
-  namespace: string = "Enlightenment";
+  namespace: string = "NLGHTNMNT";
 
   // Block incomming Event handlers when TRUE.
   preventEvent: boolean = false;
@@ -221,6 +231,58 @@ export class Enlightenment extends LitElement {
   }
 
   /**
+   * Marks the defined Enlightenment element context as active global element
+   * within the constructed this.root Object.
+   */
+  protected assignCurrentElement() {
+    //@ts-ignore
+    const { currentElements } = this.root[this.namespace] || {};
+
+    if (
+      currentElements &&
+      !(currentElements as EnlightenmentState["currentElements"]).filter(
+        (ce) => ce === this
+      ).length
+    ) {
+      (currentElements as EnlightenmentState["currentElements"]).push(this);
+    }
+  }
+
+  /**
+   * Assigns a new global event for the rendered component context.
+   * The actual event is stored within the instance to prevent Event stacking.
+   */
+  protected assignGlobalEvent(
+    type: GlobalEventType,
+    handler: GlobalEventHandler,
+    context?: GlobalEventContext
+  ) {
+    if (!type) {
+      this.log("Unable to assign global event.", "error");
+
+      return;
+    }
+
+    if (typeof handler !== "function") {
+      this.log(
+        `Unable to subscribe existing Document Event for ${type}`,
+        "error"
+      );
+
+      return;
+    }
+
+    const fn = handler.bind(this);
+    const ctx = context || document;
+
+    this.listeners.push([type, fn, ctx]);
+
+    ctx && ctx.addEventListener(type, fn);
+
+    this.log(`Global event assigned: ${type}`, "log");
+  }
+
+  /**
    * Assigns the rendered slots within the current element instance to
    * instance.slots Object.
    */
@@ -296,12 +358,144 @@ export class Enlightenment extends LitElement {
   }
 
   /**
+   * Defines the initial setup for the constructed Enlightenment element.
+   */
+  public connectedCallback() {
+    super.connectedCallback();
+
+    this.assignGlobalEvent("click", this.handleGlobalClick);
+    this.assignGlobalEvent("keydown", this.handleGlobalKeydown);
+    this.assignGlobalEvent("focus", this.handleGlobalFocus);
+    this.assignGlobalEvent("focusin", this.handleGlobalFocus);
+  }
+
+  /**
+   * Cleanup the created setup of the removed Enlightenment element.
+   */
+  public disconnectedCallback() {
+    try {
+      this.clearThrottler();
+
+      this.omitGlobalEvent("click", this.handleGlobalClick);
+      this.omitGlobalEvent("keydown", this.handleGlobalKeydown);
+      this.omitGlobalEvent("focus", this.handleGlobalFocus);
+      this.omitGlobalEvent("focusin", this.handleGlobalFocus);
+
+      super.disconnectedCallback();
+    } catch (error) {
+      if (error) {
+        this.log(error as string, "error");
+      }
+    }
+  }
+
+  /**
+   * Validates if the defined Event handler has already been defined as
+   * global Event.
+   */
+  protected filterGlobalEvent(
+    type: GlobalEventType,
+    handler: GlobalEventHandler
+  ) {
+    if (!this.listeners.length) {
+      return [];
+    }
+
+    const entry: GlobalEvent[] = [];
+    this.listeners.forEach(([t, fn, ctx]) => {
+      console.log("xxx", fn.name.length, handler.name);
+
+      if (t === type && fn.name.endsWith(handler.name)) {
+        entry.push([t, fn, ctx]);
+      }
+    });
+
+    return entry.length ? entry[0] : [];
+  }
+
+  /**
+   * Setup the actual featuers for the constructed Enlightenment component.
+   */
+  protected firstUpdated() {
+    // Assign the rendered slots within the element context and mark any empty
+    // slot as hidden within the initial render.
+    this.assignSlots();
+  }
+
+  /**
+   * Toggles the currentElement property within the defined element context that
+   * is triggerd from the defined global Events when the activeElement exists
+   * within the Enlightenment element context.
+   */
+  protected handleCurrentElement(target: Event["target"]) {
+    this.commit("currentElement", () => {
+      if (this.isComponentContext(target as HTMLElement)) {
+        this.currentElement = true;
+      } else {
+        this.currentElement = false;
+      }
+    });
+  }
+
+  /**
+   * Defines the global click Event listener for the element context.
+   *
+   * Marks the constructed Enlightenment element as currentElement when the
+   * click Event was triggered inside the element context.
+   */
+  protected handleGlobalClick(event: MouseEvent) {
+    const { target } = event || {};
+
+    this.handleCurrentElement(target);
+  }
+
+  /**
+   * Defines the global focus Event listener for the element context.
+   *
+   * Marks the constructed Enlightenment element as currentElement when a
+   * keyboard Event was triggered inside the element context.
+   */
+  protected handleGlobalFocus(event: FocusEvent) {
+    const { target } = event || {};
+
+    this.handleCurrentElement(target);
+  }
+
+  /**
+   * Defines the global keyboard Event listener for the element context.
+   *
+   * Unmark the currentElement property from the constructed Enlightenment
+   * element during a keyboard event within the element context.
+   */
+  protected handleGlobalKeydown(event: KeyboardEvent) {
+    const { keyCode, target } = event || {};
+
+    if (Enlightenment.keyCodes.exit.includes(keyCode)) {
+      this.commit("currentElement", false);
+      const t = target as HTMLElement;
+
+      if (t && this.isComponentContext(t) && t.blur) {
+        t.blur();
+      }
+    }
+  }
+
+  /**
+   * Validates if the defined element exists within the created Enlightenment
+   * context.
+   */
+  protected isComponentContext(element: HTMLElement) {
+    const { value } = this.context || {};
+
+    return element === value || element === this || this.contains(element);
+  }
+
+  /**
    * Mark the wrapping element as hidden for each empty slot.
    * This should trigger during a slotchange event within the created element
    * context.
    */
-  protected isEmptySlot = (event: Event) => {
-    console.log("isEmpty");
+  protected isEmptySlot(event: Event) {
     const { parentElement } = event.target as Element;
 
     if (parentElement) {
@@ -311,7 +505,7 @@ export class Enlightenment extends LitElement {
 
       return parentElement.setAttribute("aria-hidden", "true");
     }
-  };
+  }
 
   /**
    * Alias for the default console to use during development.
@@ -331,6 +525,88 @@ export class Enlightenment extends LitElement {
       //@ts-ignore
       output.forEach((m) => console[type || "log"](m));
     }
+  }
+
+  /**
+   * Removes the defined Enlightenment element context from the active global
+   * Element collection.
+   */
+  omitCurrentElement() {
+    //@ts-ignore
+    const { currentElements } = this.root[this.namespace] || {};
+
+    if (currentElements && currentElements.length) {
+      //@ts-ignore
+      const commit = (
+        currentElements as EnlightenmentState["currentElements"]
+      ).filter((ce) => ce !== this);
+
+      //@ts-ignore
+      this.root[this.namespace].currentElements = commit;
+    }
+  }
+
+  /**
+   *
+   */
+  clearThrottler() {
+    const { handlers } = this.throttler;
+
+    if (!handlers || !handlers.length) {
+      return;
+    }
+
+    handlers.forEach(([fn, timeout], index) => {
+      if (timeout) {
+        clearTimeout(timeout);
+
+        this.log(["Throttle cleared:", fn], "log");
+      }
+    });
+
+    this.throttler.handlers = [];
+  }
+
+  /**
+   * Removes the assigned global Event handler.
+   */
+  omitGlobalEvent(type: GlobalEventType, handler: GlobalEventHandler) {
+    if (!type) {
+      this.log("Unable to omit undefined global Event", "error");
+
+      return;
+    }
+
+    if (typeof handler !== "function") {
+      this.log(
+        `Unable to omit global ${type} Event, no valid function was defined.`,
+        "error"
+      );
+    }
+
+    const [t, fn, ctx] = this.filterGlobalEvent(type, handler);
+
+    if (!t || !fn || !ctx) {
+      this.log(`Unable to omit undefined global ${type} Event`, "error");
+
+      return;
+    }
+
+    ctx.removeEventListener(t, fn as any);
+
+    const index: number[] = [];
+    this.listeners.forEach(([t2, fn2], i) => {
+      if (fn2 === fn) {
+        index.push(i);
+      }
+    });
+
+    //@ts-ignore
+    this.listeners = this.listeners
+      .map((l, i) => (index.includes(i) ? undefined : l))
+      .filter((l) => l);
+
+    this.log(`Global ${type} event removed:`);
   }
 
   /**
@@ -385,31 +661,30 @@ export class Enlightenment extends LitElement {
   }
 
   /**
+   * Callback to use after a component update.
+   */
+  protected updated(
+    properties: PropertyValueMap<any> | Map<PropertyKey, unknown>
+  ): void {
+    console.log("Protected update", this.currentElement);
+
+    if (this.currentElement) {
+      this.assignCurrentElement();
+    } else {
+      this.omitCurrentElement();
+    }
+
+    super.updated(properties);
+  }
+
+  /**
    * Shorthand to use the existing Lit Element reference.
    */
-  useRef = (ref: Ref): Element | undefined => {
+  protected useRef = (ref: Ref): Element | undefined => {
     if (!ref || !ref.value) {
       return;
     }
 
     return ref.value;
   };
-
-  /**
-   * Callback to use after a component update.
-   */
-  protected updated(
-    _changedProperties: PropertyValueMap<any> | Map<PropertyKey, unknown>
-  ): void {
-    console.log("Protected update", this.slots);
-  }
-
-  /**
-   * Setup the actual featuers for the constructed Enlightenment component.
-   */
-  protected firstUpdated(): void {
-    // Assign the rendered slots within the element context and mark any empty
-    // slot as hidden within the initial render.
-    this.assignSlots();
-  }
 }

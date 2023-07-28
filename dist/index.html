@@ -23,7 +23,7 @@
     // Test if the slot is updated from isEmpty slotchange event.
     const element = document.createElement('hello-world')
     element.setAttribute('name', "Enlightenment")
-    element.innerHTML = "<p>Consequat duis culpa fugiat ut et in.</p>"
+    element.innerHTML = "<input type='text' />"
 
     const emptyElement = document.createElement('hello-world')
 
@@ -35,6 +35,11 @@
 
     setTimeout(() => element.querySelector("p").remove(), 10000)
     setTimeout(() => emptyElement.innerHTML = "<p>Id ad laboris fugiat eiusmod id tempor qui ad ex.</p>", 10000)
+
+    setInterval(() =>
+    {
+      console.log(window.NLGHTNMNT)
+    }, 5000)
   </script>
 </head>
 
