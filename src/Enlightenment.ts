@@ -328,10 +328,14 @@ export class Enlightenment extends LitElement {
               ? undefined
               : slots[i];
 
-            this.assignGlobalEvent("slotchange", this.isEmptySlot, slots[i]);
+            this.assignGlobalEvent(
+              "slotchange",
+              this.handleSlotchange,
+              slots[i]
+            );
           }
 
-          this.isEmptySlot({ target: slots[i] } as any);
+          this.handleSlotchange({ target: slots[i] } as any);
         }
 
         this.log([`Found ${slots.length} slot(s) from:`, this.slots]);
@@ -564,7 +568,24 @@ export class Enlightenment extends LitElement {
       if (t && this.isComponentContext(t) && t.blur) {
         t.blur();
       }
+    } else if (!Enlightenment.keyCodes.meta.includes(keyCode)) {
+      this.commit("currentElement", true);
     }
+  }
+
+  /**
+   * Defines the global slotchange Event handler that will trigger a slotchange
+   * event on the main element context.
+   */
+  handleSlotchange(event: Event) {
+    if (!event) {
+      console.log("oops");
+      return;
+    }
+
+    this.isEmptySlot(event);
+
+    this.hook("slotchange");
   }
 
   /**
@@ -602,6 +623,19 @@ export class Enlightenment extends LitElement {
     const { value } = this.context || {};
 
     return element === value || element === this || this.contains(element);
+  }
+
+  protected isCurrentContext() {
+    const context = this.useRef(this.context);
+
+    if (!context) {
+      return;
+    }
+
+    context.setAttribute(
+      "aria-current",
+      this.currentElement ? "true" : "false"
+    );
   }
 
   /**
@@ -768,6 +802,8 @@ export class Enlightenment extends LitElement {
     } else {
       this.omitCurrentElement();
     }
+
+    this.isCurrentContext();
 
     this.hook("updated");
 

@@ -29,7 +29,7 @@
 
     element.addEventListener('slotchange', (event) =>
     {
-      console.log('SLOTCHANGE', event)
+      console.log('SLOTCHANGE')
     });
 
     const emptyElement = document.createElement('hello-world')
@@ -43,10 +43,10 @@
     setTimeout(() => element.firstElementChild.remove(), 5000)
     setTimeout(() => emptyElement.innerHTML = "<p>Id ad laboris fugiat eiusmod id tempor qui ad ex.</p>", 10000)
 
-    setInterval(() =>
-    {
-      console.log(window.NLGHTNMNT)
-    }, 3000)
+    // setInterval(() =>
+    // {
+    //   console.log(window.NLGHTNMNT)
+    // }, 3000)
   </script>
 </head>
 
