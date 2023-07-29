@@ -197,3 +197,12 @@ It introduces extra methods to use within the Web Component context that improve
 | throttle                 | Prevents the defined function to be called within the throttle duration.                                          |
 | throttleDelay            | Optional delay value in milliseconds to use instead of the default FPS value.                                     |
 | unsubscribeGlobalEvent   | Removes the assigned global event from the component context.                                                     |
+
+## ARIA Helpers
+
+@TODO
+
+| Type         | Description                                                                                                                          |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| aria-current | Will update the defined **context** reference attribute during a **currentElement** mutation                                         |
+| aria-hidden  | Will update the parent container ARIA attribute from the *slotchange* Event target. This enables the styling of empty slot elements. |
