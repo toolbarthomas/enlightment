@@ -294,15 +294,7 @@ export class Enlightenment extends LitElement {
 
     const ctx = context || document;
 
-    const fn = () => {
-      handler.bind(this);
-
-      // Only apply the hook method if the actual context is not the initial
-      // Enlightenment element.
-      if (ctx !== this) {
-        this.hook(type);
-      }
-    };
+    const fn = handler.bind(this);
 
     this.listeners.push([type, fn, ctx]);
 

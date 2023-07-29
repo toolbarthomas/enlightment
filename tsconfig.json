@@ -15,7 +15,7 @@
     "noImplicitReturns": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "outDir": "./types",
+    "outDir": "",
     "paths": {
       "@toolbarthomas/enlightenment": [
         "node_modules/@toolbarthomas/enlightenment"
@@ -34,11 +34,11 @@
     "strict": true,
     "types": [],
     "typeRoots": [
-      "./enlightenment.d.ts"
+      "node_modules/@types"
     ],
   },
   "include": [
-    "src/*.ts"
+    "src/**/*.ts"
   ],
   "exclude": []
 }

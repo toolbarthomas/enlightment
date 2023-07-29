@@ -22,7 +22,11 @@ export const argv = (() => {
           break;
 
         default:
-          v = isNaN(parseFloat(value)) ? value || true : parseFloat(value);
+          v = isNaN(parseFloat(value))
+            ? value || value === false
+              ? value
+              : true
+            : parseFloat(value);
           break;
       }
 
