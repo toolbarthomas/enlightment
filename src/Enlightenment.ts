@@ -280,6 +280,9 @@ export class Enlightenment extends LitElement {
     handlers: EnlightenmentThrottle[];
   };
 
+  // Alias to the constructor name.
+  uuid: string;
+
   @property({ attribute: "aria-current", reflect: true })
   ariaCurrent = "false";
 
@@ -322,7 +325,7 @@ export class Enlightenment extends LitElement {
   constructor() {
     super();
 
-    this.name = this.constructor.name;
+    this.uuid = this.constructor.name;
 
     // Ensure the Global state is defined for the initial custom elements.
     //@ts-ignore
@@ -558,6 +561,9 @@ export class Enlightenment extends LitElement {
   public connectedCallback() {
     super.connectedCallback();
 
+    this.shareEndpoint("focusTrap", this.endpointFocusTrap);
+    this.requestEndpoint("focusTrap", "endpointFocusTrap");
+
     this.assignGlobalEvent("click", this.handleGlobalClick);
     this.assignGlobalEvent("keydown", this.handleGlobalKeydown);
     this.assignGlobalEvent("focus", this.handleGlobalFocus);
@@ -622,10 +628,6 @@ export class Enlightenment extends LitElement {
     properties: PropertyValueMap<any> | Map<PropertyKey, unknown>
   ) {
     super.firstUpdated(properties);
-
-    this.mountFocusTrap();
-    this.shareEndpoint("focusTrap", this.endpointFocusTrap);
-    this.requestEndpoint("focusTrap", "endpointFocusTrap");
 
     this.hook("updated");
   }
@@ -729,6 +731,7 @@ export class Enlightenment extends LitElement {
    * the Enlightenment element context.
    */
   public hook(name: string, options?: hookOptions) {
+    console.log("HOOK", name);
     const { context, data } = options || {};
 
     if (!name) {
@@ -1000,7 +1003,7 @@ export class Enlightenment extends LitElement {
 
     //@ts-ignore
     const value = (this.root[this.namespace] as EnlightenmentState).endpoints[
-      name
+      `${this.uuid}::${name}`
     ];
 
     if (value) {
@@ -1027,7 +1030,9 @@ export class Enlightenment extends LitElement {
 
     try {
       //@ts-ignore
-      (this.root[this.namespace] as EnlightenmentState).endpoints[name] = value;
+      (this.root[this.namespace] as EnlightenmentState).endpoints[
+        `${this.uuid}::${name}`
+      ] = value;
     } catch (exception) {
       exception && this.log(exception as string, "error");
     }
@@ -1153,6 +1158,8 @@ export class Enlightenment extends LitElement {
     super.updated(properties);
 
     this.throttle(() => {
+      this.updatePreventEvent();
+
       this.assignSlots();
 
       if (this.ariaCurrent === "true") {
@@ -1161,7 +1168,7 @@ export class Enlightenment extends LitElement {
         this.omitCurrentElement();
       }
 
-      this.updatePreventEvent();
+      this.mountFocusTrap();
 
       this.isCurrentContext();
 
