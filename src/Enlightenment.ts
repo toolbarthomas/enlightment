@@ -4,6 +4,7 @@ import {
   LitElement,
   html as _html,
   PropertyValueMap,
+  svg,
 } from "lit";
 import {
   customElement as _customElement,
@@ -16,6 +17,15 @@ import {
 } from "lit/directives/ref.js";
 
 import { isEmptyComponentSlot } from "src/mixins/dom";
+
+/**
+ * Optional configuration options to use within the renderImage method.
+ */
+export type EnlightenmentImageOptions =
+  | {
+      classname?: string;
+    }
+  | string;
 
 /**
  * Optional configuration options to use for the the initial element Class
@@ -134,6 +144,38 @@ export class Enlightenment extends LitElement {
   // Expected interval value of 60HZ refresh rate.
   static FPS = 1000 / 60;
 
+  /**
+   * Validates if the defined url value is external.
+   */
+  static isExternal(url) {
+    const [path, protocol, origin] = url.match(
+      /^([^:\/?#]+:)?(?:\/\/([^\/?#]*))?([^?#]+)?(\?[^#]*)?(#.*)?/
+    );
+
+    if (
+      typeof protocol === "string" &&
+      protocol.length > 0 &&
+      protocol.toLowerCase() !== location.protocol
+    ) {
+      return true;
+    }
+
+    if (
+      typeof origin === "string" &&
+      origin.length > 0 &&
+      origin.replace(
+        new RegExp(
+          ":(" + { "http:": 80, "https:": 443 }[location.protocol] + ")?$"
+        ),
+        ""
+      ) !== location.host
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
   // The keycodes that could be validated within a class method.
   static keyCodes = {
     meta: [9, 16, 17, 18, 20],
@@ -144,7 +186,7 @@ export class Enlightenment extends LitElement {
    * Ensures any whitespace is removed from the given string.
    */
   static strip(value: string) {
-    typeof value === "string"
+    return typeof value === "string"
       ? value
           .split(" ")
           .join("")
@@ -165,6 +207,18 @@ export class Enlightenment extends LitElement {
     ".tiff",
     ".webp",
   ];
+
+  /**
+   * Helper function to ensure the requested property is returned from a
+   * dynamic string or object value.
+   */
+  static useOption(property: string, value?: any, optional?: string) {
+    return (
+      (typeof value === "string" && !optional
+        ? value
+        : (value || {})[property]) || ""
+    );
+  }
 
   //@TODO should remove?
   // Defines the default styles to include for the defined Enlightenment instance.
@@ -200,8 +254,8 @@ export class Enlightenment extends LitElement {
   // the actual rendered slots existence.
   slots: { [key: string]: HTMLSlotElement | undefined } = {};
 
-  // Optional source path that will output inline SVG from the existing sprite.
-  spriteSource?: string = "";
+  // // Optional source path that will output inline SVG from the existing sprite.
+  // spriteSource?: string = "";
 
   // Contains the assigned handlers that will be called once.
   throttler: {
@@ -222,6 +276,11 @@ export class Enlightenment extends LitElement {
     reflect: true,
   })
   ariaDisabled = "false";
+
+  @property({
+    attribute: "sprite-source",
+  })
+  spriteSource: "";
 
   constructor(options: EnlightenmentOptions) {
     super();
@@ -257,6 +316,20 @@ export class Enlightenment extends LitElement {
 
     this.throttle(f, 1000);
     this.throttle(f, 1000);
+  }
+
+  /**
+   * Ensures the given string is formatted as correct HTML attribute.
+   *
+   * This is needed since some frameworks cannot parse camel cased properties.
+   * You should use `oncallback` instead of `onCallback` when it is asigned to
+   * the element for those frameworks.
+   */
+  static _attributeNameForProperty(name) {
+    return super._attributeNameForProperty(
+      name.replace(/([a-zA-Z])(?=[A-Z])/g, "$1-").toLowerCase(),
+      {}
+    );
   }
 
   /**
@@ -356,21 +429,16 @@ export class Enlightenment extends LitElement {
    * Ensures the a requestUpdate is used when attribtues are added or removed.
    * on the defined element.
    */
-  protected attributeChangedCallback(
+  public attsributeChangedCallback(
     name: string,
-    previousValue?: string,
+    _old?: string,
     value?: string
   ) {
     //@TODO Fix stacking calls.
     this.throttle(() => this.requestUpdate());
 
-    super.attributeChangedCallback(
-      name,
-      previousValue !== null ? value : null,
-      value !== null ? value : null
-    );
+    super.attributeChangedCallback(name, _old || null, value || null);
   }
-
   /**
    * Removes the defined assigned global Events from the selected type.
    */
@@ -782,6 +850,96 @@ export class Enlightenment extends LitElement {
     this.log(`Global ${type} event removed:`);
 
     this.hook("omit");
+  }
+
+  /**
+   * Renders the defined image source as static image or inline SVG.
+   */
+  public renderImage(source: string, options?: EnlightenmentImageOptions) {
+    if (!source) {
+      return "";
+    }
+
+    const classname = Enlightenment.useOption("classname", options);
+    const height = Enlightenment.useOption("height", options, true);
+    const width = Enlightenment.useOption("width", options, true);
+
+    return this.testImage(false, source)
+      ? html`<svg
+          class="${classname}"
+          ${height && svg`height="${height}"`}
+          ${width && svg`width="${width}"`}
+          height="${height || "100%"}"
+          width="${width || "100%"}"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <use xlink:href="${this.spriteSource}#${name}"></use>
+        </svg>`
+      : html`<img
+          class="${classname}"
+          height="${height || "auto"}"
+          width="${width || "auto"}"
+          aria-hidden="true"
+          focusable="false"
+          src="${this.testImageSource(source) ? source : this.spriteSource}"
+        />`;
+  }
+
+  protected testImage(initial: boolean, source: string) {
+    if (
+      !this.spriteSource ||
+      !this.testImageSource(this.spriteSource) ||
+      this.testImageSource(source)
+    ) {
+      return false;
+    }
+
+    if (initial && this.spriteSource) {
+      if (
+        source &&
+        this.testImageSource(this.spriteSource) &&
+        this.testImageSource(source)
+      ) {
+        return false;
+      }
+
+      return true;
+    } else if (initial) {
+      return false;
+    }
+
+    if (this.spriteSource && source) {
+      if (
+        this.testImageSource(this.spriteSource) &&
+        this.testImageSource(Enlightenment.strip(source))
+      ) {
+        return false;
+      }
+
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Validates if the defined source is a valid image path.
+   */
+  protected testImageSource(source: string) {
+    if (typeof source !== "string") {
+      return;
+    }
+
+    let result = false;
+
+    Enlightenment.supportedImageExtensions.forEach((extension) => {
+      if (Enlightenment.strip(source).endsWith(extension)) {
+        result = true;
+      }
+    });
+
+    return result;
   }
 
   /**
