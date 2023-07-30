@@ -1,5 +1,6 @@
 node_modules
 dist/*
+!dist/sprite.svg
 !dist/index.html
 example/*
 !example/esbuild.cjs
