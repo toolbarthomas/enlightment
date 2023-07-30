@@ -10,6 +10,7 @@
     "index.cjs",
     "index.mjs",
     "index.ts",
+    "LICENSE.md",
     "node/",
     "README.md",
     "src/enlightenment.ts",
