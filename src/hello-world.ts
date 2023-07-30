@@ -16,11 +16,12 @@ class HelloWorld extends Enlightenment {
   name = "World";
 
   render() {
-    return html`<div ${ref(this.context)}>
+    return html`<div>
       <h1>Hello ${this.name}</h1>
       <div>
         <slot></slot>
       </div>
+      <div>Footer</div>
     </div>`;
   }
 }

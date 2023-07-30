@@ -126,49 +126,6 @@ export const ref = _ref;
  * <script src="my-component.js" type="module"></script>
  */
 export class Enlightenment extends LitElement {
-  //@TODO should remove?
-  // Defines the default styles to include for the defined Enlightenment instance.
-  // static styles?: _CSSResultGroup | undefined = [styles];
-
-  // Default element reference that should be assigned to the root element
-  // within the render context.
-  context: Ref<Element> = createRef();
-
-  // Alias to the parent Window object that holds the global state of the
-  // created instance.
-  root: Window = window;
-
-  // Should insert the defined classnames within the root context.
-  classes: string[] = [];
-
-  // Pushes the element context to the global state when TRUE.
-  currentElement: boolean = false;
-
-  // Flag that returns the current state of the optional Focus Trap instance.
-  hasFocusTrap: boolean = false;
-
-  // Dynamic storage for the running document Event listeners.
-  listeners: GlobalEvent[] = [];
-
-  // Value to use for the naming of the Global state.
-  namespace: string = "NLGHTNMNT";
-
-  // Block incomming Event handlers when TRUE.
-  preventEvent: boolean = false;
-
-  // Contains the Shadow Root slot target contexts in order to validate
-  // the actual rendered slots existence.
-  slots: { [key: string]: HTMLSlotElement | undefined } = {};
-
-  // Optional source path that will output inline SVG from the existing sprite.
-  spriteSource?: string = "";
-
-  // Contains the assigned handlers that will be called once.
-  throttler: {
-    delay: number;
-    handlers: EnlightenmentThrottle[];
-  };
-
   // Defines any fallback to use for optional properties.
   static defaults = {
     slot: "_content",
@@ -209,10 +166,56 @@ export class Enlightenment extends LitElement {
     ".webp",
   ];
 
+  //@TODO should remove?
+  // Defines the default styles to include for the defined Enlightenment instance.
+  // static styles?: _CSSResultGroup | undefined = [styles];
+
+  // Default element reference that should be assigned to the root element
+  // within the render context.
+  context: Ref<Element> = createRef();
+
+  // Alias to the parent Window object that holds the global state of the
+  // created instance.
+  root: Window = window;
+
+  // Should insert the defined classnames within the root context.
+  classes: string[] = [];
+
+  // Pushes the element context to the global state when TRUE.
+  // currentElement: boolean = false;
+
+  // Flag that returns the current state of the optional Focus Trap instance.
+  hasFocusTrap: boolean = false;
+
+  // Dynamic storage for the running document Event listeners.
+  listeners: GlobalEvent[] = [];
+
+  // Value to use for the naming of the Global state.
+  namespace: string = "NLGHTNMNT";
+
+  // Block incomming Event handlers when TRUE.
+  preventEvent: boolean = false;
+
+  // Contains the Shadow Root slot target contexts in order to validate
+  // the actual rendered slots existence.
+  slots: { [key: string]: HTMLSlotElement | undefined } = {};
+
+  // Optional source path that will output inline SVG from the existing sprite.
+  spriteSource?: string = "";
+
+  // Contains the assigned handlers that will be called once.
+  throttler: {
+    delay: number;
+    handlers: EnlightenmentThrottle[];
+  };
+
   // Readable error to display during an exception/error within the defined
   // component context.
   @property({ type: String })
   error = "";
+
+  @property({ attribute: "aria-current", reflect: true })
+  currentElement = "false";
 
   constructor(options: EnlightenmentOptions) {
     super();
@@ -510,7 +513,6 @@ export class Enlightenment extends LitElement {
   protected firstUpdated() {
     // Assign the rendered slots within the element context and mark any empty
     // slot as hidden within the initial render.
-    this.assignSlots();
   }
 
   /**
@@ -579,7 +581,6 @@ export class Enlightenment extends LitElement {
    */
   handleSlotchange(event: Event) {
     if (!event) {
-      console.log("oops");
       return;
     }
 
@@ -797,6 +798,8 @@ export class Enlightenment extends LitElement {
   protected updated(
     properties: PropertyValueMap<any> | Map<PropertyKey, unknown>
   ): void {
+    this.assignSlots();
+
     if (this.currentElement) {
       this.assignCurrentElement();
     } else {
