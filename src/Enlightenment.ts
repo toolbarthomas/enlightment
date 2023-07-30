@@ -258,9 +258,6 @@ export class Enlightenment extends LitElement {
   // Dynamic storage for the running document Event listeners.
   listeners: GlobalEvent[] = [];
 
-  // Defines the constructed classname as readable name.
-  name: string;
-
   // Value to use for the naming of the Global state.
   namespace: string = "NLGHTNMNT";
 

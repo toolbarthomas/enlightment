@@ -1,5 +1,7 @@
 # Enlightenment
 
+**Note:** Project is not yet stable, the documentation can mismatch with the current sourcecode.
+
 Enlightenment is a toolset based on the [Lit Element 2.0](https://github.com/lit/lit/) Web Component library and includes extra features to speed up your Web Component journey.
 
 Enlightenment does not expect any build tools to be installed in order to use within your project. This means you can directly include the compiled Enlightenment library within the browser and create ESM formatted components without any bundling. But of course it is also possible to include it within [compilation environments](#advanced-setup) like Typescript or Esbuild.
@@ -166,41 +168,14 @@ class MyComponent extends Enlightenment {
 
 **Note:** Optional Sass configuration can be defined within near future but is not relevant in the current state of the Enlightenment Node package.
 
-## Enlightenment Interface
+## Enlightenment Interface @WIP
 
-Enlightenment uses under the hood the [Lit Element Library](https://lit.dev/docs/) and inherits the actual interface of [LitElement](https://lit.dev/docs/components/defining/).
+Under the hood, Enlightenment uses the [Lit Element Library](https://lit.dev/docs/) and inherits the actual interface of [LitElement](https://lit.dev/docs/components/defining/).
 It introduces extra methods to use within the Web Component context that improves the overall user experience and development of the initial component:
 
-| Property                 | Description                                                                                                       |
-| ------------------------ | ----------------------------------------------------------------------------------------------------------------- |
-| _testImageSource         | Validates if the defined image source is a valid image extension (this does not test any headers!).               |
-| commit                   | Updates the defined property value or handler within the component and use the requestUpdate callback afterwards. |
-| context                  | Default component ref to use on the parent element within the component context.                                  |
-| currentElement           | Boolean to check if the current element is within the component context.                                          |
-| exitKeyCodes             | Defines the keys (like escape) to exit from a state within the component context within Keyboard events.          |
-| focusContext             | Optional component ref to use where the Focus Trap library should lock from.                                      |
-| focusTrap.activate       | Enables the usage of the Focus Trap library that holds the focus within the defined focus context.                |
-| focusTrap.deactivate     | Disables the activated Focus Trap.                                                                                |
-| FPS                      | Default throttle delay value as 60fps in ms.                                                                      |
-| hasFocusTrap             | Boolean flag to check outside the component context if the focus trap is enabled.                                 |
-| hook                     | Dispatch additional callbacks within the selected context or the initial component context.                       |
-| ignoredKeyCodes          | Defines the keys to ignore within Keyboard events. (Any meta key is expected within the actual array.)            |
-| isComponentContext       | Validates if the selected HTMLElement target is within the component context.                                     |
-| log                      | Optional tracking of console usage within the component context.                                                  |
-| renderImage              | Inserts an SVG as default image or inline within the inline SVG format.                                           |
-| root                     | Alias to the root window Object.                                                                                  |
-| root.Enlightenment       | Alias to the Enlightenment global Object that is assigned from the initial Enlightenment component construction.  |
-| slots                    | Stores the used component slots to enable component callback during a 'slotchange' event.                         |
-| spriteSource             | Includes any inline svg as sprite with the defined spriteSource value.                                            |
-| subscribeGlobalEvent     | Assigns the defined handler and event name as Global event.                                                       |
-| supportedImageExtensions | Fixes array with the valid image extensions to check.                                                             |
-| throttle                 | Prevents the defined function to be called within the throttle duration.                                          |
-| throttleDelay            | Optional delay value in milliseconds to use instead of the default FPS value.                                     |
-| unsubscribeGlobalEvent   | Removes the assigned global event from the component context.                                                     |
 
-## ARIA Helpers
 
-@TODO
+## ARIA Helpers @WIP
 
 | Type         | Description                                                                                                                            |
 | ------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
