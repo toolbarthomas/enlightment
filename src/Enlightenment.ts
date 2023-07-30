@@ -18,6 +18,9 @@ import {
 
 import { isEmptyComponentSlot } from "src/mixins/dom";
 
+import { FocusTrap } from "focus-trap";
+import { FocusableElement } from "tabbable";
+
 /**
  * Optional configuration options to use within the renderImage method.
  */
@@ -26,15 +29,6 @@ export type EnlightenmentImageOptions =
       classname?: string;
     }
   | string;
-
-/**
- * Optional configuration options to use for the the initial element Class
- * constructor.
- */
-export type EnlightenmentOptions = {
-  delay: number;
-};
-
 /**
  * Defines the Global state typing that is assigned to the Window context.
  */
@@ -147,23 +141,31 @@ export class Enlightenment extends LitElement {
   /**
    * Validates if the defined url value is external.
    */
-  static isExternal(url) {
-    const [path, protocol, origin] = url.match(
+  static isExternal(url: string) {
+    if (!url) {
+      return false;
+    }
+
+    const match = url.match(
       /^([^:\/?#]+:)?(?:\/\/([^\/?#]*))?([^?#]+)?(\?[^#]*)?(#.*)?/
     );
 
+    if (!match) {
+      return false;
+    }
+
     if (
-      typeof protocol === "string" &&
-      protocol.length > 0 &&
-      protocol.toLowerCase() !== location.protocol
+      typeof match[1] === "string" &&
+      match[1].length > 0 &&
+      match[1].toLowerCase() !== location.protocol
     ) {
       return true;
     }
 
     if (
-      typeof origin === "string" &&
-      origin.length > 0 &&
-      origin.replace(
+      typeof match[2] === "string" &&
+      match[2].length > 0 &&
+      match[2].replace(
         new RegExp(
           ":(" + { "http:": 80, "https:": 443 }[location.protocol] + ")?$"
         ),
@@ -212,7 +214,7 @@ export class Enlightenment extends LitElement {
    * Helper function to ensure the requested property is returned from a
    * dynamic string or object value.
    */
-  static useOption(property: string, value?: any, optional?: string) {
+  static useOption(property: string, value?: any, optional?: boolean) {
     return (
       (typeof value === "string" && !optional
         ? value
@@ -228,12 +230,17 @@ export class Enlightenment extends LitElement {
   // within the render context.
   context: Ref<Element> = createRef();
 
+  // Optional reference to use within the Focus Trap context.
+  focusContext?: Ref<Element>;
+
   // Alias to the parent Window object that holds the global state of the
   // created instance.
   root: Window = window;
 
   // Should insert the defined classnames within the root context.
   classes: string[] = [];
+
+  focusTrap?: FocusTrap;
 
   // Pushes the element context to the global state when TRUE.
   // currentElement: boolean = false;
@@ -263,11 +270,6 @@ export class Enlightenment extends LitElement {
     handlers: EnlightenmentThrottle[];
   };
 
-  // Readable error to display during an exception/error within the defined
-  // component context.
-  @property({ type: String })
-  error = "";
-
   @property({ attribute: "aria-current", reflect: true })
   ariaCurrent = "false";
 
@@ -278,14 +280,37 @@ export class Enlightenment extends LitElement {
   ariaDisabled = "false";
 
   @property({
+    type: Boolean,
+  })
+  disableFocusTrap = false;
+
+  @property({
+    type: Number,
+  })
+  delay = Enlightenment.FPS;
+
+  @property({
+    attribute: "endpoint-focustrap",
+  })
+  endpointFocusTrap = "";
+
+  // Readable error to display during an exception/error within the defined
+  // component context.
+  @property({ type: String })
+  error = "";
+
+  @property({
+    type: Boolean,
+  })
+  minimalShadowRoot = false;
+
+  @property({
     attribute: "svg-sprite-source",
   })
-  svgSpriteSource: "";
+  svgSpriteSource = "";
 
-  constructor(options: EnlightenmentOptions) {
+  constructor() {
     super();
-
-    const { delay } = options || {};
 
     // Ensure the Global state is defined for the initial custom elements.
     //@ts-ignore
@@ -301,12 +326,18 @@ export class Enlightenment extends LitElement {
       this.log([`${this.namespace} global assigned:`, state]);
     }
 
+    if (!this.disableFocusTrap) {
+      this.focusContext = createRef();
+    }
+
     const f = () => console.log("Throttle function");
 
     this.throttle(f, 1000);
 
     this.throttler = {
-      delay: isNaN(parseFloat(String(delay))) ? Enlightenment.FPS : delay,
+      delay: isNaN(parseFloat(String(this.delay)))
+        ? Enlightenment.FPS
+        : this.delay,
       handlers: [],
     };
 
@@ -316,20 +347,6 @@ export class Enlightenment extends LitElement {
 
     this.throttle(f, 1000);
     this.throttle(f, 1000);
-  }
-
-  /**
-   * Ensures the given string is formatted as correct HTML attribute.
-   *
-   * This is needed since some frameworks cannot parse camel cased properties.
-   * You should use `oncallback` instead of `onCallback` when it is asigned to
-   * the element for those frameworks.
-   */
-  static _attributeNameForProperty(name) {
-    return super._attributeNameForProperty(
-      name.replace(/([a-zA-Z])(?=[A-Z])/g, "$1-").toLowerCase(),
-      {}
-    );
   }
 
   /**
@@ -429,16 +446,14 @@ export class Enlightenment extends LitElement {
    * Ensures the a requestUpdate is used when attribtues are added or removed.
    * on the defined element.
    */
-  public attsributeChangedCallback(
-    name: string,
-    _old?: string,
-    value?: string
-  ) {
+  //@ts-ignore
+  public attributeChangedCallback(name: string, _old?: string, value?: string) {
     //@TODO Fix stacking calls.
     this.throttle(() => this.requestUpdate());
 
     super.attributeChangedCallback(name, _old || null, value || null);
   }
+
   /**
    * Removes the defined assigned global Events from the selected type.
    */
@@ -550,7 +565,7 @@ export class Enlightenment extends LitElement {
   }
 
   /**
-   * Cleanup the created setup of the removed Enlightenment element.
+   * Cleanup the c6reated setup of the removed Enlightenment element.
    */
   public disconnectedCallback() {
     try {
@@ -605,6 +620,8 @@ export class Enlightenment extends LitElement {
     properties: PropertyValueMap<any> | Map<PropertyKey, unknown>
   ) {
     super.firstUpdated(properties);
+
+    this.mountFocusTrap();
 
     this.hook("updated");
   }
@@ -731,6 +748,62 @@ export class Enlightenment extends LitElement {
   }
 
   /**
+   * Activates the optional defined Focus Trap instance.
+   */
+  lockFocus() {
+    if (!this.focusTrap || !this.focusTrap.activate) {
+      this.log("Unable to lock focus, Focus Trap is not mounted.", "log");
+    }
+
+    if (!this.hasFocusTrap && !this.disableFocusTrap) {
+      try {
+        this.throttle(() => {
+          this.log(["Focus locked from", this], "log");
+          this.focusTrap?.activate();
+          this.commit("hasFocusTrap", true);
+        });
+      } catch (exception) {
+        this.log(exception as string, "error");
+      }
+    }
+  }
+
+  /**
+   * Import the optional Focus Trap library from the defined endpoint value and
+   * assign it to the focusTrap instance within the element.
+   */
+  protected mountFocusTrap() {
+    if (!this.endpointFocusTrap) {
+      return;
+    }
+
+    import(this.endpointFocusTrap).then((focusTrap: any) => {
+      try {
+        this.focusTrap = focusTrap.createFocusTrap(
+          [this, this.useContext(this.focusContext)],
+          {
+            escapeDeactivates: false, // The child component should deactivate it manually.
+            allowOutsideClick: false,
+            initialFocus: false,
+            tabbableOptions: {
+              getShadowRoot: this.minimalShadowRoot
+                ? true
+                : (node: FocusableElement) =>
+                    this.isComponentContext(node as HTMLElement)
+                      ? node.shadowRoot || undefined
+                      : false,
+            },
+          }
+        );
+
+        this.focusTrap && this.log(["Focus trap mounted from", this], "info");
+      } catch (exception) {
+        exception && this.log(exception as string, "error");
+      }
+    });
+  }
+
+  /**
    * Validates if the defined element exists within the created Enlightenment
    * context.
    */
@@ -853,6 +926,27 @@ export class Enlightenment extends LitElement {
   }
 
   /**
+   * Deactivates the optional defined Focus Trap instance
+   */
+  public releaseFocus() {
+    if (!this.focusTrap || !this.focusTrap.deactivate) {
+      this.log("Ignore focus, Focus Trap is not mounted.", "log");
+    }
+
+    if (!this.hasFocusTrap && !this.disableFocusTrap) {
+      try {
+        this.throttle(() => {
+          this.log(["Focus released from", this], "log");
+          this.focusTrap?.deactivate();
+          this.commit("hasFocusTrap", false);
+        });
+      } catch (exception) {
+        this.log(exception as string, "error");
+      }
+    }
+  }
+
+  /**
    * Renders the defined image source as static image or inline SVG.
    */
   public renderImage(source: string, options?: EnlightenmentImageOptions) {
@@ -882,9 +976,7 @@ export class Enlightenment extends LitElement {
           width="${width || "auto"}"
           aria-hidden="true"
           focusable="false"
-          src="${this.testImageSource(source)
-            ? source
-            : this.svgSpriteSource || this.placeholder}"
+          src="${this.testImageSource(source) ? source : this.svgSpriteSource}"
         />`;
   }
 

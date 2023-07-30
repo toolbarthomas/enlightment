@@ -46,6 +46,8 @@
   },
   "devDependencies": {
     "esbuild": "^0.18.17",
+    "focus-trap": "^7.5.2",
+    "tabbable": "^6.2.0",
     "typescript": "^5.1.6"
   }
 }
