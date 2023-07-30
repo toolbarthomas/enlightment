@@ -193,7 +193,7 @@ export class Enlightenment extends LitElement {
   // Value to use for the naming of the Global state.
   namespace: string = "NLGHTNMNT";
 
-  // Block incomming Event handlers when TRUE.
+  // Blocks the default handle methods when TRUE.
   preventEvent: boolean = false;
 
   // Contains the Shadow Root slot target contexts in order to validate
@@ -217,7 +217,10 @@ export class Enlightenment extends LitElement {
   @property({ attribute: "aria-current", reflect: true })
   ariaCurrent = "false";
 
-  @property({ attribute: "aria-disabled", reflect: true })
+  @property({
+    attribute: "aria-disabled",
+    reflect: true,
+  })
   ariaDisabled = "false";
 
   constructor(options: EnlightenmentOptions) {
@@ -347,6 +350,25 @@ export class Enlightenment extends LitElement {
         this.log([`Found ${slots.length} slot(s) from:`, this.slots]);
       }
     });
+  }
+
+  /**
+   * Ensures the a requestUpdate is used when attribtues are added or removed.
+   * on the defined element.
+   */
+  protected attributeChangedCallback(
+    name: string,
+    previousValue?: string,
+    value?: string
+  ) {
+    //@TODO Fix stacking calls.
+    this.throttle(() => this.requestUpdate());
+
+    super.attributeChangedCallback(
+      name,
+      previousValue !== null ? value : null,
+      value !== null ? value : null
+    );
   }
 
   /**
@@ -516,9 +538,7 @@ export class Enlightenment extends LitElement {
   ) {
     super.firstUpdated(properties);
 
-    // Assign the rendered slots within the element context and mark any empty
-    // slot as hidden within the initial render.
-    this.updatePreventEvent();
+    this.hook("updated");
   }
 
   /**
@@ -527,6 +547,10 @@ export class Enlightenment extends LitElement {
    * within the Enlightenment element context.
    */
   protected handleCurrentElement(target: Event["target"]) {
+    if (this.preventEvent) {
+      return;
+    }
+
     this.commit("ariaCurrent", () => {
       if (this.isComponentContext(target as HTMLElement)) {
         this.ariaCurrent = "true";
@@ -543,6 +567,10 @@ export class Enlightenment extends LitElement {
    * click Event was triggered inside the element context.
    */
   protected handleGlobalClick(event: MouseEvent) {
+    if (this.preventEvent) {
+      return;
+    }
+
     const { target } = event || {};
 
     this.handleCurrentElement(target);
@@ -555,6 +583,10 @@ export class Enlightenment extends LitElement {
    * keyboard Event was triggered inside the element context.
    */
   protected handleGlobalFocus(event: FocusEvent) {
+    if (this.preventEvent) {
+      return;
+    }
+
     const { target } = event || {};
 
     this.handleCurrentElement(target);
@@ -567,6 +599,10 @@ export class Enlightenment extends LitElement {
    * element during a keyboard event within the element context.
    */
   protected handleGlobalKeydown(event: KeyboardEvent) {
+    if (this.preventEvent) {
+      return;
+    }
+
     const { keyCode, target } = event || {};
 
     if (Enlightenment.keyCodes.exit.includes(keyCode)) {
@@ -586,6 +622,10 @@ export class Enlightenment extends LitElement {
    * event on the main element context.
    */
   handleSlotchange(event: Event) {
+    if (this.preventEvent) {
+      return;
+    }
+
     if (!event) {
       return;
     }
@@ -823,17 +863,10 @@ export class Enlightenment extends LitElement {
    * used when TRUE.
    */
   protected updatePreventEvent() {
-    // Also disable if the parent element has already been disabled:
-    const parent = this.closest("[aria-disabled=true]");
-
-    if (parent || this.disabled === "true") {
-      this.commit("preventEvent", () => {
-        this.preventEvent = true;
-      });
+    if (this.ariaDisabled === "true") {
+      this.commit("preventEvent", true);
     } else {
-      this.commit("preventEvent", () => {
-        this.preventEvent = false;
-      });
+      this.commit("preventEvent", false);
     }
   }
 

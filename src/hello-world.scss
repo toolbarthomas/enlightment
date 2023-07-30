@@ -9,3 +9,9 @@ div {
     background-color: grey;
   }
 }
+
+:host {
+  &[aria-disabled="true"] {
+    color: grey;
+  }
+}

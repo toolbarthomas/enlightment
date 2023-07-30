@@ -12,7 +12,7 @@
       required library.
 
       The following module will import the required Enlightenment library from the
-      defined destination: '/enlightenment.js' (The default source for the
+      defined destination: '/Enlightenment.js' (The default source for the
       compiled Enlightenment package).
 
       You can ignore the workflow if your component will be bundled with the
@@ -25,12 +25,15 @@
     element.setAttribute('name', "Enlightenment")
     element.innerHTML = "<p>Id qui reprehenderit nostrud eiusmod aute voluptate adipisicing fugiat sint.</p>"
 
-    console.log(element)
-
     element.addEventListener('slotchange', (event) =>
     {
-      console.log('SLOTCHANGE')
+      console.log('Slotchange callback')
     });
+
+    element.addEventListener('updated', (event) =>
+    {
+      console.log('Updated callback')
+    })
 
     const emptyElement = document.createElement('hello-world')
 
@@ -40,8 +43,8 @@
       document.body.appendChild(emptyElement)
     })
 
-    setTimeout(() => element.firstElementChild.remove(), 5000)
-    setTimeout(() => emptyElement.innerHTML = "<hello-world aria-disabled='true'><p>Lorem ipsum</p><hello-world></hello-world></hello-world>", 10000)
+    setTimeout(() => element.firstElementChild.remove(), 3000)
+    setTimeout(() => emptyElement.innerHTML = "<hello-world aria-disabled='true'><p>Lorem ipsum</p><hello-world></hello-world></hello-world>", 5000)
 
     // setInterval(() =>
     // {
