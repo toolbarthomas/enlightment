@@ -1,19 +1,19 @@
 {
   "name": "@toolbarthomas/enlightenment",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Web component workflow with Sass & Lit Element",
   "main": "dist/enlightenment.js",
   "type": "module",
   "files": [
-    "dist/enlightenment.js",
+    "dist/Enlightenment.cjs",
+    "dist/Enlightenment.js",
     "index.cjs",
     "index.mjs",
     "index.ts",
     "node/",
     "README.md",
     "src/enlightenment.ts",
-    "src/mixins/",
-    "tsconfig.json"
+    "src/mixins/"
   ],
   "scripts": {
     "prebuild": "npm run tsc",
