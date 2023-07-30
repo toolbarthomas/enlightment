@@ -22,11 +22,7 @@ class HelloWorld extends Enlightenment {
         <slot></slot>
       </div>
       <div>
-        ${this.renderImage("foo", { width: "100px" })}
-        ${this.renderImage(
-          "https://dev.w3.org/SVG/tools/svgweb/samples/svg-files/410.svg",
-          "hello-world__image"
-        )}
+        ${this.renderImage("icon-home", { width: "100px" })}
         ${this.renderImage(
           "https://dev.w3.org/SVG/tools/svgweb/samples/svg-files/410.svg",
           {

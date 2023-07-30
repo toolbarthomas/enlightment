@@ -278,9 +278,9 @@ export class Enlightenment extends LitElement {
   ariaDisabled = "false";
 
   @property({
-    attribute: "sprite-source",
+    attribute: "svg-sprite-source",
   })
-  spriteSource: "";
+  svgSpriteSource: "";
 
   constructor(options: EnlightenmentOptions) {
     super();
@@ -867,14 +867,14 @@ export class Enlightenment extends LitElement {
     return this.testImage(false, source)
       ? html`<svg
           class="${classname}"
-          ${height && svg`height="${height}"`}
-          ${width && svg`width="${width}"`}
+          ${height && `height="${height}"`}
+          ${width && `width=  "${width}"`}
           height="${height || "100%"}"
           width="${width || "100%"}"
           aria-hidden="true"
           focusable="false"
         >
-          <use xlink:href="${this.spriteSource}#${name}"></use>
+          ${svg`<use href="${this.svgSpriteSource}#${source}"></use>`}
         </svg>`
       : html`<img
           class="${classname}"
@@ -882,7 +882,9 @@ export class Enlightenment extends LitElement {
           width="${width || "auto"}"
           aria-hidden="true"
           focusable="false"
-          src="${this.testImageSource(source) ? source : this.spriteSource}"
+          src="${this.testImageSource(source)
+            ? source
+            : this.svgSpriteSource || this.placeholder}"
         />`;
   }
 
@@ -892,17 +894,17 @@ export class Enlightenment extends LitElement {
    */
   protected testImage(initial: boolean, source: string) {
     if (
-      !this.spriteSource ||
-      !this.testImageSource(this.spriteSource) ||
+      !this.svgSpriteSource ||
+      !this.testImageSource(this.svgSpriteSource) ||
       this.testImageSource(source)
     ) {
       return false;
     }
 
-    if (initial && this.spriteSource) {
+    if (initial && this.svgSpriteSource) {
       if (
         source &&
-        this.testImageSource(this.spriteSource) &&
+        this.testImageSource(this.svgSpriteSource) &&
         this.testImageSource(source)
       ) {
         return false;
@@ -913,9 +915,9 @@ export class Enlightenment extends LitElement {
       return false;
     }
 
-    if (this.spriteSource && source) {
+    if (this.svgSpriteSource && source) {
       if (
-        this.testImageSource(this.spriteSource) &&
+        this.testImageSource(this.svgSpriteSource) &&
         this.testImageSource(Enlightenment.strip(source))
       ) {
         return false;
@@ -1005,19 +1007,21 @@ export class Enlightenment extends LitElement {
   ) {
     super.updated(properties);
 
-    this.throttle(this.assignSlots());
+    this.throttle(() => {
+      this.assignSlots();
 
-    if (this.ariaCurrent === "true") {
-      this.assignCurrentElement();
-    } else {
-      this.omitCurrentElement();
-    }
+      if (this.ariaCurrent === "true") {
+        this.assignCurrentElement();
+      } else {
+        this.omitCurrentElement();
+      }
 
-    this.updatePreventEvent();
+      this.updatePreventEvent();
 
-    this.isCurrentContext();
+      this.isCurrentContext();
 
-    this.hook("updated");
+      this.hook("updated");
+    });
   }
 
   /**
