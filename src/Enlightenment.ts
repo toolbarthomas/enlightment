@@ -886,6 +886,10 @@ export class Enlightenment extends LitElement {
         />`;
   }
 
+  /**
+   * Validates if the given image source should be renderd as inline image when
+   * TRUE or static image as default.
+   */
   protected testImage(initial: boolean, source: string) {
     if (
       !this.spriteSource ||
@@ -1001,7 +1005,7 @@ export class Enlightenment extends LitElement {
   ) {
     super.updated(properties);
 
-    this.assignSlots();
+    this.throttle(this.assignSlots());
 
     if (this.ariaCurrent === "true") {
       this.assignCurrentElement();
