@@ -21,7 +21,7 @@ class HelloWorld extends Enlightenment {
       <div>
         <slot></slot>
       </div>
-      <div>Footer</div>
+      <div><input type="text" /></div>
     </div>`;
   }
 }

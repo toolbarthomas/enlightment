@@ -23,7 +23,7 @@
     // Test if the slot is updated from isEmpty slotchange event.
     const element = document.createElement('hello-world')
     element.setAttribute('name', "Enlightenment")
-    element.innerHTML = "<input type='text' />"
+    element.innerHTML = "<p>Id qui reprehenderit nostrud eiusmod aute voluptate adipisicing fugiat sint.</p>"
 
     console.log(element)
 
@@ -41,7 +41,7 @@
     })
 
     setTimeout(() => element.firstElementChild.remove(), 5000)
-    setTimeout(() => emptyElement.innerHTML = "<p>Id ad laboris fugiat eiusmod id tempor qui ad ex.</p>", 10000)
+    setTimeout(() => emptyElement.innerHTML = "<hello-world aria-disabled='true'><p>Lorem ipsum</p><hello-world></hello-world></hello-world>", 10000)
 
     // setInterval(() =>
     // {

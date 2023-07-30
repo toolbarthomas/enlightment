@@ -202,7 +202,7 @@ It introduces extra methods to use within the Web Component context that improve
 
 @TODO
 
-| Type         | Description                                                                                                                          |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
-| aria-current | Will update the defined **context** reference attribute during a **currentElement** mutation                                         |
-| aria-hidden  | Will update the parent container ARIA attribute from the *slotchange* Event target. This enables the styling of empty slot elements. |
+| Type         | Description                                                                                                                            |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| aria-current | Will update the defined **context** and custom element during a **currentElement** mutation.                                           |
+| aria-hidden  | Will update the parent container ARIA attribute during the *slotchange* Event target. This enables the styling of empty slot elements. |

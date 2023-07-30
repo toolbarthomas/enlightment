@@ -215,7 +215,10 @@ export class Enlightenment extends LitElement {
   error = "";
 
   @property({ attribute: "aria-current", reflect: true })
-  currentElement = "false";
+  ariaCurrent = "false";
+
+  @property({ attribute: "aria-disabled", reflect: true })
+  ariaDisabled = "false";
 
   constructor(options: EnlightenmentOptions) {
     super();
@@ -497,8 +500,6 @@ export class Enlightenment extends LitElement {
 
     const entry: GlobalEvent[] = [];
     this.listeners.forEach(([t, fn, ctx]) => {
-      console.log("xxx", fn.name.length, handler.name);
-
       if (t === type && fn.name.endsWith(handler.name)) {
         entry.push([t, fn, ctx]);
       }
@@ -510,9 +511,14 @@ export class Enlightenment extends LitElement {
   /**
    * Setup the actual featuers for the constructed Enlightenment component.
    */
-  protected firstUpdated() {
+  protected firstUpdated(
+    properties: PropertyValueMap<any> | Map<PropertyKey, unknown>
+  ) {
+    super.firstUpdated(properties);
+
     // Assign the rendered slots within the element context and mark any empty
     // slot as hidden within the initial render.
+    this.updatePreventEvent();
   }
 
   /**
@@ -521,11 +527,11 @@ export class Enlightenment extends LitElement {
    * within the Enlightenment element context.
    */
   protected handleCurrentElement(target: Event["target"]) {
-    this.commit("currentElement", () => {
+    this.commit("ariaCurrent", () => {
       if (this.isComponentContext(target as HTMLElement)) {
-        this.currentElement = true;
+        this.ariaCurrent = "true";
       } else {
-        this.currentElement = false;
+        this.ariaCurrent = "false";
       }
     });
   }
@@ -633,10 +639,7 @@ export class Enlightenment extends LitElement {
       return;
     }
 
-    context.setAttribute(
-      "aria-current",
-      this.currentElement ? "true" : "false"
-    );
+    context.setAttribute("aria-current", this.ariaCurrent);
   }
 
   /**
@@ -797,20 +800,41 @@ export class Enlightenment extends LitElement {
    */
   protected updated(
     properties: PropertyValueMap<any> | Map<PropertyKey, unknown>
-  ): void {
+  ) {
+    super.updated(properties);
+
     this.assignSlots();
 
-    if (this.currentElement) {
+    if (this.ariaCurrent === "true") {
       this.assignCurrentElement();
     } else {
       this.omitCurrentElement();
     }
 
+    this.updatePreventEvent();
+
     this.isCurrentContext();
 
     this.hook("updated");
+  }
 
-    super.updated(properties);
+  /**
+   * Updates the preventEvent flag that should disable other handlers to be
+   * used when TRUE.
+   */
+  protected updatePreventEvent() {
+    // Also disable if the parent element has already been disabled:
+    const parent = this.closest("[aria-disabled=true]");
+
+    if (parent || this.disabled === "true") {
+      this.commit("preventEvent", () => {
+        this.preventEvent = true;
+      });
+    } else {
+      this.commit("preventEvent", () => {
+        this.preventEvent = false;
+      });
+    }
   }
 
   /**
