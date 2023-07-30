@@ -22,6 +22,12 @@ import { FocusTrap } from "focus-trap";
 import { FocusableElement } from "tabbable";
 
 /**
+ * Defines the dynamic endpoint list that will be shared within the instance
+ * global.
+ */
+export type EnlightenmentEndpoint = { [key: string]: string };
+
+/**
  * Optional configuration options to use within the renderImage method.
  */
 export type EnlightenmentImageOptions =
@@ -34,6 +40,7 @@ export type EnlightenmentImageOptions =
  */
 export type EnlightenmentState = {
   currentElements: Element[];
+  endpoints: EnlightenmentEndpoint;
   verbose?: boolean;
 };
 
@@ -251,6 +258,9 @@ export class Enlightenment extends LitElement {
   // Dynamic storage for the running document Event listeners.
   listeners: GlobalEvent[] = [];
 
+  // Defines the constructed classname as readable name.
+  name: string;
+
   // Value to use for the naming of the Global state.
   namespace: string = "NLGHTNMNT";
 
@@ -282,7 +292,7 @@ export class Enlightenment extends LitElement {
   @property({
     type: Boolean,
   })
-  disableFocusTrap = false;
+  enableFocusTrap = false;
 
   @property({
     type: Number,
@@ -312,12 +322,15 @@ export class Enlightenment extends LitElement {
   constructor() {
     super();
 
+    this.name = this.constructor.name;
+
     // Ensure the Global state is defined for the initial custom elements.
     //@ts-ignore
     if (!this.root[this.namespace]) {
       const state = {
         currentElements: [],
         verbose: false,
+        endpoints: {},
       } as EnlightenmentState;
 
       //@ts-ignore
@@ -326,13 +339,9 @@ export class Enlightenment extends LitElement {
       this.log([`${this.namespace} global assigned:`, state]);
     }
 
-    if (!this.disableFocusTrap) {
+    if (this.enableFocusTrap) {
       this.focusContext = createRef();
     }
-
-    const f = () => console.log("Throttle function");
-
-    this.throttle(f, 1000);
 
     this.throttler = {
       delay: isNaN(parseFloat(String(this.delay)))
@@ -340,13 +349,6 @@ export class Enlightenment extends LitElement {
         : this.delay,
       handlers: [],
     };
-
-    this.log(
-      `${this.namespace} throtler constructed: ${this.throttler.delay}ms`
-    );
-
-    this.throttle(f, 1000);
-    this.throttle(f, 1000);
   }
 
   /**
@@ -399,7 +401,7 @@ export class Enlightenment extends LitElement {
 
     ctx && ctx.addEventListener(type, fn);
 
-    this.log(`Global event assigned: ${type}`, "log");
+    this.log(`Global event assigned: ${type}`);
   }
 
   /**
@@ -473,7 +475,7 @@ export class Enlightenment extends LitElement {
       listeners.forEach(([t, fn, ctx]) => {
         ctx.removeEventListener(t, fn as any);
 
-        this.log([`Global ${t} event removed:`, fn], "log");
+        this.log([`Global ${t} event removed:`, fn]);
 
         completed += 1;
       });
@@ -483,7 +485,7 @@ export class Enlightenment extends LitElement {
           (listener) => !listeners.includes(listener)
         );
 
-        this.log(`Global ${type} event cleared`, "log");
+        this.log(`Global ${type} event cleared`);
       }
     }
   }
@@ -503,7 +505,7 @@ export class Enlightenment extends LitElement {
       if (timeout) {
         clearTimeout(timeout);
 
-        this.log(["Throttle cleared:", fn], "log");
+        this.log(["Throttle cleared:", fn]);
       }
     });
 
@@ -622,6 +624,8 @@ export class Enlightenment extends LitElement {
     super.firstUpdated(properties);
 
     this.mountFocusTrap();
+    this.shareEndpoint("focusTrap", this.endpointFocusTrap);
+    this.requestEndpoint("focusTrap", "endpointFocusTrap");
 
     this.hook("updated");
   }
@@ -738,7 +742,7 @@ export class Enlightenment extends LitElement {
       detail: data || {},
     });
 
-    this.log([`Hook assigned as ${name}`, event], "log");
+    this.log([`Hook assigned as ${name}`, event]);
 
     if (context && context !== this) {
       return context.dispatchEvent(event);
@@ -752,13 +756,13 @@ export class Enlightenment extends LitElement {
    */
   lockFocus() {
     if (!this.focusTrap || !this.focusTrap.activate) {
-      this.log("Unable to lock focus, Focus Trap is not mounted.", "log");
+      this.log("Unable to lock focus, Focus Trap is not mounted.");
     }
 
-    if (!this.hasFocusTrap && !this.disableFocusTrap) {
+    if (!this.hasFocusTrap && this.enableFocusTrap) {
       try {
         this.throttle(() => {
-          this.log(["Focus locked from", this], "log");
+          this.log(["Focus locked from", this]);
           this.focusTrap?.activate();
           this.commit("hasFocusTrap", true);
         });
@@ -780,7 +784,7 @@ export class Enlightenment extends LitElement {
     import(this.endpointFocusTrap).then((focusTrap: any) => {
       try {
         this.focusTrap = focusTrap.createFocusTrap(
-          [this, this.useContext(this.focusContext)],
+          [this, this.useRef(this.focusContext)],
           {
             escapeDeactivates: false, // The child component should deactivate it manually.
             allowOutsideClick: false,
@@ -930,13 +934,13 @@ export class Enlightenment extends LitElement {
    */
   public releaseFocus() {
     if (!this.focusTrap || !this.focusTrap.deactivate) {
-      this.log("Ignore focus, Focus Trap is not mounted.", "log");
+      this.log("Ignore focus, Focus Trap is not mounted.");
     }
 
-    if (!this.hasFocusTrap && !this.disableFocusTrap) {
+    if (!this.hasFocusTrap && this.enableFocusTrap) {
       try {
         this.throttle(() => {
-          this.log(["Focus released from", this], "log");
+          this.log(["Focus released from", this]);
           this.focusTrap?.deactivate();
           this.commit("hasFocusTrap", false);
         });
@@ -978,6 +982,55 @@ export class Enlightenment extends LitElement {
           focusable="false"
           src="${this.testImageSource(source) ? source : this.svgSpriteSource}"
         />`;
+  }
+
+  /**
+   * Returns the defined endpoint that has been shared from another element
+   * instance.
+   */
+  protected requestEndpoint(name: string, property: string) {
+    //@ts-ignore
+    if (!this.root || !this.root[this.namespace]) {
+      return;
+    }
+
+    if (!name || !property) {
+      return;
+    }
+
+    //@ts-ignore
+    const value = (this.root[this.namespace] as EnlightenmentState).endpoints[
+      name
+    ];
+
+    if (value) {
+      this.commit(property, value);
+
+      this.log(`Using endpoint from cache: ${value}`);
+    }
+
+    return value;
+  }
+
+  /**
+   * Expose the defined endpoint to the global Enlightenment state.
+   */
+  protected shareEndpoint(name: string, value: string) {
+    //@ts-ignore
+    if (!this.root || !this.root[this.namespace]) {
+      return;
+    }
+
+    if (!name || !value) {
+      return;
+    }
+
+    try {
+      //@ts-ignore
+      (this.root[this.namespace] as EnlightenmentState).endpoints[name] = value;
+    } catch (exception) {
+      exception && this.log(exception as string, "error");
+    }
   }
 
   /**
@@ -1138,7 +1191,7 @@ export class Enlightenment extends LitElement {
   /**
    * Shorthand to use the existing Lit Element reference.
    */
-  protected useRef = (ref: Ref): Element | undefined => {
+  protected useRef = (ref?: Ref): Element | undefined => {
     if (!ref || !ref.value) {
       return;
     }
