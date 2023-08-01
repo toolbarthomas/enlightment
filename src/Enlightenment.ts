@@ -1,6 +1,6 @@
 import {
   css as _css,
-  CSSResultGroup as _CSSResultGroup,
+  CSSResultGroup,
   LitElement,
   html as _html,
   PropertyValueMap,
@@ -17,66 +17,22 @@ import {
 } from "lit/directives/ref.js";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 
+import {
+  EnlightenmentEndpoint,
+  EnlightenmentImageOptions,
+  EnlightenmentState,
+  EnlightenmentThrottle,
+  GlobalEvent,
+  GlobalEventContext,
+  GlobalEventHandler,
+  GlobalEventType,
+  HookOptions,
+} from "./_types/main";
+
 import { isEmptyComponentSlot } from "src/mixins/dom";
 
 import { FocusTrap } from "focus-trap";
 import { FocusableElement } from "tabbable";
-
-/**
- * Defines the dynamic endpoint list that will be shared within the instance
- * global.
- */
-export type EnlightenmentEndpoint = { [key: string]: string };
-
-/**
- * Optional configuration options to use within the renderImage method.
- */
-export type EnlightenmentImageOptions =
-  | {
-      classname?: string;
-    }
-  | string;
-/**
- * Defines the Global state typing that is assigned to the Window context.
- */
-export type EnlightenmentState = {
-  currentElements: Element[];
-  endpoints: EnlightenmentEndpoint;
-  verbose?: boolean;
-};
-
-/**
- * Definition of a single throttled handler that will not stack if called
- * multiple times within the defined throttle delay.
- */
-export type EnlightenmentThrottle = [Function, ReturnType<typeof setTimeout>];
-
-/**
- * Contains the active document Event listeners that are created from the
- * constructed Class context.
- */
-export type GlobalEventType = Event["type"];
-export type GlobalEventHandler = Function;
-export type GlobalEventContext = EventTarget;
-export type GlobalEvent = [
-  GlobalEventType,
-  GlobalEventHandler,
-  GlobalEventContext
-];
-
-/**
- * Optional options to use for Enlightenment.hook method.
- */
-export type hookOptions = {
-  context?: Element;
-  data: any;
-};
-
-/**
- * Re-export the required Lit Element libraries to ensure the imports are
- * comming a single source.
- */
-export type CSSResultGroup = _CSSResultGroup;
 
 export const createRef = _createRef;
 export const css = _css;
@@ -784,7 +740,7 @@ export class Enlightenment extends LitElement {
    * Event Dispatcher interface to call Event handlers that are defined outside
    * the Enlightenment element context.
    */
-  public hook(name: string, options?: hookOptions) {
+  public hook(name: string, options?: HookOptions) {
     const { context, data } = options || {};
 
     if (!name) {

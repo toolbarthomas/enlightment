@@ -16,6 +16,13 @@ class HelloWorld extends Enlightenment {
   @property({ type: String })
   name = "World";
 
+  @property({ type: String })
+  helloWorld = "new";
+
+  constructor() {
+    super();
+  }
+
   render() {
     return html`<div>
       <h1>Hello ${this.name}</h1>

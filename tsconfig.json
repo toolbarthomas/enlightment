@@ -34,6 +34,7 @@
     "strict": true,
     "types": [],
     "typeRoots": [
+      "src/_types/",
       "node_modules/@types"
     ],
   },
