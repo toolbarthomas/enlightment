@@ -15,6 +15,7 @@ import {
   ref as _ref,
   Ref,
 } from "lit/directives/ref.js";
+import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 
 import { isEmptyComponentSlot } from "src/mixins/dom";
 
@@ -192,6 +193,17 @@ export class Enlightenment extends LitElement {
   };
 
   /**
+   * Simple helper function to ensure the given value does not contain any
+   * XML/HTML based syntax.
+   */
+  static sanitizeHTML(value: string) {
+    const raw = document.createElement("div");
+    raw.innerHTML = value;
+
+    return raw.textContent || "";
+  }
+
+  /**
    * Ensures any whitespace is removed from the given string.
    */
   static strip(value: string) {
@@ -222,10 +234,12 @@ export class Enlightenment extends LitElement {
    * dynamic string or object value.
    */
   static useOption(property: string, value?: any, optional?: boolean) {
-    return (
-      (typeof value === "string" && !optional
-        ? value
-        : (value || {})[property]) || ""
+    return Enlightenment.sanitizeHTML(
+      String(
+        (typeof value === "string" && !optional
+          ? value
+          : (value || {})[property]) || ""
+      )
     );
   }
 
@@ -1004,6 +1018,13 @@ export class Enlightenment extends LitElement {
     const height = Enlightenment.useOption("height", options, true);
     const width = Enlightenment.useOption("width", options, true);
 
+    const use = document.createElement("use");
+    use.setAttributeNS(
+      "http://www.w3.org/1999/xlink",
+      "xlink:href",
+      Enlightenment.sanitizeHTML(`${this.svgSpriteSource}#${source}`)
+    );
+
     return this.testImage(false, source)
       ? html`<svg
           class="${classname}"
@@ -1014,7 +1035,7 @@ export class Enlightenment extends LitElement {
           aria-hidden="true"
           focusable="false"
         >
-          ${svg`<use href="${this.svgSpriteSource}#${source}"></use>`}
+          ${unsafeSVG(use.outerHTML)}
         </svg>`
       : html`<img
           class="${classname}"
