@@ -17,7 +17,10 @@ import { argv } from "./argv.mjs";
  */
 (async () => {
   const format = argv.f || argv.format || "esm";
-  const outExtension = { ".js": format === "cjs" ? ".cjs" : ".js" };
+  const suffix = argv.m || argv.minify ? ".min" : "";
+  const outExtension = {
+    ".js": `${suffix}${format === "cjs" ? ".cjs" : ".js"}`,
+  };
   const watch = argv.w || argv.watch || false;
 
   const defaults = {
