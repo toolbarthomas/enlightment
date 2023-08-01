@@ -297,7 +297,7 @@ export class Enlightenment extends LitElement {
   @property({
     type: Number,
     converter: (value) =>
-      isNaN(parseFloat(value)) ? Enlightenment.FPS : value,
+      value && isNaN(parseFloat(value)) ? Enlightenment.FPS : value,
   })
   delay = Enlightenment.FPS;
 
@@ -538,15 +538,23 @@ export class Enlightenment extends LitElement {
       }
 
       if (typeof handler !== "function") {
-        //@ts-ignore
-        this[property] = handler;
+        if (Object.keys(this).includes(property)) {
+          //@ts-ignore
+          this[property] = handler;
 
-        const data: { [key: string] } = {};
-        data[property] = this[property];
+          const data: { [key: string]: any } = {};
+          data[property] = handler;
 
-        this.hook("commit", { data });
+          this.hook("commit", { data });
 
-        this.log([`${this.namespace} property updated:`, handler]);
+          this.log([`${this.namespace} property updated:`, handler]);
+        } else {
+          console.log("NO", property);
+          this.log(
+            ["Illegal property commit detected.", [property, handler]],
+            "error"
+          );
+        }
       } else {
         this.log([
           `${this.namespace} properties commited from handler`,
