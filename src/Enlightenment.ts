@@ -298,16 +298,14 @@ export class Enlightenment extends LitElement {
     this.uuid = this.constructor.name;
 
     // Ensure the Global state is defined for the initial custom elements.
-    //@ts-ignore
-    if (!this.root[this.namespace]) {
+    if (!this.useState()) {
       const state = {
         currentElements: [],
         verbose: false,
         endpoints: {},
       } as EnlightenmentState;
 
-      //@ts-ignore
-      this.root[this.namespace] = state;
+      this.useState(state);
 
       this.log([`${this.namespace} global assigned:`, state]);
     }
@@ -329,16 +327,10 @@ export class Enlightenment extends LitElement {
    * within the constructed this.root Object.
    */
   protected assignCurrentElement() {
-    //@ts-ignore
-    const { currentElements } = this.root[this.namespace] || {};
+    const state = this.useState();
 
-    if (
-      currentElements &&
-      !(currentElements as EnlightenmentState["currentElements"]).filter(
-        (ce) => ce === this
-      ).length
-    ) {
-      (currentElements as EnlightenmentState["currentElements"]).push(this);
+    if (state && !state.currentElements.filter((ce) => ce === this).length) {
+      state.currentElements.push(this);
     }
   }
 
@@ -492,10 +484,14 @@ export class Enlightenment extends LitElement {
   protected commit(property: string, handler: any) {
     if (!property) {
       this.log([`Unable to commit undefined property`]);
+
+      return;
     }
 
     if (handler === null) {
       this.log([`Unable to commit ${property}`]);
+
+      return;
     }
 
     let update = false;
@@ -506,6 +502,7 @@ export class Enlightenment extends LitElement {
 
       if (typeof handler === "function") {
         handler();
+        update = true;
       }
 
       if (typeof handler !== "function") {
@@ -513,14 +510,16 @@ export class Enlightenment extends LitElement {
           //@ts-ignore
           this[property] = handler;
 
+          if (handler !== value) {
+            update = true;
+          }
+
           const data: { [key: string]: any } = {};
           data[property] = handler;
 
           this.hook("commit", { data });
 
           this.log([`${this.namespace} property updated:`, handler]);
-
-          update = true;
         } else {
           this.log(
             ["Illegal property commit detected.", [property, handler]],
@@ -866,8 +865,7 @@ export class Enlightenment extends LitElement {
 
     let output = Array.isArray(message) ? message : [message];
 
-    //@ts-ignore
-    const { verbose } = (this.root && this.root[this.namespace]) || {};
+    const { verbose } = this.useState() || {};
 
     if (verbose) {
       //@ts-ignore
@@ -880,17 +878,12 @@ export class Enlightenment extends LitElement {
    * Element collection.
    */
   omitCurrentElement() {
-    //@ts-ignore
-    const { currentElements } = this.root[this.namespace] || {};
+    const state = this.useState();
 
-    if (currentElements && currentElements.length) {
-      //@ts-ignore
-      const commit = (
-        currentElements as EnlightenmentState["currentElements"]
-      ).filter((ce) => ce !== this);
+    if (state && state.currentElements && state.currentElements.length) {
+      const commit = state.currentElements.filter((ce) => ce !== this);
 
-      //@ts-ignore
-      this.root[this.namespace].currentElements = commit;
+      state.currentElements = commit;
     }
 
     this.hook("omit");
@@ -1007,8 +1000,8 @@ export class Enlightenment extends LitElement {
    * instance.
    */
   protected requestEndpoint(name: string, property: string) {
-    //@ts-ignore
-    if (!this.root || !this.root[this.namespace]) {
+    const state = this.useState();
+    if (!state || !state.endpoints) {
       return;
     }
 
@@ -1016,10 +1009,7 @@ export class Enlightenment extends LitElement {
       return;
     }
 
-    //@ts-ignore
-    const value = (this.root[this.namespace] as EnlightenmentState).endpoints[
-      `${this.uuid}::${name}`
-    ];
+    const value = state.endpoints[`${this.uuid}::${name}`];
 
     if (value) {
       this.commit(property, value);
@@ -1034,8 +1024,9 @@ export class Enlightenment extends LitElement {
    * Expose the defined endpoint to the global Enlightenment state.
    */
   protected shareEndpoint(name: string, value: string) {
-    //@ts-ignore
-    if (!this.root || !this.root[this.namespace]) {
+    const state = this.useState();
+
+    if (!state || !state.endpoints) {
       return;
     }
 
@@ -1044,10 +1035,7 @@ export class Enlightenment extends LitElement {
     }
 
     try {
-      //@ts-ignore
-      (this.root[this.namespace] as EnlightenmentState).endpoints[
-        `${this.uuid}::${name}`
-      ] = value;
+      state.endpoints[`${this.uuid}::${name}`] = value;
     } catch (exception) {
       exception && this.log(exception as string, "error");
     }
@@ -1220,4 +1208,34 @@ export class Enlightenment extends LitElement {
 
     return ref.value;
   };
+
+  /**
+   * Returns the global Enlightenment state from the defined root context.
+   */
+  protected useState(state?: EnlightenmentState) {
+    if (state) {
+      //@ts-ignore
+      if (this.root && this.root[this.namespace]) {
+        // Update the current global State with the optional state values.
+        //@ts-ignore
+        this.root[this.namespace] = {
+          ...state,
+          //@ts-ignore
+          ...this.root[this.namespace],
+        } as EnlightenmentState;
+      } else {
+        // Define the initial global state.
+        //@ts-ignore
+        this.root[this.namespace] = state;
+      }
+    }
+
+    //@ts-ignore
+    if (this.root && this.root[this.namespace]) {
+      //@ts-ignore
+      return this.root[this.namespace] as EnlightenmentState;
+    }
+
+    return undefined;
+  }
 }
