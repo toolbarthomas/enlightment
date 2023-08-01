@@ -769,8 +769,6 @@ export class Enlightenment extends LitElement {
       detail: data || {},
     });
 
-    console.log("HOOK", name, data);
-
     this.log([`Hook assigned as ${name}`, event]);
 
     if (context && context !== this) {
