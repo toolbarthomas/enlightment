@@ -296,11 +296,14 @@ export class Enlightenment extends LitElement {
 
   @property({
     type: Number,
+    converter: (value) =>
+      isNaN(parseFloat(value)) ? Enlightenment.FPS : value,
   })
   delay = Enlightenment.FPS;
 
   @property({
     attribute: "endpoint-focustrap",
+    converter: (value) => Enlightenment.strip(String(value)),
   })
   endpointFocusTrap = "";
 
@@ -316,6 +319,7 @@ export class Enlightenment extends LitElement {
 
   @property({
     attribute: "svg-sprite-source",
+    converter: (value) => Enlightenment.strip(String(value)),
   })
   svgSpriteSource = "";
 
