@@ -29,10 +29,9 @@ import {
   HookOptions,
 } from "./_types/main";
 
-import { isEmptyComponentSlot } from "src/mixins/dom";
+import { isEmptyComponentSlot } from "./mixins/dom";
 
 import { FocusTrap } from "focus-trap";
-import { FocusableElement } from "tabbable";
 
 export const createRef = _createRef;
 export const css = _css;
@@ -804,8 +803,8 @@ export class Enlightenment extends LitElement {
             tabbableOptions: {
               getShadowRoot: this.minimalShadowRoot
                 ? true
-                : (node: FocusableElement) =>
-                    this.isComponentContext(node as HTMLElement)
+                : (node: HTMLElement | SVGElement) =>
+                    this.isComponentContext(node)
                       ? node.shadowRoot || undefined
                       : false,
             },
@@ -823,7 +822,7 @@ export class Enlightenment extends LitElement {
    * Validates if the defined element exists within the created Enlightenment
    * context.
    */
-  protected isComponentContext(element: HTMLElement) {
+  protected isComponentContext(element: HTMLElement | SVGElement) {
     const { value } = this.context || {};
 
     return element === value || element === this || this.contains(element);
