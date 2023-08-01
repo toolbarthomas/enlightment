@@ -37,6 +37,9 @@ class HelloWorld extends Enlightenment {
         })}
       </div>
       <div><input type="text" /></div>
+      <button @click=${this.handleFocusTrap}>
+        ${this.hasFocusTrap ? "disable" : "enable"} Focus Trap
+      </button>
     </div>`;
   }
 }

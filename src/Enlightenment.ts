@@ -537,6 +537,11 @@ export class Enlightenment extends LitElement {
         //@ts-ignore
         this[property] = handler;
 
+        const data: { [key: string] } = {};
+        data[property] = this[property];
+
+        this.hook("commit", { data });
+
         this.log([`${this.namespace} property updated:`, handler]);
       } else {
         this.log([
@@ -558,8 +563,12 @@ export class Enlightenment extends LitElement {
   public connectedCallback() {
     super.connectedCallback();
 
-    this.shareEndpoint("focusTrap", this.endpointFocusTrap);
-    this.requestEndpoint("focusTrap", "endpointFocusTrap");
+    if (this.endpointFocusTrap) {
+      this.shareEndpoint("focusTrap", this.endpointFocusTrap);
+      this.enableFocusTrap = true;
+    } else {
+      this.requestEndpoint("focusTrap", "endpointFocusTrap");
+    }
 
     this.assignGlobalEvent("click", this.handleGlobalClick);
     this.assignGlobalEvent("keydown", this.handleGlobalKeydown);
@@ -649,6 +658,21 @@ export class Enlightenment extends LitElement {
   }
 
   /**
+   * Toggles the optional defined Focus Trap instance.
+   */
+  public handleFocusTrap(event: Event) {
+    if (event.preventDefault) {
+      event.preventDefault();
+    }
+
+    if (this.hasFocusTrap) {
+      this.releaseFocusTrap();
+    } else {
+      this.lockFocusTrap();
+    }
+  }
+
+  /**
    * Defines the global click Event listener for the element context.
    *
    * Marks the constructed Enlightenment element as currentElement when the
@@ -728,7 +752,6 @@ export class Enlightenment extends LitElement {
    * the Enlightenment element context.
    */
   public hook(name: string, options?: hookOptions) {
-    console.log("HOOK", name);
     const { context, data } = options || {};
 
     if (!name) {
@@ -742,6 +765,8 @@ export class Enlightenment extends LitElement {
       detail: data || {},
     });
 
+    console.log("HOOK", name, data);
+
     this.log([`Hook assigned as ${name}`, event]);
 
     if (context && context !== this) {
@@ -754,7 +779,7 @@ export class Enlightenment extends LitElement {
   /**
    * Activates the optional defined Focus Trap instance.
    */
-  lockFocus() {
+  lockFocusTrap() {
     if (!this.focusTrap || !this.focusTrap.activate) {
       this.log("Unable to lock focus, Focus Trap is not mounted.");
     }
@@ -777,7 +802,7 @@ export class Enlightenment extends LitElement {
    * assign it to the focusTrap instance within the element.
    */
   protected mountFocusTrap() {
-    if (!this.endpointFocusTrap) {
+    if (!this.endpointFocusTrap || !this.enableFocusTrap || this.focusTrap) {
       return;
     }
 
@@ -932,12 +957,12 @@ export class Enlightenment extends LitElement {
   /**
    * Deactivates the optional defined Focus Trap instance
    */
-  public releaseFocus() {
+  public releaseFocusTrap() {
     if (!this.focusTrap || !this.focusTrap.deactivate) {
       this.log("Ignore focus, Focus Trap is not mounted.");
     }
 
-    if (!this.hasFocusTrap && this.enableFocusTrap) {
+    if (this.hasFocusTrap && this.enableFocusTrap) {
       try {
         this.throttle(() => {
           this.log(["Focus released from", this]);
