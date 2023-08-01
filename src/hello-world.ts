@@ -6,11 +6,12 @@ import {
   ref,
 } from "@toolbarthomas/enlightenment";
 
-import styles from "./hello-world.scss";
+import cssStyle from "./hello-world.css";
+import scssStyle from "./hello-world.scss";
 
 @customElement("hello-world")
 class HelloWorld extends Enlightenment {
-  static styles = [styles];
+  static styles = [cssStyle, scssStyle];
 
   @property({ type: String })
   name = "World";

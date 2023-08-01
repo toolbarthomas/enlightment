@@ -1,5 +1,5 @@
 import esbuild from "esbuild";
-import { sassPlugin } from "@toolbarthomas/enlightenment/node/esbuild.sass.plugin.mjs";
+import { stylePlugin } from "@toolbarthomas/enlightenment/node/esbuild.style.plugin.mjs";
 import { resolvePlugin } from "../node/esbuild.resolve.plugin.mjs";
 
 (async () => {
@@ -10,7 +10,10 @@ import { resolvePlugin } from "../node/esbuild.resolve.plugin.mjs";
       format: "esm",
       keepNames: true,
       outdir: "dist",
-      plugins: [resolvePlugin({ destination: "./framework.js" }), sassPlugin()],
+      plugins: [
+        resolvePlugin({ destination: "./framework.js" }),
+        stylePlugin(),
+      ],
     })
     .then(() => {
       console.log("Done");

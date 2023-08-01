@@ -1,8 +1,8 @@
 const esbuild = require("esbuild");
 
 (async () => {
-  const { sassPlugin } = await import(
-    "@toolbarthomas/enlightenment/node/esbuild.sass.plugin.mjs"
+  const { stylePlugin } = await import(
+    "@toolbarthomas/enlightenment/node/esbuild.style.plugin.mjs"
   );
 
   esbuild
@@ -12,7 +12,7 @@ const esbuild = require("esbuild");
       keepNames: true,
       outdir: "dist",
       outExtension: { ".js": ".cjs.js" },
-      plugins: [sassPlugin()],
+      plugins: [stylePlugin()],
     })
     .then(() => {
       console.log("Done");

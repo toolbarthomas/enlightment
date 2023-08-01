@@ -142,11 +142,11 @@ The actual requested stylesheet will be transformed with the Sass package during
 ```mjs
 // ./esbuild.mjs
 import esbuild from "esbuild"
-import { sassPlugin } from "@toolbarthomas/enlightenment/node/esbuild.sass.plugin.mjs"
+import { stylePlugin } from "@toolbarthomas/enlightenment/node/esbuild.style.plugin.mjs"
 
 esbuild.build({
   ...
-  plugins: [sassPlugin, ...],
+  plugins: [stylePlugin, ...],
   ...
 })
 

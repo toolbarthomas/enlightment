@@ -1,7 +1,7 @@
 import esbuild from "esbuild";
 
 import { resolvePlugin } from "./esbuild.resolve.plugin.mjs";
-import { sassPlugin } from "./esbuild.sass.plugin.mjs";
+import { stylePlugin } from "./esbuild.style.plugin.mjs";
 
 /**
  * Esbuild example workflow for transforming an actual Enlightenment Element.
@@ -21,7 +21,7 @@ import { sassPlugin } from "./esbuild.sass.plugin.mjs";
     format: "esm",
     outdir: "dist",
     platform: "browser",
-    plugins: [resolvePlugin(), sassPlugin()],
+    plugins: [resolvePlugin(), stylePlugin()],
   });
 
   context

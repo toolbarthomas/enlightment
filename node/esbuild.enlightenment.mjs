@@ -1,7 +1,7 @@
 import esbuild from "esbuild";
 import path from "node:path";
 
-import { sassPlugin } from "./esbuild.sass.plugin.mjs";
+import { stylePlugin } from "./esbuild.style.plugin.mjs";
 
 import { argv } from "./argv.mjs";
 
@@ -33,7 +33,7 @@ import { argv } from "./argv.mjs";
     outdir: "dist",
     outExtension,
     platform: "node",
-    plugins: [sassPlugin()],
+    plugins: [stylePlugin()],
   };
 
   if (watch) {
