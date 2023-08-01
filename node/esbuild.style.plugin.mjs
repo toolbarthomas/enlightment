@@ -1,8 +1,62 @@
 import * as sass from "sass";
 import { readFileSync } from "node:fs";
-import { dirname } from "node:path";
+import { dirname, resolve } from "node:path";
+
+import autoprefixer from "autoprefixer";
+import combineDuplicateSelectors from "postcss-combine-duplicated-selectors";
+import cssnano from "cssnano";
+import postcss from "postcss";
 
 import { argv } from "./argv.mjs";
+import { globSync } from "glob";
+import { fileURLToPath } from "node:url";
+
+/**
+ * Load the required BrowserList configuration from the Node context or this
+ * package as fallback.
+ */
+const [browserlistCustomConfig] = globSync(".browserlistrc*");
+const browserlistDefaultConfig = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  "../.browserlistrc"
+);
+
+/**
+ * Minifies the defined data value with the installed minifiers.
+ *
+ * @param {String} data The actual data to minify.
+ * @param {String} context Actual context path of the defined data.
+ */
+const optimize = (data, context) => {
+  return new Promise((done) => {
+    const plugins = {
+      autoprefixer: browserlistCustomConfig
+        ? {}
+        : {
+            overrideBrowserslist: [("> 2%", "last 2 versions")],
+          },
+
+      cssnano: {
+        mergeLonghand: false,
+        discardComments: true,
+      },
+    };
+
+    const config = [
+      autoprefixer(plugins.autoprefixer),
+      argv.m || argv.minify ? cssnano(plugins.cssnano) : undefined,
+      combineDuplicateSelectors(plugins.combineDuplicateSelectors),
+    ].filter((_) => _);
+
+    postcss(config)
+      .process(data, {
+        from: context || process.cwd(),
+      })
+      .then((result) => {
+        return done(result.css || data);
+      });
+  });
+};
 
 /**
  * Esbuild Plugin that compiles the defined scss imports with the Sass library.
@@ -28,6 +82,8 @@ export const stylePlugin = () => ({
       } else {
         css = data.toString();
       }
+
+      css = await optimize(css, args.path);
 
       // Use the dynamic name alias in order to resolve to actual Enlightenment
       // package. The development version uses the relative path defined from

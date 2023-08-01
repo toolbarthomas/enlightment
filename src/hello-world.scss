@@ -1,5 +1,26 @@
 h1 {
   color: red;
+  appearance: none;
+
+  h2 {
+    color: blue;
+
+    h3 {
+      color: yellow;
+
+      h4 {
+        color: green;
+
+        h5 {
+          color: purple;
+
+          h6 {
+            color: orange;
+          }
+        }
+      }
+    }
+  }
 }
 
 div {
