@@ -529,6 +529,8 @@ export class Enlightenment extends LitElement {
       this.log([`Unable to commit ${property}`]);
     }
 
+    let update = false;
+
     try {
       //@ts-ignore
       const value = this[property];
@@ -548,8 +550,9 @@ export class Enlightenment extends LitElement {
           this.hook("commit", { data });
 
           this.log([`${this.namespace} property updated:`, handler]);
+
+          update = true;
         } else {
-          console.log("NO", property);
           this.log(
             ["Illegal property commit detected.", [property, handler]],
             "error"
@@ -563,9 +566,13 @@ export class Enlightenment extends LitElement {
       }
 
       // Ensures the property update fires the component callbacks.
-      this.requestUpdate(property, value);
+      update && this.requestUpdate(property, value);
     } catch (error) {
-      error && this.log(error, "error");
+      if (error) {
+        this.log(error, "error");
+
+        update = false;
+      }
     }
   }
 
