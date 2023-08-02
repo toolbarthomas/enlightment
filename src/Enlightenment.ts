@@ -198,6 +198,27 @@ export class Enlightenment extends LitElement {
     );
   }
 
+  /**
+   * Verifies the defined URL and resolve any external url to prevent insecure
+   * requests.
+   */
+  static resolveURL(url: string) {
+    // Use the AnchorElement interface to verify the initial url.
+    const anchor = document.createElement("a");
+    anchor.href = url;
+
+    const port = parseFloat(window.location.port || anchor.port) || 80;
+    const [protocol, relativeURL] = anchor.href.split(anchor.host);
+    const absoluteURL =
+      protocol +
+      ([80, 443].includes(port)
+        ? window.location.hostname
+        : window.location.host) +
+      relativeURL;
+
+    return absoluteURL;
+  }
+
   //@TODO should remove?
   // Defines the default styles to include for the defined Enlightenment instance.
   // static styles?: _CSSResultGroup | undefined = [styles];
@@ -289,9 +310,7 @@ export class Enlightenment extends LitElement {
   @property({
     attribute: "svg-sprite-source",
     converter: (value) =>
-      !Enlightenment.isExternal(value)
-        ? Enlightenment.strip(String(value))
-        : "",
+      Enlightenment.resolveURL(Enlightenment.strip(String(value))),
   })
   svgSpriteSource = "";
 
