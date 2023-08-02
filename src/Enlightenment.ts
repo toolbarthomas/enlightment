@@ -207,7 +207,7 @@ export class Enlightenment extends LitElement {
     const anchor = document.createElement("a");
     anchor.href = url;
 
-    const port = parseFloat(window.location.port || anchor.port) || 80;
+    const port = parseInt(window.location.port || anchor.port) || 80;
     const [protocol, relativeURL] = anchor.href.split(anchor.host);
     const absoluteURL =
       protocol +
@@ -286,8 +286,7 @@ export class Enlightenment extends LitElement {
 
   @property({
     type: Number,
-    converter: (value) =>
-      value && isNaN(parseFloat(value)) ? Enlightenment.FPS : value,
+    converter: (value) => parseInt(String(value)) || Enlightenment.FPS,
   })
   delay = Enlightenment.FPS;
 
@@ -337,9 +336,7 @@ export class Enlightenment extends LitElement {
     }
 
     this.throttler = {
-      delay: isNaN(parseFloat(String(this.delay)))
-        ? Enlightenment.FPS
-        : this.delay,
+      delay: parseInt(String(this.delay)) || Enlightenment.FPS,
       handlers: [],
     };
   }
@@ -1166,7 +1163,7 @@ export class Enlightenment extends LitElement {
 
     const timeout = setTimeout(
       handler,
-      isNaN(parseFloat(String(delay))) ? this.throttler.delay : delay
+      parseInt(String(delay)) || this.throttler.delay
     );
 
     this.throttler.handlers.push([handler, timeout]);
