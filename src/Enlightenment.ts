@@ -572,8 +572,8 @@ export class Enlightenment extends LitElement {
     if (this.endpointFocusTrap) {
       this.shareEndpoint("focusTrap", this.endpointFocusTrap);
       this.enableFocusTrap = true;
-    } else {
-      this.requestEndpoint("focusTrap", "endpointFocusTrap");
+    } else if (this.requestEndpoint("focusTrap", "endpointFocusTrap")) {
+      this.enableFocusTrap = true;
     }
 
     this.assignGlobalEvent("click", this.handleGlobalClick);
