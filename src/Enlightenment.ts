@@ -288,7 +288,10 @@ export class Enlightenment extends LitElement {
 
   @property({
     attribute: "svg-sprite-source",
-    converter: (value) => Enlightenment.strip(String(value)),
+    converter: (value) =>
+      !Enlightenment.isExternal(value)
+        ? Enlightenment.strip(String(value))
+        : "",
   })
   svgSpriteSource = "";
 
