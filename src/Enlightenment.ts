@@ -399,13 +399,17 @@ export class Enlightenment extends LitElement {
 
     const slots = this.shadowRoot?.querySelectorAll("slot");
 
+    if (slots && !slots.length && !Object.keys(this.slots).length) {
+      return;
+    } else if (!slots && !Object.keys(this.slots)) {
+      return;
+    }
+
     this.clearGlobalEvent("slotchange", slots);
 
     this.commit("slots", () => {
       if (!slots || !slots.length) {
-        if (Object.keys(this.slots).length) {
-          this.slots = {};
-        }
+        this.slots = {};
       } else {
         for (let i = 0; i < slots.length; i += 1) {
           const name = slots[i].name || Enlightenment.defaults.slot;
