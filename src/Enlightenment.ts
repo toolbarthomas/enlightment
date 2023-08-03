@@ -1179,7 +1179,7 @@ export class Enlightenment extends LitElement {
   ) {
     super.updated(properties);
 
-    this.throttle(() => {
+    const fn = () => {
       this.updatePreventEvent();
 
       this.assignSlots();
@@ -1195,7 +1195,9 @@ export class Enlightenment extends LitElement {
       this.isCurrentContext();
 
       this.hook("updated");
-    });
+    };
+
+    this.throttle(fn);
   }
 
   /**

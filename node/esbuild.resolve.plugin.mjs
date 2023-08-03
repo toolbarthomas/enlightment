@@ -16,16 +16,17 @@ import { dirname, join, resolve } from "node:path";
 export const resolvePlugin = (options) => ({
   name: "resolve-plugin",
   setup: (build) => {
-    const { destination, namespace } = options || {};
+    const { destination, minify, namespace } = options || {};
     const d = destination || "/Enlightenment.js";
     const n = namespace || "Enlightenment";
     const { initialOptions } = build || {};
     const { outdir } = initialOptions;
+    const m = minify || false;
 
     if (d && !existsSync(d)) {
       const from = resolve(
         fileURLToPath(import.meta.url),
-        "../../dist/enlightenment.js"
+        `../../dist/Enlightenment${minify ? ".min" : ""}.js`
       );
       const to = join(process.cwd(), outdir || "", d);
 

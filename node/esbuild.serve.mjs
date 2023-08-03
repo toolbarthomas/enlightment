@@ -30,7 +30,7 @@ import { stylePlugin } from "./esbuild.style.plugin.mjs";
     })
     .then((result) => {
       console.log(
-        `Enlightenment test server starter: ${result.host}:${result.port}`
+        `Enlightenment test server started: ${result.host}:${result.port}`
       );
     });
 })();
