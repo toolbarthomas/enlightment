@@ -403,7 +403,9 @@ export class Enlightenment extends LitElement {
 
     this.commit("slots", () => {
       if (!slots || !slots.length) {
-        this.slots = {};
+        if (Object.keys(this.slots).length) {
+          this.slots = {};
+        }
       } else {
         for (let i = 0; i < slots.length; i += 1) {
           const name = slots[i].name || Enlightenment.defaults.slot;
