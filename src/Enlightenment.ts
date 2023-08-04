@@ -185,7 +185,7 @@ export class Enlightenment extends LitElement {
   ];
 
   // Defines the usable extensions for webfont sources.
-  static supportedWebfontExtensions = ["woff", "woff2"];
+  static supportedWebfontExtensions = [".woff", ".woff2"];
 
   /**
    * Helper function to ensure the requested property is returned from a
@@ -851,8 +851,14 @@ export class Enlightenment extends LitElement {
    */
   protected isComponentContext(element: HTMLElement | SVGElement) {
     const { value } = this.context || {};
+    const context = this.useRef(this.context);
 
-    return element === value || element === this || this.contains(element);
+    return (
+      element === value ||
+      element === this ||
+      this.contains(element) ||
+      (context && context.contains(element))
+    );
   }
 
   protected isCurrentContext() {
