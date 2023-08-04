@@ -184,6 +184,9 @@ export class Enlightenment extends LitElement {
     ".webp",
   ];
 
+  // Defines the usable extensions for webfont sources.
+  static supportedWebfontExtensions = ["woff", "woff2"];
+
   /**
    * Helper function to ensure the requested property is returned from a
    * dynamic string or object value.

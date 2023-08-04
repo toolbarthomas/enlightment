@@ -49,12 +49,13 @@ Your module should import from the actual library destination (we assume it is a
  * We asume the import has been resolved before hand from the compiled library:
  * @toolbarthomas/enlightenment/dist/Enlightenment.js
  */
-import { Enlightenment, html } from '/Enlightenment.js'
+import { customElement, Enlightenment, html } from '/Enlightenment.js'
 
 /**
- * Setup the custom component: custom-component with the default
- * lit-element methods since we don't use any build tool:
+ * Decorators are also supported within the browser module.
+ * See: https://lit.dev/docs/components/decorators/
  */
+@customElement('my-component')
 class MyComponent extends Enlightenment {
   constructor() {
     super()
@@ -63,9 +64,6 @@ class MyComponent extends Enlightenment {
   // The inherited LitElement.render method
   render() html`<h1>My Component</h1>...`
 };
-
-// Register the actual custom element with the created Enlightenment instance.
-window.customElements.define('my-component', MyComponent)
 
 ```
 This will load the Enlightenment library as external source and prevents the issue where multiple Enlightenment libraries are included when including multiple Enlightenment elements.
@@ -151,11 +149,27 @@ esbuild.build({
 })
 
 ```
-**Note:** The Sass plugin can resolve from the current working directory, the base directory, the initial entry point or the local node_modules directory:
+**Note:** The Sass plugin can resolve from the current working directory, the base directory, the initial entry point or the local node_modules* directory:
+
+**\*** You resolve from the packge name directly, the actual node_modules directory is not used for the import:
+
+```scss
+// Should resolve from the node_modules modules if the actual directory is not
+// present within the relative context.
+@import "@package/scss/library.scss"; // Expected: node_modules/@package/scss/library.scss
+
+.my-component {
+  display: flex;
+  ...
+}
+
+```
 
 ```ts
 import { Enlightenment } from "@toolbarthomas/enlightenment";
 
+// The actual styles are transformed by the Esbuild stylePlugin and wrapped in
+// the css template literal and returs as default export.
 import styles from 'my-component.scss'
 
 class MyComponent extends Enlightenment {
