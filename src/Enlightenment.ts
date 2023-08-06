@@ -101,6 +101,12 @@ export class Enlightenment extends LitElement {
   // Expected interval value of 60HZ refresh rate.
   static FPS = 1000 / 60;
 
+  // Defines the attribute state from the given value, non-defined attributes
+  // should be undefined while attributes without values should be true.
+  static isBoolean(value: any) {
+    return value !== undefined ? true : false;
+  }
+
   /**
    * Validates if the defined url value is external.
    */
@@ -301,8 +307,11 @@ export class Enlightenment extends LitElement {
 
   // Readable error to display during an exception/error within the defined
   // component context.
-  @property({ type: String })
+  @property()
   error = "";
+
+  @property()
+  mode = "light";
 
   @property({
     type: Boolean,
@@ -1052,6 +1061,29 @@ export class Enlightenment extends LitElement {
     }
 
     return value;
+  }
+
+  /**
+   * Call the requestUpdate handler for the direct child components within the
+   * direct body.
+   */
+  requestGlobalUpdate(exclude: boolean) {
+    const { body } = document || this;
+    const elements = Array.from(body.children || []).filter(
+      (f: any) =>
+        f.requestUpdate &&
+        f instanceof Enlightenment &&
+        f.namespace === this.namespace &&
+        // Excludes the context that calls this method.
+        (exclude ? f != this : true)
+    );
+
+    for (let i = 0; i < elements.length; i += 1) {
+      const component = elements[i] as Enlightenment;
+      if (component.throttle && component.requestUpdate) {
+        component.throttle(component.requestUpdate.bind(component));
+      }
+    }
   }
 
   /**
