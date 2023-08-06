@@ -17,6 +17,7 @@ export type EnlightenmentImageOptions =
  */
 export type EnlightenmentState = {
   currentElements: Element[];
+  mode?: string;
   endpoints: EnlightenmentEndpoint;
   verbose?: boolean;
 };

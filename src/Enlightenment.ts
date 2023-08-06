@@ -108,6 +108,25 @@ export class Enlightenment extends LitElement {
   }
 
   /**
+   * Checks if the defined String value exists within the collection parameter.
+   * The first value from the collection will be used as fallback if the initial
+   * value does not exist within the defined collection.
+   */
+  static filterProperty(value: any, collection: string[]) {
+    if (!value || !collection || !collection.length) {
+      return;
+    }
+
+    const [fallback] = collection;
+
+    if (typeof value !== "string") {
+      return fallback;
+    }
+
+    return collection.includes(value) ? value : fallback;
+  }
+
+  /**
    * Validates if the defined url value is external.
    */
   static isExternal(url: string) {
@@ -145,6 +164,25 @@ export class Enlightenment extends LitElement {
     }
 
     return false;
+  }
+
+  /**
+   * Ensures the given value is a valid mode value.
+   */
+  static isMode(value: any) {
+    return Enlightenment.filterProperty(value, ["light", "dark"]);
+  }
+
+  /**
+   * Ensures the given value is a valid target attribute value.
+   */
+  static isTarget(value: any) {
+    return Enlightenment.filterProperty(value, [
+      "_self",
+      "_blank",
+      "_parent",
+      "_top",
+    ]);
   }
 
   // The keycodes that could be validated within a class method.
@@ -310,8 +348,11 @@ export class Enlightenment extends LitElement {
   @property()
   error = "";
 
-  @property()
-  mode = "light";
+  @property({
+    converter: (value) => Enlightenment.isMode(value),
+    type: String,
+  })
+  mode?: string;
 
   @property({
     type: Boolean,
@@ -334,6 +375,7 @@ export class Enlightenment extends LitElement {
     if (!this.useState()) {
       const state = {
         currentElements: [],
+        mode: "light",
         verbose: false,
         endpoints: {},
       } as EnlightenmentState;
@@ -351,6 +393,8 @@ export class Enlightenment extends LitElement {
       delay: parseInt(String(this.delay)) || Enlightenment.FPS,
       handlers: [],
     };
+
+    this.useMode();
   }
 
   /**
@@ -658,6 +702,8 @@ export class Enlightenment extends LitElement {
     properties: PropertyValueMap<any> | Map<PropertyKey, unknown>
   ) {
     super.firstUpdated(properties);
+
+    this.useMode();
 
     this.hook("updated");
   }
@@ -1264,6 +1310,18 @@ export class Enlightenment extends LitElement {
    */
   public useContext() {
     return this.context && this.context.value ? this.context.value : this;
+  }
+
+  /**
+   * Defines the mode attribute for the defined element that inherits the
+   * specified mode value from the global state as default value otherwise.
+   */
+  useMode() {
+    const { mode } = this.useState() || {};
+
+    if (!this.mode && mode && this.mode !== mode) {
+      this.mode = mode;
+    }
   }
 
   /**
