@@ -1,7 +1,7 @@
 import {
   css as _css,
   CSSResultGroup,
-  LitElement,
+  LitElement as _LitElement,
   html as _html,
   PropertyValueMap,
   svg,
@@ -36,6 +36,7 @@ import { FocusTrap } from "focus-trap";
 export const createRef = _createRef;
 export const css = _css;
 export const customElement = _customElement;
+export const LitElement = _LitElement;
 export const html = _html;
 export const property = _property;
 export const ref = _ref;
@@ -250,6 +251,10 @@ export class Enlightenment extends LitElement {
    * requests.
    */
   static resolveURL(url: string) {
+    if (typeof url !== "string") {
+      return "";
+    }
+
     // Use the AnchorElement interface to verify the initial url.
     const anchor = document.createElement("a");
     anchor.href = url;
@@ -878,6 +883,14 @@ export class Enlightenment extends LitElement {
         this.log(exception as string, "error");
       }
     }
+  }
+
+  /**
+   * Returns the parent element if the defined context type matches with the
+   * parent.
+   */
+  protected isNested() {
+    return this.parentElement && this.parentElement.closest(this.tagName);
   }
 
   /**
