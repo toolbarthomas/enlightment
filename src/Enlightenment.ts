@@ -327,6 +327,12 @@ export class Enlightenment extends LitElement {
   ariaDisabled = "false";
 
   @property({
+    converter: (value) => Enlightenment.isBoolean,
+    type: Boolean,
+  })
+  disableGlobalEvents?: boolean;
+
+  @property({
     type: Boolean,
   })
   enableFocusTrap = false;
@@ -358,6 +364,9 @@ export class Enlightenment extends LitElement {
     type: Boolean,
   })
   minimalShadowRoot = false;
+
+  @property({ converter: (value) => Enlightenment.isBoolean, type: Boolean })
+  once?: boolean;
 
   @property({
     attribute: "svg-sprite-source",
@@ -496,10 +505,14 @@ export class Enlightenment extends LitElement {
    */
   //@ts-ignore
   public attributeChangedCallback(name: string, _old?: string, value?: string) {
-    //@TODO Fix stacking calls.
-    this.throttle(() => this.requestUpdate());
-
-    super.attributeChangedCallback(name, _old || null, value || null);
+    if (this.once) {
+      super.attributeChangedCallback(name, _old || null, value || null);
+    } else {
+      this.throttle(() => {
+        super.attributeChangedCallback(name, _old || null, value || null);
+        this.requestUpdate();
+      });
+    }
   }
 
   /**
@@ -638,10 +651,12 @@ export class Enlightenment extends LitElement {
       this.enableFocusTrap = true;
     }
 
-    this.assignGlobalEvent("click", this.handleGlobalClick);
-    this.assignGlobalEvent("keydown", this.handleGlobalKeydown);
-    this.assignGlobalEvent("focus", this.handleGlobalFocus);
-    this.assignGlobalEvent("focusin", this.handleGlobalFocus);
+    if (!this.disableGlobalEvents) {
+      this.assignGlobalEvent("click", this.handleGlobalClick);
+      this.assignGlobalEvent("keydown", this.handleGlobalKeydown);
+      this.assignGlobalEvent("focus", this.handleGlobalFocus);
+      this.assignGlobalEvent("focusin", this.handleGlobalFocus);
+    }
 
     this.hook("connected");
   }
