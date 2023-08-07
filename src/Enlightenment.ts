@@ -3,6 +3,7 @@ import {
   CSSResultGroup,
   LitElement as _LitElement,
   html as _html,
+  nothing as _nothing,
   PropertyValueMap,
   svg,
 } from "lit";
@@ -38,6 +39,7 @@ export const css = _css;
 export const customElement = _customElement;
 export const LitElement = _LitElement;
 export const html = _html;
+export const nothing = _nothing;
 export const property = _property;
 export const ref = _ref;
 
