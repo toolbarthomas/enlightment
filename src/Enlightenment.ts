@@ -888,14 +888,6 @@ export class Enlightenment extends LitElement {
   }
 
   /**
-   * Returns the parent element if the defined context type matches with the
-   * parent.
-   */
-  protected isNested() {
-    return this.parentElement && this.parentElement.closest(this.tagName);
-  }
-
-  /**
    * Import the optional Focus Trap library from the defined endpoint value and
    * assign it to the focusTrap instance within the element.
    */
@@ -928,6 +920,48 @@ export class Enlightenment extends LitElement {
         exception && this.log(exception as string, "error");
       }
     });
+  }
+
+  /**
+   * Returns the matching parent element by default or use the optional
+   * selector value otherwise.
+   */
+  parent(selector?: string) {
+    if (!selector) {
+      return;
+    }
+
+    const parent =
+      this.parentElement && this.parentElement.closest(this.tagName);
+
+    return parent || undefined;
+  }
+
+  /**
+   * Returns all matching parent elements by default or use the optional
+   * selector value otherwise.
+   */
+  protected parents(
+    selector: string,
+    instance?: Enlightenment,
+    list?: Enlightenment[]
+  ): Enlightenment[] {
+    const parent =
+      instance && instance.parent
+        ? instance.parent(selector)
+        : this.parent(selector);
+
+    if (parent && typeof (parent as Enlightenment).parent === "function") {
+      const commit = [...(list || []), parent as Enlightenment];
+
+      return this.parents(selector, parent as Enlightenment, commit);
+    }
+
+    if (list && list.length) {
+      return list;
+    }
+
+    return [];
   }
 
   /**
@@ -971,6 +1005,14 @@ export class Enlightenment extends LitElement {
         parentElement.setAttribute("aria-hidden", "true");
       }
     }
+  }
+
+  /**
+   * Returns the parent element if the defined context type matches with the
+   * parent.
+   */
+  protected isNested() {
+    return this.parent(this.tagName);
   }
 
   /**
