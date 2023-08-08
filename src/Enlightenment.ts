@@ -1366,6 +1366,26 @@ export class Enlightenment extends LitElement {
   };
 
   /**
+   * Returns the slot from the defined name or return the default slot
+   * otherwise.
+   */
+  protected useSlot(name?: string) {
+    if (!this.slots || !Object.keys(this.slots).length) {
+      return;
+    }
+
+    if (name && this.slots && this.slots[name]) {
+      return this.slots[name] as HTMLSlotElement;
+    }
+
+    const [result] = Object.entries(this.slots).filter(
+      ([n, slot]) => n === Enlightenment.defaults.slot
+    );
+
+    return result && result[1];
+  }
+
+  /**
    * Returns the global Enlightenment state from the defined root context.
    */
   protected useState(state?: EnlightenmentState) {
