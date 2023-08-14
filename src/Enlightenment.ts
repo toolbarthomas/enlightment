@@ -19,6 +19,8 @@ import {
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 
 import {
+  AnimationHandlerProps,
+  AnimationHandlerResponse,
   EnlightenmentEndpoint,
   EnlightenmentImageOptions,
   EnlightenmentState,
@@ -246,6 +248,58 @@ export class Enlightenment extends LitElement {
           : (value || {})[property]) || ""
       )
     );
+  }
+
+  /**
+   * Assigns the defined function handler within a new requestAnimationFrame
+   * method that is called every frame (per second).
+   *
+   * @param handler Function handler to assign within the requestAnimationFrame.
+   * @param fps Amount of calls to use within a second.
+   * @param limit Loops the interval by default or cycle the defined amount.
+   */
+  static requestAnimationInterval(
+    handler: (props: AnimationHandlerProps) => void,
+    fps: number,
+    limit = Infinity
+  ) {
+    let fpsInterval: number = 1000 / (parseInt(String(fps)) || 30);
+    let previousTimestamp: number = performance.now() || Date.now();
+    let keyframe: any;
+    let tick = 0;
+    let tock = 0;
+
+    return new Promise<AnimationHandlerResponse>((resolve) => {
+      // i = interval, l = limit
+      const fn = ((i: number, l?: number) =>
+        function (timestamp: number) {
+          if (typeof l === "undefined" || l > 0) {
+            keyframe !== undefined && cancelAnimationFrame(keyframe);
+            keyframe = requestAnimationFrame(fn);
+
+            const elapsed = timestamp - previousTimestamp;
+            try {
+              if (elapsed > fpsInterval) {
+                l && l--;
+                tick += 1;
+                tock = Math.round(tick / fps);
+                previousTimestamp = timestamp - (elapsed % fpsInterval);
+
+                handler({ previousTimestamp, resolve, tick, timestamp, tock });
+              }
+            } catch (exception) {
+              if (exception) {
+                l = 0;
+                console && console.error(exception);
+              }
+            }
+          } else {
+            resolve({ previousTimestamp, tick, timestamp, tock });
+          }
+        })(fps, isNaN(limit) ? Infinity : limit);
+
+      keyframe = requestAnimationFrame(fn);
+    }).finally(() => keyframe && cancelAnimationFrame(keyframe));
   }
 
   /**

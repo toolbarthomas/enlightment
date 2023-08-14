@@ -1,4 +1,34 @@
 /**
+ * Exposed properties that is assigned within the AnimationHandler context.
+ */
+export type AnimationHandlerProps = {
+  // The dynamic timestamp of the previous tick based of the running FPS.
+  previousTimestamp: number;
+
+  // Resolver to use within the handler to cancel the next animationFrame.
+  resolve: any;
+
+  // The current frame iteration within the defined loop/cycle.
+  tick: number;
+
+  // The current animation frame timestamp.
+  timestamp: number;
+
+  // Rounded value of the relative FPS value
+  tock: number;
+};
+
+/**
+ * Expected Promise result for the created animationHandler.
+ */
+export type AnimationHandlerResponse = {
+  previousTimestamp: AnimationHandlerProps["previousTimestamp"];
+  tick: AnimationHandlerProps["tick"];
+  timestamp: AnimationHandlerProps["timestamp"];
+  tock: AnimationHandlerProps["tock"];
+};
+
+/**
  * Defines the dynamic endpoint list that will be shared within the instance
  * global.
  */
