@@ -278,14 +278,23 @@ export class Enlightenment extends LitElement {
             keyframe = requestAnimationFrame(fn);
 
             const elapsed = timestamp - previousTimestamp;
+
             try {
               if (elapsed > fpsInterval) {
+                handler({
+                  first: tick <= 0,
+                  last: tick >= limit,
+                  previousTimestamp,
+                  resolve,
+                  tick,
+                  timestamp,
+                  tock,
+                });
+
                 l && l--;
                 tick += 1;
                 tock = Math.round(tick / fps);
                 previousTimestamp = timestamp - (elapsed % fpsInterval);
-
-                handler({ previousTimestamp, resolve, tick, timestamp, tock });
               }
             } catch (exception) {
               if (exception) {
@@ -294,7 +303,14 @@ export class Enlightenment extends LitElement {
               }
             }
           } else {
-            resolve({ previousTimestamp, tick, timestamp, tock });
+            resolve({
+              first: tick <= 0,
+              last: true,
+              previousTimestamp,
+              tick,
+              timestamp,
+              tock,
+            });
           }
         })(fps, isNaN(limit) ? Infinity : limit);
 

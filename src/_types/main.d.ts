@@ -2,6 +2,12 @@
  * Exposed properties that is assigned within the AnimationHandler context.
  */
 export type AnimationHandlerProps = {
+  // TRUE when the first handler is called.
+  first: boolean;
+
+  // TRUE when the last handler is called.
+  last: boolean;
+
   // The dynamic timestamp of the previous tick based of the running FPS.
   previousTimestamp: number;
 
@@ -22,6 +28,8 @@ export type AnimationHandlerProps = {
  * Expected Promise result for the created animationHandler.
  */
 export type AnimationHandlerResponse = {
+  first: AnimationHandlerProps["first"];
+  last: AnimationHandlerProps["last"];
   previousTimestamp: AnimationHandlerProps["previousTimestamp"];
   tick: AnimationHandlerProps["tick"];
   timestamp: AnimationHandlerProps["timestamp"];
