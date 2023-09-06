@@ -410,6 +410,13 @@ export class Enlightenment extends LitElement {
   disableGlobalEvents?: boolean;
 
   @property({
+    attribute: "disable-focustrap",
+    converter: (value) => Enlightenment.isBoolean,
+    type: Boolean,
+  })
+  disableFocusTrap?: boolean;
+
+  @property({
     type: Boolean,
   })
   enableFocusTrap = false;
@@ -471,9 +478,9 @@ export class Enlightenment extends LitElement {
       this.log([`${this.namespace} global assigned:`, state]);
     }
 
-    if (this.enableFocusTrap) {
-      this.focusContext = createRef();
-    }
+    //@todo Should check with function helper for every possible method to define
+    // the actual focus trap.
+    this.focusContext = createRef();
 
     this.throttler = {
       delay: parseInt(String(this.delay)) || Enlightenment.FPS,
@@ -590,6 +597,7 @@ export class Enlightenment extends LitElement {
         this.requestUpdate();
       });
     }
+    console.log("Attribute changed", name, _old, value);
   }
 
   /**
@@ -721,12 +729,14 @@ export class Enlightenment extends LitElement {
   public connectedCallback() {
     super.connectedCallback();
 
-    if (this.endpointFocusTrap) {
-      this.shareEndpoint("focusTrap", this.endpointFocusTrap);
-      this.enableFocusTrap = true;
-    } else if (this.requestEndpoint("focusTrap", "endpointFocusTrap")) {
-      this.enableFocusTrap = true;
-    }
+    this.throttle(() => {
+      if (this.requestEndpoint("focusTrap", "endpointFocusTrap")) {
+        this.enableFocusTrap = true;
+      } else if (this.endpointFocusTrap) {
+        this.shareEndpoint("focusTrap", this.endpointFocusTrap);
+        this.enableFocusTrap = true;
+      }
+    });
 
     if (!this.disableGlobalEvents) {
       this.assignGlobalEvent("click", this.handleGlobalClick);
@@ -962,9 +972,16 @@ export class Enlightenment extends LitElement {
    * assign it to the focusTrap instance within the element.
    */
   protected mountFocusTrap() {
-    if (!this.endpointFocusTrap || !this.enableFocusTrap || this.focusTrap) {
+    if (
+      !this.endpointFocusTrap ||
+      !this.enableFocusTrap ||
+      this.focusTrap ||
+      this.disableFocusTrap
+    ) {
       return;
     }
+
+    console.log("mount", this.disableFocusTrap);
 
     import(this.endpointFocusTrap).then((focusTrap: any) => {
       try {

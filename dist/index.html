@@ -36,7 +36,8 @@
     })
 
     const emptyElement = document.createElement('hello-world')
-    emptyElement.setAttribute('disableFocusTrap', true)
+    // emptyElement.enableFocusTrap = false
+    emptyElement.setAttribute('disable-focustrap', true)
 
     window.addEventListener('load', (event) =>
     {
@@ -44,8 +45,8 @@
       document.body.appendChild(emptyElement)
     })
 
-    setTimeout(() => element.firstElementChild.remove(), 3000)
-    setTimeout(() => emptyElement.innerHTML = "<hello-world aria-disabled='true'><p>Lorem ipsum</p><hello-world></hello-world></hello-world>", 5000)
+    // setTimeout(() => element.firstElementChild.remove(), 3000)
+    // setTimeout(() => emptyElement.innerHTML = "<hello-world aria-disabled='true'><p>Lorem ipsum</p><hello-world></hello-world></hello-world>", 5000)
 
     // setInterval(() =>
     // {
