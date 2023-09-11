@@ -98,6 +98,122 @@ export const ref = _ref;
  * <script src="my-component.js" type="module"></script>
  */
 export class Enlightenment extends LitElement {
+  //@TODO should remove?
+  // Defines the default styles to include for the defined Enlightenment instance.
+  // static styles?: _CSSResultGroup | undefined = [styles];
+
+  // Default element reference that should be assigned to the root element
+  // within the render context.
+  context: Ref<Element> = createRef();
+
+  // Optional reference to use within the Focus Trap context.
+  focusContext?: Ref<Element>;
+
+  // Alias to the parent Window object that holds the global state of the
+  // created instance.
+  root: Window = window;
+
+  // Should insert the defined classnames within the root context.
+  classes: string[] = [];
+
+  focusTrap?: FocusTrap;
+
+  // Pushes the element context to the global state when TRUE.
+  // currentElement: boolean = false;
+
+  // Flag that returns the current state of the optional Focus Trap instance.
+  hasFocusTrap: boolean = false;
+
+  // Dynamic storage for the running document Event listeners.
+  listeners: GlobalEvent[] = [];
+
+  // Value to use for the naming of the Global state.
+  namespace: string = "NLGHTNMNT";
+
+  // Blocks the default handle methods when TRUE.
+  preventEvent: boolean = false;
+
+  // Contains the Shadow Root slot target contexts in order to validate
+  // the actual rendered slots existence.
+  slots: { [key: string]: HTMLSlotElement | undefined } = {};
+
+  // // Optional source path that will output inline SVG from the existing sprite.
+  // spriteSource?: string = "";
+
+  // Contains the assigned handlers that will be called once.
+  throttler: {
+    delay: number;
+    handlers: EnlightenmentThrottle[];
+  };
+
+  // Alias to the constructor name.
+  uuid: string;
+
+  @property({ attribute: "aria-current", reflect: true })
+  ariaCurrent = "false";
+
+  @property({
+    attribute: "aria-disabled",
+    reflect: true,
+  })
+  ariaDisabled = "false";
+
+  @property({
+    converter: (value) => Enlightenment.isBoolean,
+    type: Boolean,
+  })
+  disableGlobalEvents?: boolean;
+
+  @property({
+    attribute: "disable-focustrap",
+    converter: (value) => Enlightenment.isBoolean,
+    type: Boolean,
+  })
+  disableFocusTrap?: boolean;
+
+  @property({
+    type: Boolean,
+  })
+  enableFocusTrap = false;
+
+  @property({
+    type: Number,
+    converter: (value) => parseInt(String(value)) || Enlightenment.FPS,
+  })
+  delay = Enlightenment.FPS;
+
+  @property({
+    attribute: "endpoint-focustrap",
+    converter: (value) => Enlightenment.strip(String(value)),
+  })
+  endpointFocusTrap = "";
+
+  // Readable error to display during an exception/error within the defined
+  // component context.
+  @property()
+  error = "";
+
+  @property({
+    converter: (value) => Enlightenment.isMode(value),
+    type: String,
+  })
+  mode?: string;
+
+  @property({
+    type: Boolean,
+  })
+  minimalShadowRoot = false;
+
+  @property({ converter: (value) => Enlightenment.isBoolean, type: Boolean })
+  once?: boolean;
+
+  @property({
+    attribute: "svg-sprite-source",
+    converter: (value) =>
+      Enlightenment.resolveURL(Enlightenment.strip(String(value))),
+  })
+  svgSpriteSource = "";
+
   // Defines any fallback to use for optional properties.
   static defaults = {
     slot: "_content",
@@ -343,122 +459,6 @@ export class Enlightenment extends LitElement {
     return absoluteURL;
   }
 
-  //@TODO should remove?
-  // Defines the default styles to include for the defined Enlightenment instance.
-  // static styles?: _CSSResultGroup | undefined = [styles];
-
-  // Default element reference that should be assigned to the root element
-  // within the render context.
-  context: Ref<Element> = createRef();
-
-  // Optional reference to use within the Focus Trap context.
-  focusContext?: Ref<Element>;
-
-  // Alias to the parent Window object that holds the global state of the
-  // created instance.
-  root: Window = window;
-
-  // Should insert the defined classnames within the root context.
-  classes: string[] = [];
-
-  focusTrap?: FocusTrap;
-
-  // Pushes the element context to the global state when TRUE.
-  // currentElement: boolean = false;
-
-  // Flag that returns the current state of the optional Focus Trap instance.
-  hasFocusTrap: boolean = false;
-
-  // Dynamic storage for the running document Event listeners.
-  listeners: GlobalEvent[] = [];
-
-  // Value to use for the naming of the Global state.
-  namespace: string = "NLGHTNMNT";
-
-  // Blocks the default handle methods when TRUE.
-  preventEvent: boolean = false;
-
-  // Contains the Shadow Root slot target contexts in order to validate
-  // the actual rendered slots existence.
-  slots: { [key: string]: HTMLSlotElement | undefined } = {};
-
-  // // Optional source path that will output inline SVG from the existing sprite.
-  // spriteSource?: string = "";
-
-  // Contains the assigned handlers that will be called once.
-  throttler: {
-    delay: number;
-    handlers: EnlightenmentThrottle[];
-  };
-
-  // Alias to the constructor name.
-  uuid: string;
-
-  @property({ attribute: "aria-current", reflect: true })
-  ariaCurrent = "false";
-
-  @property({
-    attribute: "aria-disabled",
-    reflect: true,
-  })
-  ariaDisabled = "false";
-
-  @property({
-    converter: (value) => Enlightenment.isBoolean,
-    type: Boolean,
-  })
-  disableGlobalEvents?: boolean;
-
-  @property({
-    attribute: "disable-focustrap",
-    converter: (value) => Enlightenment.isBoolean,
-    type: Boolean,
-  })
-  disableFocusTrap?: boolean;
-
-  @property({
-    type: Boolean,
-  })
-  enableFocusTrap = false;
-
-  @property({
-    type: Number,
-    converter: (value) => parseInt(String(value)) || Enlightenment.FPS,
-  })
-  delay = Enlightenment.FPS;
-
-  @property({
-    attribute: "endpoint-focustrap",
-    converter: (value) => Enlightenment.strip(String(value)),
-  })
-  endpointFocusTrap = "";
-
-  // Readable error to display during an exception/error within the defined
-  // component context.
-  @property()
-  error = "";
-
-  @property({
-    converter: (value) => Enlightenment.isMode(value),
-    type: String,
-  })
-  mode?: string;
-
-  @property({
-    type: Boolean,
-  })
-  minimalShadowRoot = false;
-
-  @property({ converter: (value) => Enlightenment.isBoolean, type: Boolean })
-  once?: boolean;
-
-  @property({
-    attribute: "svg-sprite-source",
-    converter: (value) =>
-      Enlightenment.resolveURL(Enlightenment.strip(String(value))),
-  })
-  svgSpriteSource = "";
-
   constructor() {
     super();
 
@@ -581,23 +581,6 @@ export class Enlightenment extends LitElement {
         this.log([`Found ${slots.length} slot(s) from:`, this.slots]);
       }
     });
-  }
-
-  /**
-   * Ensures the a requestUpdate is used when attribtues are added or removed.
-   * on the defined element.
-   */
-  //@ts-ignore
-  public attributeChangedCallback(name: string, _old?: string, value?: string) {
-    if (this.once) {
-      super.attributeChangedCallback(name, _old || null, value || null);
-    } else {
-      this.throttle(() => {
-        super.attributeChangedCallback(name, _old || null, value || null);
-        this.requestUpdate();
-      });
-    }
-    console.log("Attribute changed", name, _old, value);
   }
 
   /**
@@ -724,58 +707,6 @@ export class Enlightenment extends LitElement {
   }
 
   /**
-   * Defines the initial setup for the constructed Enlightenment element.
-   */
-  public connectedCallback() {
-    super.connectedCallback();
-
-    this.throttle(() => {
-      if (this.requestEndpoint("focusTrap", "endpointFocusTrap")) {
-        this.enableFocusTrap = true;
-      } else if (this.endpointFocusTrap) {
-        this.shareEndpoint("focusTrap", this.endpointFocusTrap);
-        this.enableFocusTrap = true;
-      }
-    });
-
-    if (!this.disableGlobalEvents) {
-      this.assignGlobalEvent("click", this.handleGlobalClick);
-      this.assignGlobalEvent("keydown", this.handleGlobalKeydown);
-      this.assignGlobalEvent("focus", this.handleGlobalFocus);
-      this.assignGlobalEvent("focusin", this.handleGlobalFocus);
-    }
-
-    this.hook("connected");
-  }
-
-  /**
-   * Cleanup the c6reated setup of the removed Enlightenment element.
-   */
-  public disconnectedCallback() {
-    try {
-      this.clearThrottler();
-
-      this.omitGlobalEvent("click", this.handleGlobalClick);
-      this.omitGlobalEvent("keydown", this.handleGlobalKeydown);
-      this.omitGlobalEvent("focus", this.handleGlobalFocus);
-      this.omitGlobalEvent("focusin", this.handleGlobalFocus);
-
-      this.clearGlobalEvent(
-        "slotchange",
-        this.shadowRoot && this.shadowRoot.querySelectorAll("slot")
-      );
-
-      this.hook("disconnected");
-
-      super.disconnectedCallback();
-    } catch (error) {
-      if (error) {
-        this.log(error as string, "error");
-      }
-    }
-  }
-
-  /**
    * Validates if the defined Event handler has already been defined as
    * global Event.
    */
@@ -827,21 +758,6 @@ export class Enlightenment extends LitElement {
         this.ariaCurrent = "false";
       }
     });
-  }
-
-  /**
-   * Toggles the optional defined Focus Trap instance.
-   */
-  public handleFocusTrap(event: Event) {
-    if (event.preventDefault) {
-      event.preventDefault();
-    }
-
-    if (this.hasFocusTrap) {
-      this.releaseFocusTrap();
-    } else {
-      this.lockFocusTrap();
-    }
   }
 
   /**
@@ -905,7 +821,7 @@ export class Enlightenment extends LitElement {
    * Defines the global slotchange Event handler that will trigger a slotchange
    * event on the main element context.
    */
-  handleSlotchange(event: Event) {
+  protected handleSlotchange(event: Event) {
     if (this.preventEvent) {
       return;
     }
@@ -917,6 +833,90 @@ export class Enlightenment extends LitElement {
     this.isEmptySlot(event);
 
     this.hook("slotchange");
+  }
+
+  /**
+   * Ensures the a requestUpdate is used when attribtues are added or removed.
+   * on the defined element.
+   */
+  //@ts-ignore
+  public attributeChangedCallback(name: string, _old?: string, value?: string) {
+    if (this.once) {
+      super.attributeChangedCallback(name, _old || null, value || null);
+    } else {
+      this.throttle(() => {
+        super.attributeChangedCallback(name, _old || null, value || null);
+        this.requestUpdate();
+      });
+    }
+    console.log("Attribute changed", name, _old, value);
+  }
+
+  /**
+   * Defines the initial setup for the constructed Enlightenment element.
+   */
+  public connectedCallback() {
+    super.connectedCallback();
+
+    this.throttle(() => {
+      if (this.requestEndpoint("focusTrap", "endpointFocusTrap")) {
+        this.enableFocusTrap = true;
+      } else if (this.endpointFocusTrap) {
+        this.shareEndpoint("focusTrap", this.endpointFocusTrap);
+        this.enableFocusTrap = true;
+      }
+    });
+
+    if (!this.disableGlobalEvents) {
+      this.assignGlobalEvent("click", this.handleGlobalClick);
+      this.assignGlobalEvent("keydown", this.handleGlobalKeydown);
+      this.assignGlobalEvent("focus", this.handleGlobalFocus);
+      this.assignGlobalEvent("focusin", this.handleGlobalFocus);
+    }
+
+    this.hook("connected");
+  }
+
+  /**
+   * Cleanup the c6reated setup of the removed Enlightenment element.
+   */
+  public disconnectedCallback() {
+    try {
+      this.clearThrottler();
+
+      this.omitGlobalEvent("click", this.handleGlobalClick);
+      this.omitGlobalEvent("keydown", this.handleGlobalKeydown);
+      this.omitGlobalEvent("focus", this.handleGlobalFocus);
+      this.omitGlobalEvent("focusin", this.handleGlobalFocus);
+
+      this.clearGlobalEvent(
+        "slotchange",
+        this.shadowRoot && this.shadowRoot.querySelectorAll("slot")
+      );
+
+      this.hook("disconnected");
+
+      super.disconnectedCallback();
+    } catch (error) {
+      if (error) {
+        this.log(error as string, "error");
+      }
+    }
+  }
+
+  /**
+   * Toggles the optional defined Focus Trap instance.
+   */
+  public handleFocusTrap(event: Event) {
+    if (event.preventDefault) {
+      event.preventDefault();
+    }
+
+    if (this.hasFocusTrap) {
+      this.releaseFocusTrap();
+    } else {
+      this.lockFocusTrap();
+    }
   }
 
   /**
@@ -949,7 +949,7 @@ export class Enlightenment extends LitElement {
   /**
    * Activates the optional defined Focus Trap instance.
    */
-  lockFocusTrap() {
+  protected lockFocusTrap() {
     if (!this.focusTrap || !this.focusTrap.activate) {
       this.log("Unable to lock focus, Focus Trap is not mounted.");
     }
@@ -1013,7 +1013,7 @@ export class Enlightenment extends LitElement {
    * Returns the matching parent element by default or use the optional
    * selector value otherwise.
    */
-  parent(selector?: string) {
+  protected parent(selector?: string) {
     if (!selector) {
       return;
     }
@@ -1067,6 +1067,10 @@ export class Enlightenment extends LitElement {
     );
   }
 
+  /**
+   * Mark the Component element as current context.
+   * @returns
+   */
   protected isCurrentContext() {
     const context = this.useRef(this.context);
 
@@ -1125,7 +1129,7 @@ export class Enlightenment extends LitElement {
    * Removes the defined Enlightenment element context from the active global
    * Element collection.
    */
-  omitCurrentElement() {
+  private omitCurrentElement() {
     const state = this.useState();
 
     if (state && state.currentElements && state.currentElements.length) {
@@ -1140,7 +1144,7 @@ export class Enlightenment extends LitElement {
   /**
    * Removes the assigned global Event handler.
    */
-  omitGlobalEvent(type: GlobalEventType, handler: GlobalEventHandler) {
+  private omitGlobalEvent(type: GlobalEventType, handler: GlobalEventHandler) {
     if (!type) {
       this.log("Unable to omit undefined global Event", "error");
 
@@ -1179,6 +1183,41 @@ export class Enlightenment extends LitElement {
     this.log(`Global ${type} event removed:`);
 
     this.hook("omit");
+  }
+
+  /**
+   * Call the requestUpdate handler for the direct child components within the
+   * direct body.
+   */
+  private requestGlobalUpdate(exclude: boolean) {
+    const { body } = document || this;
+    const elements = Array.from(body.children || []).filter(
+      (f: any) =>
+        f.requestUpdate &&
+        f instanceof Enlightenment &&
+        f.namespace === this.namespace &&
+        // Excludes the context that calls this method.
+        (exclude ? f != this : true)
+    );
+
+    for (let i = 0; i < elements.length; i += 1) {
+      const component = elements[i] as Enlightenment;
+      if (component.throttle && component.requestUpdate) {
+        component.throttle(component.requestUpdate.bind(component));
+      }
+    }
+  }
+
+  /**
+   * Defines the mode attribute for the defined element that inherits the
+   * specified mode value from the global state as default value otherwise.
+   */
+  private useMode() {
+    const { mode } = this.useState() || {};
+
+    if (!this.mode && mode && this.mode !== mode) {
+      this.mode = mode;
+    }
   }
 
   /**
@@ -1266,29 +1305,6 @@ export class Enlightenment extends LitElement {
     }
 
     return value;
-  }
-
-  /**
-   * Call the requestUpdate handler for the direct child components within the
-   * direct body.
-   */
-  requestGlobalUpdate(exclude: boolean) {
-    const { body } = document || this;
-    const elements = Array.from(body.children || []).filter(
-      (f: any) =>
-        f.requestUpdate &&
-        f instanceof Enlightenment &&
-        f.namespace === this.namespace &&
-        // Excludes the context that calls this method.
-        (exclude ? f != this : true)
-    );
-
-    for (let i = 0; i < elements.length; i += 1) {
-      const component = elements[i] as Enlightenment;
-      if (component.throttle && component.requestUpdate) {
-        component.throttle(component.requestUpdate.bind(component));
-      }
-    }
   }
 
   /**
@@ -1469,18 +1485,6 @@ export class Enlightenment extends LitElement {
    */
   public useContext() {
     return this.context && this.context.value ? this.context.value : this;
-  }
-
-  /**
-   * Defines the mode attribute for the defined element that inherits the
-   * specified mode value from the global state as default value otherwise.
-   */
-  useMode() {
-    const { mode } = this.useState() || {};
-
-    if (!this.mode && mode && this.mode !== mode) {
-      this.mode = mode;
-    }
   }
 
   /**
