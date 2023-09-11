@@ -849,7 +849,6 @@ export class Enlightenment extends LitElement {
         this.requestUpdate();
       });
     }
-    console.log("Attribute changed", name, _old, value);
   }
 
   /**
@@ -980,8 +979,6 @@ export class Enlightenment extends LitElement {
     ) {
       return;
     }
-
-    console.log("mount", this.disableFocusTrap);
 
     import(this.endpointFocusTrap).then((focusTrap: any) => {
       try {
