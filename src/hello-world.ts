@@ -19,8 +19,19 @@ class HelloWorld extends Enlightenment {
   @property({ type: String })
   helloWorld = "new";
 
+  @property({
+    converter: Enlightenment.isBoolean,
+    reflect: true,
+    type: Boolean,
+  })
+  capitilized?: boolean;
+
   constructor() {
     super();
+  }
+
+  updated() {
+    console.log("Up", this.capitilized);
   }
 
   render() {

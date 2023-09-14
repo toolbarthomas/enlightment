@@ -225,7 +225,7 @@ export class Enlightenment extends LitElement {
   // Defines the attribute state from the given value, non-defined attributes
   // should be undefined while attributes without values should be true.
   static isBoolean(value: any) {
-    return value !== undefined ? true : false;
+    return value !== undefined && String(value) !== "false" ? true : false;
   }
 
   /**
