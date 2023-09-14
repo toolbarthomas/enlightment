@@ -56,6 +56,7 @@
     "esbuild": "^0.19.2",
     "postcss": "^8.4.29",
     "postcss-combine-duplicated-selectors": "^10.0.3",
+    "prettier": "^3.0.3",
     "sass": "^1.66.1",
     "typescript": "^5.2.2"
   }

@@ -5,18 +5,11 @@ import {
   html as _html,
   nothing as _nothing,
   PropertyValueMap,
-  svg,
-} from "lit";
-import {
-  customElement as _customElement,
-  property as _property,
-} from "lit/decorators.js";
-import {
-  createRef as _createRef,
-  ref as _ref,
-  Ref,
-} from "lit/directives/ref.js";
-import { unsafeSVG } from "lit/directives/unsafe-svg.js";
+  svg
+} from 'lit'
+import { customElement as _customElement, property as _property } from 'lit/decorators.js'
+import { createRef as _createRef, ref as _ref, Ref } from 'lit/directives/ref.js'
+import { unsafeSVG } from 'lit/directives/unsafe-svg.js'
 
 import {
   AnimationHandlerProps,
@@ -29,21 +22,21 @@ import {
   GlobalEventContext,
   GlobalEventHandler,
   GlobalEventType,
-  HookOptions,
-} from "./_types/main";
+  HookOptions
+} from './_types/main'
 
-import { isEmptyComponentSlot } from "./mixins/dom";
+import { isEmptyComponentSlot } from './mixins/dom'
 
-import { FocusTrap } from "focus-trap";
+import { FocusTrap } from 'focus-trap'
 
-export const createRef = _createRef;
-export const css = _css;
-export const customElement = _customElement;
-export const LitElement = _LitElement;
-export const html = _html;
-export const nothing = _nothing;
-export const property = _property;
-export const ref = _ref;
+export const createRef = _createRef
+export const css = _css
+export const customElement = _customElement
+export const LitElement = _LitElement
+export const html = _html
+export const nothing = _nothing
+export const property = _property
+export const ref = _ref
 
 // import styles from "src/styles.scss";
 
@@ -104,133 +97,139 @@ export class Enlightenment extends LitElement {
 
   // Default element reference that should be assigned to the root element
   // within the render context.
-  context: Ref<Element> = createRef();
+  context: Ref<Element> = createRef()
 
   // Optional reference to use within the Focus Trap context.
-  focusContext?: Ref<Element>;
-
-  // Alias to the parent Window object that holds the global state of the
-  // created instance.
-  root: Window = window;
+  focusContext?: Ref<Element>
 
   // Should insert the defined classnames within the root context.
-  classes: string[] = [];
+  classes: string[] = []
 
-  focusTrap?: FocusTrap;
+  // Contains the constructed Focus Trap instance.
+  focusTrap?: FocusTrap
 
   // Pushes the element context to the global state when TRUE.
   // currentElement: boolean = false;
 
-  // Flag that returns the current state of the optional Focus Trap instance.
-  hasFocusTrap: boolean = false;
+  // Internal flag that will be TRUE if the Focus Trap library is enabled and
+  // constructed for the defined Component context. This should mutate while
+  // the `withFocusTrap` equals TRUE. This value is used internally, and should
+  // not be used to disable/enable the Focus Trap library within a Component
+  // instance.
+  hasFocusTrap?: boolean
 
   // Dynamic storage for the running document Event listeners.
-  listeners: GlobalEvent[] = [];
+  listeners: GlobalEvent[] = []
 
   // Value to use for the naming of the Global state.
-  namespace: string = "NLGHTNMNT";
+  namespace: string = 'NLGHTNMNT'
 
   // Blocks the default handle methods when TRUE.
-  preventEvent: boolean = false;
+  preventEvent: boolean = false
+
+  // Reference to the parent Window object that holds the global state of the
+  // created instance.
+  root: Window = window
 
   // Contains the Shadow Root slot target contexts in order to validate
   // the actual rendered slots existence.
-  slots: { [key: string]: HTMLSlotElement | undefined } = {};
-
-  // // Optional source path that will output inline SVG from the existing sprite.
-  // spriteSource?: string = "";
+  slots: { [key: string]: HTMLSlotElement | undefined } = {}
 
   // Contains the assigned handlers that will be called once.
   throttler: {
-    delay: number;
-    handlers: EnlightenmentThrottle[];
-  };
+    delay: number
+    handlers: EnlightenmentThrottle[]
+  }
 
   // Alias to the constructor name.
-  uuid: string;
+  uuid: string
 
   @property({
-    attribute: "aria-current",
-    converter: (value) => Enlightenment.isBoolean,
-  })
-  ariaCurrent = false;
-
-  @property({
-    attribute: "aria-disabled",
+    attribute: 'aria-current',
     converter: (value) => Enlightenment.isBoolean,
     reflect: true,
-    type: Boolean,
+    type: Boolean
   })
-  ariaDisabled = false;
+  ariaCurrent?: boolean
+
+  @property({
+    attribute: 'aria-disabled',
+    converter: (value) => Enlightenment.isBoolean,
+    reflect: true,
+    type: Boolean
+  })
+  ariaDisabled?: boolean
 
   @property({
     converter: (value) => Enlightenment.isBoolean,
-    type: Boolean,
+    type: Boolean
   })
-  disableGlobalEvents?: boolean;
+  disableGlobalEvents?: boolean
 
   @property({
-    attribute: "disable-focustrap",
+    attribute: 'disable-focustrap',
     converter: (value) => Enlightenment.isBoolean,
-    type: Boolean,
+    type: Boolean
   })
-  disableFocusTrap?: boolean;
+  disableFocusTrap?: boolean
 
-  @property({
-    type: Boolean,
-  })
-  enableFocusTrap = false;
+  // Will be TRUE if Focus Trap is constructed within the defined Component
+  // context.
+  withFocusTrap?: boolean
 
   @property({
     type: Number,
-    converter: (value) => parseInt(String(value)) || Enlightenment.FPS,
+    converter: (value) => parseInt(String(value)) || Enlightenment.FPS
   })
-  delay = Enlightenment.FPS;
+  delay = Enlightenment.FPS
 
+  // Enables the Focus Trap Library with the defined endpoint value. This will
+  // enable the Focus Trap feature for all similar components, but can be
+  // specifically disabled by using `disableFocusTrap` property or assigning
+  // `endpointFocusTrap` without any value.
   @property({
-    attribute: "endpoint-focustrap",
-    converter: (value) => Enlightenment.strip(String(value)),
+    attribute: 'endpoint-focustrap',
+    converter: (value) => value && Enlightenment.strip(String(value))
   })
-  endpointFocusTrap = "";
+  endpointFocusTrap = ''
 
   // Readable error to display during an exception/error within the defined
   // component context.
   @property()
-  error = "";
+  error = ''
 
   @property({
     converter: (value) => Enlightenment.isMode(value),
-    type: String,
+    type: String
   })
-  mode?: string;
+  mode?: string
 
   @property({
-    type: Boolean,
+    type: Boolean
   })
-  minimalShadowRoot = false;
+  minimalShadowRoot = false
 
   @property({ converter: (value) => Enlightenment.isBoolean, type: Boolean })
-  once?: boolean;
+  once?: boolean
 
   @property({
-    attribute: "svg-sprite-source",
-    converter: (value) =>
-      Enlightenment.resolveURL(Enlightenment.strip(String(value))),
+    attribute: 'svg-sprite-source',
+    converter: (value) => Enlightenment.resolveURL(Enlightenment.strip(String(value)))
   })
-  svgSpriteSource = "";
+  svgSpriteSource = ''
 
   // Defines any fallback to use for optional properties.
   static defaults = {
-    slot: "_content",
-  };
+    slot: '_content'
+  }
 
   // Expected interval value of 60HZ refresh rate.
-  static FPS = 1000 / 60;
+  static FPS = 1000 / 60
 
   // Defines the attribute state from the given value, non-defined attributes
   // should be undefined while attributes without values should be true.
   static isBoolean(value: any) {
-    return value !== undefined && String(value) !== "false" ? true : false;
+    return value !== undefined && String(value) !== 'false' ? true : false
   }
 
   /**
@@ -240,16 +239,16 @@ export class Enlightenment extends LitElement {
    */
   static filterProperty(value: any, collection: string[]) {
     if (!value || !collection || !collection.length) {
-      return;
+      return
     }
 
-    const [fallback] = collection;
+    const [fallback] = collection
 
-    if (typeof value !== "string") {
-      return fallback;
+    if (typeof value !== 'string') {
+      return fallback
     }
 
-    return collection.includes(value) ? value : fallback;
+    return collection.includes(value) ? value : fallback
   }
 
   /**
@@ -257,105 +256,96 @@ export class Enlightenment extends LitElement {
    */
   static isExternal(url: string) {
     if (!url) {
-      return false;
+      return false
     }
 
-    const match = url.match(
-      /^([^:\/?#]+:)?(?:\/\/([^\/?#]*))?([^?#]+)?(\?[^#]*)?(#.*)?/
-    );
+    const match = url.match(/^([^:\/?#]+:)?(?:\/\/([^\/?#]*))?([^?#]+)?(\?[^#]*)?(#.*)?/)
 
     if (!match) {
-      return false;
+      return false
     }
 
     if (
-      typeof match[1] === "string" &&
+      typeof match[1] === 'string' &&
       match[1].length > 0 &&
       match[1].toLowerCase() !== location.protocol
     ) {
-      return true;
+      return true
     }
 
     if (
-      typeof match[2] === "string" &&
+      typeof match[2] === 'string' &&
       match[2].length > 0 &&
       match[2].replace(
-        new RegExp(
-          ":(" + { "http:": 80, "https:": 443 }[location.protocol] + ")?$"
-        ),
-        ""
+        new RegExp(':(' + { 'http:': 80, 'https:': 443 }[location.protocol] + ')?$'),
+        ''
       ) !== location.host
     ) {
-      return true;
+      return true
     }
 
-    return false;
+    return false
   }
 
   /**
    * Ensures the given value is a valid mode value.
    */
   static isMode(value: any) {
-    return Enlightenment.filterProperty(value, ["light", "dark"]);
+    return Enlightenment.filterProperty(value, ['light', 'dark'])
   }
 
   /**
    * Ensures the given value is a valid target attribute value.
    */
   static isTarget(value: any) {
-    return Enlightenment.filterProperty(value, [
-      "_self",
-      "_blank",
-      "_parent",
-      "_top",
-    ]);
+    return Enlightenment.filterProperty(value, ['_self', '_blank', '_parent', '_top'])
   }
 
   // The keycodes that could be validated within a class method.
   static keyCodes = {
     meta: [9, 16, 17, 18, 20],
-    exit: [27],
-  };
+    exit: [27]
+  }
 
   /**
    * Simple helper function to ensure the given value does not contain any
    * XML/HTML based syntax.
    */
   static sanitizeHTML(value: string) {
-    const raw = document.createElement("div");
-    raw.innerHTML = value;
+    const raw = document.createElement('div')
+    raw.innerHTML = value
 
-    return raw.textContent || "";
+    return raw.textContent || ''
   }
 
   /**
    * Ensures any whitespace is removed from the given string.
    */
   static strip(value: string) {
-    return typeof value === "string"
+    return typeof value === 'string'
       ? value
-          .split(" ")
-          .join("")
-          .replace(/\r?\n|\r/g, "")
-      : String(value);
+          .split(' ')
+          .join('')
+          .replace(/\r?\n|\r/g, '')
+      : String(value)
   }
 
   // Defines the renderable image type for the renderImage method.
   static supportedImageExtensions = [
-    ".apng",
-    ".avif",
-    ".bmp",
-    ".gif",
-    ".jpeg",
-    ".jpg",
-    ".png",
-    ".svg",
-    ".tiff",
-    ".webp",
-  ];
+    '.apng',
+    '.avif',
+    '.bmp',
+    '.gif',
+    '.jpeg',
+    '.jpg',
+    '.png',
+    '.svg',
+    '.tiff',
+    '.webp'
+  ]
 
   // Defines the usable extensions for webfont sources.
-  static supportedWebfontExtensions = [".woff", ".woff2"];
+  static supportedWebfontExtensions = ['.woff', '.woff2']
 
   /**
    * Helper function to ensure the requested property is returned from a
@@ -363,80 +353,8 @@ export class Enlightenment extends LitElement {
    */
   static useOption(property: string, value?: any, optional?: boolean) {
     return Enlightenment.sanitizeHTML(
-      String(
-        (typeof value === "string" && !optional
-          ? value
-          : (value || {})[property]) || ""
-      )
-    );
-  }
-
-  /**
-   * Assigns the defined function handler within a new requestAnimationFrame
-   * method that is called every frame (per second).
-   *
-   * @param handler Function handler to assign within the requestAnimationFrame.
-   * @param fps Amount of calls to use within a second.
-   * @param limit Loops the interval by default or cycle the defined amount.
-   */
-  static requestAnimationInterval(
-    handler: (props: AnimationHandlerProps) => void,
-    fps: number,
-    limit = Infinity
-  ) {
-    let fpsInterval: number = 1000 / (parseInt(String(fps)) || 30);
-    let previousTimestamp: number = performance.now() || Date.now();
-    let keyframe: any;
-    let tick = 0;
-    let tock = 0;
-
-    return new Promise<AnimationHandlerResponse>((resolve) => {
-      // i = interval, l = limit
-      const fn = ((i: number, l?: number) =>
-        function (timestamp: number) {
-          if (typeof l === "undefined" || l > 0) {
-            keyframe !== undefined && cancelAnimationFrame(keyframe);
-            keyframe = requestAnimationFrame(fn);
-
-            const elapsed = timestamp - previousTimestamp;
-
-            try {
-              if (elapsed > fpsInterval) {
-                handler({
-                  first: tick <= 0,
-                  last: tick >= limit,
-                  previousTimestamp,
-                  resolve,
-                  tick,
-                  timestamp,
-                  tock,
-                });
-
-                l && l--;
-                tick += 1;
-                tock = Math.round(tick / fps);
-                previousTimestamp = timestamp - (elapsed % fpsInterval);
-              }
-            } catch (exception) {
-              if (exception) {
-                l = 0;
-                console && console.error(exception);
-              }
-            }
-          } else {
-            resolve({
-              first: tick <= 0,
-              last: true,
-              previousTimestamp,
-              tick,
-              timestamp,
-              tock,
-            });
-          }
-        })(fps, isNaN(limit) ? Infinity : limit);
-
-      keyframe = requestAnimationFrame(fn);
-    }).finally(() => keyframe && cancelAnimationFrame(keyframe));
+      String((typeof value === 'string' && !optional ? value : (value || {})[property]) || '')
+    )
   }
 
   /**
@@ -444,55 +362,53 @@ export class Enlightenment extends LitElement {
    * requests.
    */
   static resolveURL(url: string) {
-    if (typeof url !== "string") {
-      return "";
+    if (typeof url !== 'string') {
+      return ''
     }
 
     // Use the AnchorElement interface to verify the initial url.
-    const anchor = document.createElement("a");
-    anchor.href = url;
+    const anchor = document.createElement('a')
+    anchor.href = url
 
-    const port = parseInt(window.location.port || anchor.port) || 80;
-    const [protocol, relativeURL] = anchor.href.split(anchor.host);
+    const port = parseInt(window.location.port || anchor.port) || 80
+    const [protocol, relativeURL] = anchor.href.split(anchor.host)
     const absoluteURL =
       protocol +
-      ([80, 443].includes(port)
-        ? window.location.hostname
-        : window.location.host) +
-      relativeURL;
+      ([80, 443].includes(port) ? window.location.hostname : window.location.host) +
+      relativeURL
 
-    return absoluteURL;
+    return absoluteURL
   }
 
   constructor() {
-    super();
+    super()
 
-    this.uuid = this.constructor.name;
+    this.uuid = this.constructor.name
 
     // Ensure the Global state is defined for the initial custom elements.
     if (!this.useState()) {
       const state = {
         currentElements: [],
-        mode: "light",
+        mode: 'light',
         verbose: false,
-        endpoints: {},
-      } as EnlightenmentState;
+        endpoints: {}
+      } as EnlightenmentState
 
-      this.useState(state);
+      this.useState(state)
 
-      this.log([`${this.namespace} global assigned:`, state]);
+      this.log([`${this.namespace} global assigned:`, state])
     }
 
     //@todo Should check with function helper for every possible method to define
     // the actual focus trap.
-    this.focusContext = createRef();
+    this.focusContext = createRef()
 
     this.throttler = {
       delay: parseInt(String(this.delay)) || Enlightenment.FPS,
-      handlers: [],
-    };
+      handlers: []
+    }
 
-    this.useMode();
+    this.useMode()
   }
 
   /**
@@ -500,10 +416,10 @@ export class Enlightenment extends LitElement {
    * within the constructed this.root Object.
    */
   protected assignCurrentElement() {
-    const state = this.useState();
+    const state = this.useState()
 
     if (state && !state.currentElements.filter((ce) => ce === this).length) {
-      state.currentElements.push(this);
+      state.currentElements.push(this)
     }
   }
 
@@ -517,29 +433,26 @@ export class Enlightenment extends LitElement {
     context?: GlobalEventContext
   ) {
     if (!type) {
-      this.log("Unable to assign global event.", "error");
+      this.log('Unable to assign global event.', 'error')
 
-      return;
+      return
     }
 
-    if (typeof handler !== "function") {
-      this.log(
-        `Unable to subscribe existing Document Event for ${type}`,
-        "error"
-      );
+    if (typeof handler !== 'function') {
+      this.log(`Unable to subscribe existing Document Event for ${type}`, 'error')
 
-      return;
+      return
     }
 
-    const ctx = context || document;
+    const ctx = context || document
 
-    const fn = handler.bind(this);
+    const fn = handler.bind(this)
 
-    this.listeners.push([type, fn, ctx]);
+    this.listeners.push([type, fn, ctx])
 
-    ctx && ctx.addEventListener(type, fn);
+    ctx && ctx.addEventListener(type, fn)
 
-    this.log(`Global event assigned: ${type}`);
+    this.log(`Global event assigned: ${type}`)
   }
 
   /**
@@ -548,76 +461,68 @@ export class Enlightenment extends LitElement {
    */
   protected assignSlots(name?: string) {
     if (!this.shadowRoot) {
-      this.log(`Unable to detect shadowRoot from ${this.namespace}`, "error");
+      this.log(`Unable to detect shadowRoot from ${this.namespace}`, 'error')
     }
 
-    const slots = this.shadowRoot?.querySelectorAll("slot");
+    const slots = this.shadowRoot?.querySelectorAll('slot')
 
     if (slots && !slots.length && !Object.keys(this.slots).length) {
-      return;
+      return
     } else if (!slots && !Object.keys(this.slots)) {
-      return;
+      return
     }
 
-    this.clearGlobalEvent("slotchange", slots);
+    this.clearGlobalEvent('slotchange', slots)
 
-    this.commit("slots", () => {
+    this.commit('slots', () => {
       if (!slots || !slots.length) {
-        this.slots = {};
+        this.slots = {}
       } else {
         for (let i = 0; i < slots.length; i += 1) {
-          const name = slots[i].name || Enlightenment.defaults.slot;
+          const name = slots[i].name || Enlightenment.defaults.slot
 
           if (!Object.values(this.slots).includes(slots[i])) {
-            this.slots[name] = isEmptyComponentSlot(slots[i])
-              ? undefined
-              : slots[i];
+            this.slots[name] = isEmptyComponentSlot(slots[i]) ? undefined : slots[i]
 
-            this.assignGlobalEvent(
-              "slotchange",
-              this.handleSlotchange,
-              slots[i]
-            );
+            this.assignGlobalEvent('slotchange', this.handleSlotchange, slots[i])
           }
 
-          this.handleSlotchange({ target: slots[i] } as any);
+          this.handleSlotchange({ target: slots[i] } as any)
         }
 
-        this.log([`Found ${slots.length} slot(s) from:`, this.slots]);
+        this.log([`Found ${slots.length} slot(s) from:`, this.slots])
       }
-    });
+    })
   }
 
   /**
    * Removes the defined assigned global Events from the selected type.
    */
   protected clearGlobalEvent(type: GlobalEventType, context?: any | any[]) {
-    const queue = Array.isArray(context) ? context : [context];
+    const queue = Array.isArray(context) ? context : [context]
 
     for (let i = 0; i < queue.length; i += 1) {
       const listeners = this.listeners.filter(
         ([t, fn, ctx]) => t === type && (queue[i] || this) === ctx
-      );
+      )
 
       if (!listeners || !listeners.length) {
-        continue;
+        continue
       }
 
-      let completed = 0;
+      let completed = 0
       listeners.forEach(([t, fn, ctx]) => {
-        ctx.removeEventListener(t, fn as any);
+        ctx.removeEventListener(t, fn as any)
 
-        this.log([`Global ${t} event removed:`, fn]);
+        this.log([`Global ${t} event removed:`, fn])
 
-        completed += 1;
-      });
+        completed += 1
+      })
 
       if (completed === listeners.length) {
-        this.listeners = this.listeners.filter(
-          (listener) => !listeners.includes(listener)
-        );
+        this.listeners = this.listeners.filter((listener) => !listeners.includes(listener))
 
-        this.log(`Global ${type} event cleared`);
+        this.log(`Global ${type} event cleared`)
       }
     }
   }
@@ -627,21 +532,21 @@ export class Enlightenment extends LitElement {
    * timeout.
    */
   protected clearThrottler() {
-    const { handlers } = this.throttler;
+    const { handlers } = this.throttler
 
     if (!handlers || !handlers.length) {
-      return;
+      return
     }
 
     handlers.forEach(([fn, timeout], index) => {
       if (timeout) {
-        clearTimeout(timeout);
+        clearTimeout(timeout)
 
-        this.log(["Throttle cleared:", fn]);
+        this.log(['Throttle cleared:', fn])
       }
-    });
+    })
 
-    this.throttler.handlers = [];
+    this.throttler.handlers = []
   }
 
   /**
@@ -650,63 +555,57 @@ export class Enlightenment extends LitElement {
    */
   protected commit(property: string, handler: any) {
     if (!property) {
-      this.log([`Unable to commit undefined property`]);
+      this.log([`Unable to commit undefined property`])
 
-      return;
+      return
     }
 
     if (handler === null) {
-      this.log([`Unable to commit ${property}`]);
+      this.log([`Unable to commit ${property}`])
 
-      return;
+      return
     }
 
-    let update = false;
+    let update = false
 
     try {
       //@ts-ignore
-      const value = this[property];
+      const value = this[property]
 
-      if (typeof handler === "function") {
-        handler();
-        update = true;
+      if (typeof handler === 'function') {
+        handler()
+        update = true
       }
 
-      if (typeof handler !== "function") {
+      if (typeof handler !== 'function') {
         if (Object.keys(this).includes(property)) {
           //@ts-ignore
-          this[property] = handler;
+          this[property] = handler
 
           if (handler !== value) {
-            update = true;
+            update = true
           }
 
-          const data: { [key: string]: any } = {};
-          data[property] = handler;
+          const data: { [key: string]: any } = {}
+          data[property] = handler
 
-          this.hook("commit", { data });
+          this.hook('commit', { data })
 
-          this.log([`${this.namespace} property updated:`, handler]);
+          this.log([`${this.namespace} property updated:`, handler])
         } else {
-          this.log(
-            ["Illegal property commit detected.", [property, handler]],
-            "error"
-          );
+          this.log(['Illegal property commit detected.', [property, handler]], 'error')
         }
       } else {
-        this.log([
-          `${this.namespace} properties commited from handler`,
-          handler,
-        ]);
+        this.log([`${this.namespace} properties commited from handler`, handler])
       }
 
       // Ensures the property update fires the component callbacks.
-      update && this.requestUpdate(property, value);
+      update && this.requestUpdate(property, value)
     } catch (error) {
       if (error) {
-        this.log(error, "error");
+        this.log(error, 'error')
 
-        update = false;
+        update = false
       }
     }
   }
@@ -715,35 +614,30 @@ export class Enlightenment extends LitElement {
    * Validates if the defined Event handler has already been defined as
    * global Event.
    */
-  protected filterGlobalEvent(
-    type: GlobalEventType,
-    handler: GlobalEventHandler
-  ) {
+  protected filterGlobalEvent(type: GlobalEventType, handler: GlobalEventHandler) {
     if (!this.listeners.length) {
-      return [];
+      return []
     }
 
-    const entry: GlobalEvent[] = [];
+    const entry: GlobalEvent[] = []
     this.listeners.forEach(([t, fn, ctx]) => {
       if (t === type && fn.name.endsWith(handler.name)) {
-        entry.push([t, fn, ctx]);
+        entry.push([t, fn, ctx])
       }
-    });
+    })
 
-    return entry.length ? entry[0] : [];
+    return entry.length ? entry[0] : []
   }
 
   /**
    * Setup the actual featuers for the constructed Enlightenment component.
    */
-  protected firstUpdated(
-    properties: PropertyValueMap<any> | Map<PropertyKey, unknown>
-  ) {
-    super.firstUpdated(properties);
+  protected firstUpdated(properties: PropertyValueMap<any> | Map<PropertyKey, unknown>) {
+    super.firstUpdated(properties)
 
-    this.useMode();
+    this.useMode()
 
-    this.hook("updated");
+    this.hook('updated')
   }
 
   /**
@@ -751,18 +645,18 @@ export class Enlightenment extends LitElement {
    * is triggerd from the defined global Events when the activeElement exists
    * within the Enlightenment element context.
    */
-  protected handleCurrentElement(target: Event["target"]) {
+  protected handleCurrentElement(target: Event['target']) {
     if (this.preventEvent) {
-      return;
+      return
     }
 
-    this.commit("ariaCurrent", () => {
+    this.commit('ariaCurrent', () => {
       if (this.isComponentContext(target as HTMLElement)) {
-        this.ariaCurrent = true;
+        this.ariaCurrent = true
       } else {
-        this.ariaCurrent = false;
+        this.ariaCurrent = false
       }
-    });
+    })
   }
 
   /**
@@ -773,12 +667,12 @@ export class Enlightenment extends LitElement {
    */
   protected handleGlobalClick(event: MouseEvent) {
     if (this.preventEvent) {
-      return;
+      return
     }
 
-    const { target } = event || {};
+    const { target } = event || {}
 
-    this.handleCurrentElement(target);
+    this.handleCurrentElement(target)
   }
 
   /**
@@ -789,12 +683,12 @@ export class Enlightenment extends LitElement {
    */
   protected handleGlobalFocus(event: FocusEvent) {
     if (this.preventEvent) {
-      return;
+      return
     }
 
-    const { target } = event || {};
+    const { target } = event || {}
 
-    this.handleCurrentElement(target);
+    this.handleCurrentElement(target)
   }
 
   /**
@@ -805,20 +699,20 @@ export class Enlightenment extends LitElement {
    */
   protected handleGlobalKeydown(event: KeyboardEvent) {
     if (this.preventEvent) {
-      return;
+      return
     }
 
-    const { keyCode, target } = event || {};
+    const { keyCode, target } = event || {}
 
     if (Enlightenment.keyCodes.exit.includes(keyCode)) {
-      this.commit("currentElement", false);
-      const t = target as HTMLElement;
+      this.commit('currentElement', false)
+      const t = target as HTMLElement
 
       if (t && this.isComponentContext(t) && t.blur) {
-        t.blur();
+        t.blur()
       }
     } else if (!Enlightenment.keyCodes.meta.includes(keyCode)) {
-      this.commit("currentElement", true);
+      this.commit('currentElement', true)
     }
   }
 
@@ -828,16 +722,16 @@ export class Enlightenment extends LitElement {
    */
   protected handleSlotchange(event: Event) {
     if (this.preventEvent) {
-      return;
+      return
     }
 
     if (!event) {
-      return;
+      return
     }
 
-    this.isEmptySlot(event);
+    this.isEmptySlot(event)
 
-    this.hook("slotchange");
+    this.hook('slotchange')
   }
 
   /**
@@ -847,12 +741,12 @@ export class Enlightenment extends LitElement {
   //@ts-ignore
   public attributeChangedCallback(name: string, _old?: string, value?: string) {
     if (this.once) {
-      super.attributeChangedCallback(name, _old || null, value || null);
+      super.attributeChangedCallback(name, _old || null, value || null)
     } else {
       this.throttle(() => {
-        super.attributeChangedCallback(name, _old || null, value || null);
-        this.requestUpdate();
-      });
+        super.attributeChangedCallback(name, _old || null, value || null)
+        this.requestUpdate()
+      })
     }
   }
 
@@ -860,25 +754,25 @@ export class Enlightenment extends LitElement {
    * Defines the initial setup for the constructed Enlightenment element.
    */
   public connectedCallback() {
-    super.connectedCallback();
+    super.connectedCallback()
 
     this.throttle(() => {
-      if (this.requestEndpoint("focusTrap", "endpointFocusTrap")) {
-        this.enableFocusTrap = true;
+      if (this.requestEndpoint('focusTrap', 'endpointFocusTrap')) {
+        this.withFocusTrap = true
       } else if (this.endpointFocusTrap) {
-        this.shareEndpoint("focusTrap", this.endpointFocusTrap);
-        this.enableFocusTrap = true;
+        this.shareEndpoint('focusTrap', this.endpointFocusTrap)
+        this.withFocusTrap = true
       }
-    });
+    })
 
     if (!this.disableGlobalEvents) {
-      this.assignGlobalEvent("click", this.handleGlobalClick);
-      this.assignGlobalEvent("keydown", this.handleGlobalKeydown);
-      this.assignGlobalEvent("focus", this.handleGlobalFocus);
-      this.assignGlobalEvent("focusin", this.handleGlobalFocus);
+      this.assignGlobalEvent('click', this.handleGlobalClick)
+      this.assignGlobalEvent('keydown', this.handleGlobalKeydown)
+      this.assignGlobalEvent('focus', this.handleGlobalFocus)
+      this.assignGlobalEvent('focusin', this.handleGlobalFocus)
     }
 
-    this.hook("connected");
+    this.hook('connected')
   }
 
   /**
@@ -886,24 +780,24 @@ export class Enlightenment extends LitElement {
    */
   public disconnectedCallback() {
     try {
-      this.clearThrottler();
+      this.clearThrottler()
 
-      this.omitGlobalEvent("click", this.handleGlobalClick);
-      this.omitGlobalEvent("keydown", this.handleGlobalKeydown);
-      this.omitGlobalEvent("focus", this.handleGlobalFocus);
-      this.omitGlobalEvent("focusin", this.handleGlobalFocus);
+      this.omitGlobalEvent('click', this.handleGlobalClick)
+      this.omitGlobalEvent('keydown', this.handleGlobalKeydown)
+      this.omitGlobalEvent('focus', this.handleGlobalFocus)
+      this.omitGlobalEvent('focusin', this.handleGlobalFocus)
 
       this.clearGlobalEvent(
-        "slotchange",
-        this.shadowRoot && this.shadowRoot.querySelectorAll("slot")
-      );
+        'slotchange',
+        this.shadowRoot && this.shadowRoot.querySelectorAll('slot')
+      )
 
-      this.hook("disconnected");
+      this.hook('disconnected')
 
-      super.disconnectedCallback();
+      super.disconnectedCallback()
     } catch (error) {
       if (error) {
-        this.log(error as string, "error");
+        this.log(error as string, 'error')
       }
     }
   }
@@ -913,13 +807,13 @@ export class Enlightenment extends LitElement {
    */
   public handleFocusTrap(event: Event) {
     if (event.preventDefault) {
-      event.preventDefault();
+      event.preventDefault()
     }
 
     if (this.hasFocusTrap) {
-      this.releaseFocusTrap();
+      this.releaseFocusTrap()
     } else {
-      this.lockFocusTrap();
+      this.lockFocusTrap()
     }
   }
 
@@ -928,47 +822,47 @@ export class Enlightenment extends LitElement {
    * the Enlightenment element context.
    */
   public hook(name: string, options?: HookOptions) {
-    const { context, data } = options || {};
+    const { context, data } = options || {}
 
     if (!name) {
-      this.log("Unable to use undefined hook", "error");
+      this.log('Unable to use undefined hook', 'error')
 
-      return;
+      return
     }
 
     const event = new CustomEvent(name, {
       bubbles: true,
-      detail: data || {},
-    });
+      detail: data || {}
+    })
 
-    this.log([`Hook assigned as ${name}`, event]);
+    this.log([`Hook assigned as ${name}`, event])
 
     if (context && context !== this) {
-      return context.dispatchEvent(event);
+      return context.dispatchEvent(event)
     }
 
-    return this.dispatchEvent(event);
+    return this.dispatchEvent(event)
   }
 
   /**
    * Activates the optional defined Focus Trap instance.
    */
   protected lockFocusTrap() {
-    console.log("Lock", this.focusTrap);
+    console.log('Lock', this.focusTrap)
 
     if (!this.focusTrap || !this.focusTrap.activate) {
-      this.log("Unable to lock focus, Focus Trap is not mounted.");
+      this.log('Unable to lock focus, Focus Trap is not mounted.')
     }
 
-    if (!this.hasFocusTrap && this.enableFocusTrap) {
+    if (!this.hasFocusTrap && this.withFocusTrap) {
       try {
         this.throttle(() => {
-          this.log(["Focus locked from", this]);
-          this.focusTrap?.activate();
-          this.commit("hasFocusTrap", true);
-        });
+          this.log(['Focus locked from', this])
+          this.focusTrap?.activate()
+          this.commit('hasFocusTrap', true)
+        })
       } catch (exception) {
-        this.log(exception as string, "error");
+        this.log(exception as string, 'error')
       }
     }
   }
@@ -978,39 +872,29 @@ export class Enlightenment extends LitElement {
    * assign it to the focusTrap instance within the element.
    */
   protected mountFocusTrap() {
-    if (
-      !this.endpointFocusTrap ||
-      !this.enableFocusTrap ||
-      this.focusTrap ||
-      this.disableFocusTrap
-    ) {
-      return;
+    if (!this.endpointFocusTrap || !this.withFocusTrap || this.focusTrap || this.disableFocusTrap) {
+      return
     }
 
     import(this.endpointFocusTrap).then((focusTrap: any) => {
       try {
-        this.focusTrap = focusTrap.createFocusTrap(
-          [this, this.useRef(this.focusContext)],
-          {
-            escapeDeactivates: false, // The child component should deactivate it manually.
-            allowOutsideClick: false,
-            initialFocus: false,
-            tabbableOptions: {
-              getShadowRoot: this.minimalShadowRoot
-                ? true
-                : (node: HTMLElement | SVGElement) =>
-                    this.isComponentContext(node)
-                      ? node.shadowRoot || undefined
-                      : false,
-            },
+        this.focusTrap = focusTrap.createFocusTrap([this, this.useRef(this.focusContext)], {
+          escapeDeactivates: false, // The child component should deactivate it manually.
+          allowOutsideClick: false,
+          initialFocus: false,
+          tabbableOptions: {
+            getShadowRoot: this.minimalShadowRoot
+              ? true
+              : (node: HTMLElement | SVGElement) =>
+                  this.isComponentContext(node) ? node.shadowRoot || undefined : false
           }
-        );
+        })
 
-        this.focusTrap && this.log(["Focus trap mounted from", this], "info");
+        this.focusTrap && this.log(['Focus trap mounted from', this], 'info')
       } catch (exception) {
-        exception && this.log(exception as string, "error");
+        exception && this.log(exception as string, 'error')
       }
-    });
+    })
   }
 
   /**
@@ -1019,13 +903,12 @@ export class Enlightenment extends LitElement {
    */
   protected parent(selector?: string) {
     if (!selector) {
-      return;
+      return
     }
 
-    const parent =
-      this.parentElement && this.parentElement.closest(this.tagName);
+    const parent = this.parentElement && this.parentElement.closest(this.tagName)
 
-    return parent || undefined;
+    return parent || undefined
   }
 
   /**
@@ -1037,22 +920,19 @@ export class Enlightenment extends LitElement {
     instance?: Enlightenment,
     list?: Enlightenment[]
   ): Enlightenment[] {
-    const parent =
-      instance && instance.parent
-        ? instance.parent(selector)
-        : this.parent(selector);
+    const parent = instance && instance.parent ? instance.parent(selector) : this.parent(selector)
 
-    if (parent && typeof (parent as Enlightenment).parent === "function") {
-      const commit = [...(list || []), parent as Enlightenment];
+    if (parent && typeof (parent as Enlightenment).parent === 'function') {
+      const commit = [...(list || []), parent as Enlightenment]
 
-      return this.parents(selector, parent as Enlightenment, commit);
+      return this.parents(selector, parent as Enlightenment, commit)
     }
 
     if (list && list.length) {
-      return list;
+      return list
     }
 
-    return [];
+    return []
   }
 
   /**
@@ -1060,15 +940,15 @@ export class Enlightenment extends LitElement {
    * context.
    */
   protected isComponentContext(element: HTMLElement | SVGElement) {
-    const { value } = this.context || {};
-    const context = this.useRef(this.context);
+    const { value } = this.context || {}
+    const context = this.useRef(this.context)
 
     return (
       element === value ||
       element === this ||
       this.contains(element) ||
       (context && context.contains(element))
-    );
+    )
   }
 
   /**
@@ -1076,13 +956,13 @@ export class Enlightenment extends LitElement {
    * @returns
    */
   protected isCurrentContext() {
-    const context = this.useRef(this.context);
+    const context = this.useRef(this.context)
 
     if (!context) {
-      return;
+      return
     }
 
-    context.setAttribute("aria-current", this.ariaCurrent);
+    context.setAttribute('aria-current', this.ariaCurrent)
   }
 
   /**
@@ -1091,13 +971,13 @@ export class Enlightenment extends LitElement {
    * context.
    */
   protected isEmptySlot(event: Event) {
-    const { parentElement } = event.target as Element;
+    const { parentElement } = event.target as Element
 
     if (parentElement) {
       if (!isEmptyComponentSlot(event.target as HTMLSlotElement)) {
-        parentElement.removeAttribute("aria-hidden");
+        parentElement.removeAttribute('aria-hidden')
       } else {
-        parentElement.setAttribute("aria-hidden", "true");
+        parentElement.setAttribute('aria-hidden', 'true')
       }
     }
   }
@@ -1107,7 +987,7 @@ export class Enlightenment extends LitElement {
    * parent.
    */
   protected isNested() {
-    return this.parent(this.tagName);
+    return this.parent(this.tagName)
   }
 
   /**
@@ -1115,17 +995,17 @@ export class Enlightenment extends LitElement {
    */
   protected log(message: any | any[], type?: string) {
     //@ts-ignore
-    if (typeof console[type || "log"] !== "function") {
-      return;
+    if (typeof console[type || 'log'] !== 'function') {
+      return
     }
 
-    let output = Array.isArray(message) ? message : [message];
+    let output = Array.isArray(message) ? message : [message]
 
-    const { verbose } = this.useState() || {};
+    const { verbose } = this.useState() || {}
 
     if (verbose) {
       //@ts-ignore
-      output.forEach((m) => console[type || "log"](m));
+      output.forEach((m) => console[type || 'log'](m))
     }
   }
 
@@ -1134,15 +1014,15 @@ export class Enlightenment extends LitElement {
    * Element collection.
    */
   private omitCurrentElement() {
-    const state = this.useState();
+    const state = this.useState()
 
     if (state && state.currentElements && state.currentElements.length) {
-      const commit = state.currentElements.filter((ce) => ce !== this);
+      const commit = state.currentElements.filter((ce) => ce !== this)
 
-      state.currentElements = commit;
+      state.currentElements = commit
     }
 
-    this.hook("omit");
+    this.hook('omit')
   }
 
   /**
@@ -1150,43 +1030,40 @@ export class Enlightenment extends LitElement {
    */
   private omitGlobalEvent(type: GlobalEventType, handler: GlobalEventHandler) {
     if (!type) {
-      this.log("Unable to omit undefined global Event", "error");
+      this.log('Unable to omit undefined global Event', 'error')
 
-      return;
+      return
     }
 
-    if (typeof handler !== "function") {
-      this.log(
-        `Unable to omit global ${type} Event, no valid function was defined.`,
-        "error"
-      );
+    if (typeof handler !== 'function') {
+      this.log(`Unable to omit global ${type} Event, no valid function was defined.`, 'error')
     }
 
-    const [t, fn, ctx] = this.filterGlobalEvent(type, handler);
+    const [t, fn, ctx] = this.filterGlobalEvent(type, handler)
 
     if (!t || !fn || !ctx) {
-      this.log(`Unable to omit undefined global ${type} Event`, "error");
+      this.log(`Unable to omit undefined global ${type} Event`, 'error')
 
-      return;
+      return
     }
 
-    ctx.removeEventListener(t, fn as any);
+    ctx.removeEventListener(t, fn as any)
 
-    const index: number[] = [];
+    const index: number[] = []
     this.listeners.forEach(([t2, fn2], i) => {
       if (fn2 === fn) {
-        index.push(i);
+        index.push(i)
       }
-    });
+    })
 
     //@ts-ignore
     this.listeners = this.listeners
       .map((l, i) => (index.includes(i) ? undefined : l))
-      .filter((l) => l);
+      .filter((l) => l)
 
-    this.log(`Global ${type} event removed:`);
+    this.log(`Global ${type} event removed:`)
 
-    this.hook("omit");
+    this.hook('omit')
   }
 
   /**
@@ -1194,7 +1071,7 @@ export class Enlightenment extends LitElement {
    * direct body.
    */
   private requestGlobalUpdate(exclude: boolean) {
-    const { body } = document || this;
+    const { body } = document || this
     const elements = Array.from(body.children || []).filter(
       (f: any) =>
         f.requestUpdate &&
@@ -1202,12 +1079,12 @@ export class Enlightenment extends LitElement {
         f.namespace === this.namespace &&
         // Excludes the context that calls this method.
         (exclude ? f != this : true)
-    );
+    )
 
     for (let i = 0; i < elements.length; i += 1) {
-      const component = elements[i] as Enlightenment;
+      const component = elements[i] as Enlightenment
       if (component.throttle && component.requestUpdate) {
-        component.throttle(component.requestUpdate.bind(component));
+        component.throttle(component.requestUpdate.bind(component))
       }
     }
   }
@@ -1217,10 +1094,10 @@ export class Enlightenment extends LitElement {
    * specified mode value from the global state as default value otherwise.
    */
   private useMode() {
-    const { mode } = this.useState() || {};
+    const { mode } = this.useState() || {}
 
     if (!this.mode && mode && this.mode !== mode) {
-      this.mode = mode;
+      this.mode = mode
     }
   }
 
@@ -1229,18 +1106,18 @@ export class Enlightenment extends LitElement {
    */
   public releaseFocusTrap() {
     if (!this.focusTrap || !this.focusTrap.deactivate) {
-      this.log("Ignore focus, Focus Trap is not mounted.");
+      this.log('Ignore focus, Focus Trap is not mounted.')
     }
 
-    if (this.hasFocusTrap && this.enableFocusTrap) {
+    if (this.hasFocusTrap && this.withFocusTrap) {
       try {
         this.throttle(() => {
-          this.log(["Focus released from", this]);
-          this.focusTrap?.deactivate();
-          this.commit("hasFocusTrap", false);
-        });
+          this.log(['Focus released from', this])
+          this.focusTrap?.deactivate()
+          this.commit('hasFocusTrap', false)
+        })
       } catch (exception) {
-        this.log(exception as string, "error");
+        this.log(exception as string, 'error')
       }
     }
   }
@@ -1250,27 +1127,27 @@ export class Enlightenment extends LitElement {
    */
   public renderImage(source: string, options?: EnlightenmentImageOptions) {
     if (!source) {
-      return "";
+      return ''
     }
 
-    const classname = Enlightenment.useOption("classname", options);
-    const height = Enlightenment.useOption("height", options, true);
-    const width = Enlightenment.useOption("width", options, true);
+    const classname = Enlightenment.useOption('classname', options)
+    const height = Enlightenment.useOption('height', options, true)
+    const width = Enlightenment.useOption('width', options, true)
 
-    const use = document.createElement("use");
+    const use = document.createElement('use')
     use.setAttributeNS(
-      "http://www.w3.org/1999/xlink",
-      "xlink:href",
+      'http://www.w3.org/1999/xlink',
+      'xlink:href',
       Enlightenment.sanitizeHTML(`${this.svgSpriteSource}#${source}`)
-    );
+    )
 
     return this.testImage(false, source)
       ? html`<svg
           class="${classname}"
           ${height && `height="${height}"`}
           ${width && `width=  "${width}"`}
-          height="${height || "100%"}"
-          width="${width || "100%"}"
+          height="${height || '100%'}"
+          width="${width || '100%'}"
           aria-hidden="true"
           focusable="false"
         >
@@ -1278,12 +1155,12 @@ export class Enlightenment extends LitElement {
         </svg>`
       : html`<img
           class="${classname}"
-          height="${height || "auto"}"
-          width="${width || "auto"}"
+          height="${height || 'auto'}"
+          width="${width || 'auto'}"
           aria-hidden="true"
           focusable="false"
           src="${this.testImageSource(source) ? source : this.svgSpriteSource}"
-        />`;
+        />`
   }
 
   /**
@@ -1291,44 +1168,49 @@ export class Enlightenment extends LitElement {
    * instance.
    */
   protected requestEndpoint(name: string, property: string) {
-    const state = this.useState();
+    const state = this.useState()
+
+    if (this[property] === null) {
+      return
+    }
+
     if (!state || !state.endpoints) {
-      return;
+      return
     }
 
     if (!name || !property) {
-      return;
+      return
     }
 
-    const value = state.endpoints[`${this.uuid}::${name}`];
+    const value = state.endpoints[`${this.uuid}::${name}`]
 
     if (value) {
-      this.commit(property, value);
+      this.commit(property, value)
 
-      this.log(`Using endpoint from cache: ${value}`);
+      this.log(`Using endpoint from cache: ${value}`)
     }
 
-    return value;
+    return value
   }
 
   /**
    * Expose the defined endpoint to the global Enlightenment state.
    */
   protected shareEndpoint(name: string, value: string) {
-    const state = this.useState();
+    const state = this.useState()
 
     if (!state || !state.endpoints) {
-      return;
+      return
     }
 
     if (!name || !value) {
-      return;
+      return
     }
 
     try {
-      state.endpoints[`${this.uuid}::${name}`] = value;
+      state.endpoints[`${this.uuid}::${name}`] = value
     } catch (exception) {
-      exception && this.log(exception as string, "error");
+      exception && this.log(exception as string, 'error')
     }
   }
 
@@ -1342,21 +1224,17 @@ export class Enlightenment extends LitElement {
       !this.testImageSource(this.svgSpriteSource) ||
       this.testImageSource(source)
     ) {
-      return false;
+      return false
     }
 
     if (initial && this.svgSpriteSource) {
-      if (
-        source &&
-        this.testImageSource(this.svgSpriteSource) &&
-        this.testImageSource(source)
-      ) {
-        return false;
+      if (source && this.testImageSource(this.svgSpriteSource) && this.testImageSource(source)) {
+        return false
       }
 
-      return true;
+      return true
     } else if (initial) {
-      return false;
+      return false
     }
 
     if (this.svgSpriteSource && source) {
@@ -1364,32 +1242,32 @@ export class Enlightenment extends LitElement {
         this.testImageSource(this.svgSpriteSource) &&
         this.testImageSource(Enlightenment.strip(source))
       ) {
-        return false;
+        return false
       }
 
-      return true;
+      return true
     }
 
-    return false;
+    return false
   }
 
   /**
    * Validates if the defined source is a valid image path.
    */
   protected testImageSource(source: string) {
-    if (typeof source !== "string") {
-      return;
+    if (typeof source !== 'string') {
+      return
     }
 
-    let result = false;
+    let result = false
 
     Enlightenment.supportedImageExtensions.forEach((extension) => {
       if (Enlightenment.strip(source).endsWith(extension)) {
-        result = true;
+        result = true
       }
-    });
+    })
 
-    return result;
+    return result
   }
 
   /**
@@ -1398,78 +1276,70 @@ export class Enlightenment extends LitElement {
    */
   protected throttle(handler: EnlightenmentThrottle[0], delay?: number) {
     if (!this.throttler || !this.throttler.handlers) {
-      this.log(["Unable to throttle:", handler], "error");
+      this.log(['Unable to throttle:', handler], 'error')
 
-      return;
+      return
     }
 
-    if (typeof handler !== "function") {
-      this.log(
-        "Unable to use throttle, the defined handler is not a function",
-        "error"
-      );
+    if (typeof handler !== 'function') {
+      this.log('Unable to use throttle, the defined handler is not a function', 'error')
     }
 
-    let index = -1;
+    let index = -1
     const [exists] = this.throttler.handlers.filter(([h], i) => {
       if (h === handler) {
         if (index < 0) {
-          index = i;
+          index = i
         }
 
-        return h === handler;
+        return h === handler
       }
 
-      return undefined;
-    });
+      return undefined
+    })
 
     if (exists) {
-      this.log(["Stopping previous throttler handler:", handler], "info");
+      this.log(['Stopping previous throttler handler:', handler], 'info')
 
-      const previousTimeout = this.throttler.handlers[index];
+      const previousTimeout = this.throttler.handlers[index]
 
-      previousTimeout && previousTimeout[1] && clearTimeout(previousTimeout[1]);
+      previousTimeout && previousTimeout[1] && clearTimeout(previousTimeout[1])
 
-      delete this.throttler.handlers[index];
+      delete this.throttler.handlers[index]
     }
 
-    const timeout = setTimeout(
-      handler,
-      parseInt(String(delay)) || this.throttler.delay
-    );
+    const timeout = setTimeout(handler, parseInt(String(delay)) || this.throttler.delay)
 
-    this.throttler.handlers.push([handler, timeout]);
+    this.throttler.handlers.push([handler, timeout])
 
-    this.log(["Throttle defined:", handler]);
+    this.log(['Throttle defined:', handler])
   }
 
   /**
    * Callback to use after a component update.
    */
-  protected updated(
-    properties: PropertyValueMap<any> | Map<PropertyKey, unknown>
-  ) {
-    super.updated(properties);
+  protected updated(properties: PropertyValueMap<any> | Map<PropertyKey, unknown>) {
+    super.updated(properties)
 
     const fn = () => {
-      this.updatePreventEvent();
+      this.updatePreventEvent()
 
-      this.assignSlots();
+      this.assignSlots()
 
       if (this.ariaCurrent === true) {
-        this.assignCurrentElement();
+        this.assignCurrentElement()
       } else {
-        this.omitCurrentElement();
+        this.omitCurrentElement()
       }
 
-      this.mountFocusTrap();
+      this.mountFocusTrap()
 
-      this.isCurrentContext();
+      this.isCurrentContext()
 
-      this.hook("updated");
-    };
+      this.hook('updated')
+    }
 
-    this.throttle(fn);
+    this.throttle(fn)
   }
 
   /**
@@ -1477,12 +1347,12 @@ export class Enlightenment extends LitElement {
    * used when TRUE.
    */
   protected updatePreventEvent() {
-    console.log("Prevent?", this.ariaDisabled, this.currentElement);
+    console.log('Prevent?', this.ariaDisabled, this.currentElement)
 
     if (this.ariaDisabled === true) {
-      this.commit("preventEvent", true);
+      this.commit('preventEvent', true)
     } else {
-      this.commit("preventEvent", false);
+      this.commit('preventEvent', false)
     }
   }
 
@@ -1490,7 +1360,7 @@ export class Enlightenment extends LitElement {
    * Returns the root node of the defined Enlightenment instance.
    */
   public useContext() {
-    return this.context && this.context.value ? this.context.value : this;
+    return this.context && this.context.value ? this.context.value : this
   }
 
   /**
@@ -1498,11 +1368,11 @@ export class Enlightenment extends LitElement {
    */
   protected useRef = (ref?: Ref): Element | undefined => {
     if (!ref || !ref.value) {
-      return;
+      return
     }
 
-    return ref.value;
-  };
+    return ref.value
+  }
 
   /**
    * Returns the slot from the defined name or return the default slot
@@ -1510,18 +1380,18 @@ export class Enlightenment extends LitElement {
    */
   protected useSlot(name?: string) {
     if (!this.slots || !Object.keys(this.slots).length) {
-      return;
+      return
     }
 
     if (name && this.slots && this.slots[name]) {
-      return this.slots[name] as HTMLSlotElement;
+      return this.slots[name] as HTMLSlotElement
     }
 
     const [result] = Object.entries(this.slots).filter(
       ([n, slot]) => n === Enlightenment.defaults.slot
-    );
+    )
 
-    return result && result[1];
+    return result && result[1]
   }
 
   /**
@@ -1536,21 +1406,21 @@ export class Enlightenment extends LitElement {
         this.root[this.namespace] = {
           ...state,
           //@ts-ignore
-          ...this.root[this.namespace],
-        } as EnlightenmentState;
+          ...this.root[this.namespace]
+        } as EnlightenmentState
       } else {
         // Define the initial global state.
         //@ts-ignore
-        this.root[this.namespace] = state;
+        this.root[this.namespace] = state
       }
     }
 
     //@ts-ignore
     if (this.root && this.root[this.namespace]) {
       //@ts-ignore
-      return this.root[this.namespace] as EnlightenmentState;
+      return this.root[this.namespace] as EnlightenmentState
     }
 
-    return undefined;
+    return undefined
   }
 }
