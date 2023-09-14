@@ -146,12 +146,10 @@ export class Enlightenment extends LitElement {
   withFocusTrap?: boolean
 
   @property({
-    attribute: 'aria-current',
     converter: (value) => Enlightenment.isBoolean(value),
-    reflect: true,
-    type: Boolean
+    type: String
   })
-  ariaCurrent?: boolean
+  currentElement?: boolean
 
   @property({
     attribute: 'aria-disabled',
@@ -411,6 +409,7 @@ export class Enlightenment extends LitElement {
     // the actual focus trap.
     this.focusContext = createRef()
 
+    // Setup the throttler for the new Component.
     this.throttler = {
       delay: parseInt(String(this.delay)) || Enlightenment.FPS,
       handlers: []
@@ -658,11 +657,11 @@ export class Enlightenment extends LitElement {
       return
     }
 
-    this.commit('ariaCurrent', () => {
+    this.commit('currentElement', () => {
       if (this.isComponentContext(target as HTMLElement)) {
-        this.ariaCurrent = true
+        this.currentElement = true
       } else {
-        this.ariaCurrent = false
+        this.currentElement = false
       }
     })
   }
@@ -972,7 +971,7 @@ export class Enlightenment extends LitElement {
       return
     }
 
-    context.setAttribute('aria-current', this.ariaCurrent)
+    context.setAttribute('aria-current', true)
   }
 
   /**
@@ -1340,7 +1339,7 @@ export class Enlightenment extends LitElement {
 
       this.assignSlots()
 
-      if (this.ariaCurrent === true) {
+      if (this.currentElement === true) {
         this.assignCurrentElement()
       } else {
         this.omitCurrentElement()
