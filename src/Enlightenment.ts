@@ -146,7 +146,7 @@ export class Enlightenment extends LitElement {
 
   @property({
     attribute: 'aria-current',
-    converter: (value) => Enlightenment.isBoolean,
+    converter: (value) => Enlightenment.isBoolean(value),
     reflect: true,
     type: Boolean
   })
@@ -154,21 +154,21 @@ export class Enlightenment extends LitElement {
 
   @property({
     attribute: 'aria-disabled',
-    converter: (value) => Enlightenment.isBoolean,
+    converter: (value) => Enlightenment.isBoolean(value),
     reflect: true,
     type: Boolean
   })
   ariaDisabled?: boolean
 
   @property({
-    converter: (value) => Enlightenment.isBoolean,
+    converter: (value) => Enlightenment.isBoolean(value),
     type: Boolean
   })
   disableGlobalEvents?: boolean
 
   @property({
     attribute: 'disable-focustrap',
-    converter: (value) => Enlightenment.isBoolean,
+    converter: (value) => Enlightenment.isBoolean(value),
     type: Boolean
   })
   disableFocusTrap?: boolean
@@ -848,7 +848,9 @@ export class Enlightenment extends LitElement {
    * Activates the optional defined Focus Trap instance.
    */
   protected lockFocusTrap() {
-    console.log('Lock', this.focusTrap)
+    if (this.preventEvent) {
+      return
+    }
 
     if (!this.focusTrap || !this.focusTrap.activate) {
       this.log('Unable to lock focus, Focus Trap is not mounted.')
@@ -1105,6 +1107,10 @@ export class Enlightenment extends LitElement {
    * Deactivates the optional defined Focus Trap instance
    */
   public releaseFocusTrap() {
+    if (this.preventEvent) {
+      return
+    }
+
     if (!this.focusTrap || !this.focusTrap.deactivate) {
       this.log('Ignore focus, Focus Trap is not mounted.')
     }
@@ -1347,8 +1353,6 @@ export class Enlightenment extends LitElement {
    * used when TRUE.
    */
   protected updatePreventEvent() {
-    console.log('Prevent?', this.ariaDisabled, this.currentElement)
-
     if (this.ariaDisabled === true) {
       this.commit('preventEvent', true)
     } else {
