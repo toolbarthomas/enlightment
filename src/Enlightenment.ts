@@ -108,9 +108,6 @@ export class Enlightenment extends LitElement {
   // Contains the constructed Focus Trap instance.
   focusTrap?: FocusTrap
 
-  // Pushes the element context to the global state when TRUE.
-  // currentElement: boolean = false;
-
   // Internal flag that will be TRUE if the Focus Trap library is enabled and
   // constructed for the defined Component context. This should mutate while
   // the `withFocusTrap` equals TRUE. This value is used internally, and should
@@ -144,6 +141,10 @@ export class Enlightenment extends LitElement {
   // Alias to the constructor name.
   uuid: string
 
+  // Will be TRUE if Focus Trap is constructed within the defined Component
+  // context.
+  withFocusTrap?: boolean
+
   @property({
     attribute: 'aria-current',
     converter: (value) => Enlightenment.isBoolean(value),
@@ -161,11 +162,14 @@ export class Enlightenment extends LitElement {
   ariaDisabled?: boolean
 
   @property({
-    converter: (value) => Enlightenment.isBoolean(value),
-    type: Boolean
+    type: Number,
+    converter: (value) => parseInt(String(value)) || Enlightenment.FPS
   })
-  disableGlobalEvents?: boolean
+  delay = Enlightenment.FPS
 
+  // Optional Attribute or property that disables the Focus Trap library for the
+  // defined Component, this is the same as unstting the `endpointFocusTrap`
+  // property within the selected context.
   @property({
     attribute: 'disable-focustrap',
     converter: (value) => Enlightenment.isBoolean(value),
@@ -173,15 +177,14 @@ export class Enlightenment extends LitElement {
   })
   disableFocusTrap?: boolean
 
-  // Will be TRUE if Focus Trap is constructed within the defined Component
-  // context.
-  withFocusTrap?: boolean
-
+  // Disables the Global Event listeners that are attached during a component
+  // `connectedCallback`.
+  // @todo Should consider to revert statement to enable?
   @property({
-    type: Number,
-    converter: (value) => parseInt(String(value)) || Enlightenment.FPS
+    converter: (value) => Enlightenment.isBoolean(value),
+    type: Boolean
   })
-  delay = Enlightenment.FPS
+  disableGlobalEvents?: boolean
 
   // Enables the Focus Trap Library with the defined endpoint value. This will
   // enable the Focus Trap feature for all similar components, but can be
@@ -198,6 +201,7 @@ export class Enlightenment extends LitElement {
   @property()
   error = ''
 
+  // Defines the Color Mode to use: Dark/Light
   @property({
     converter: (value) => Enlightenment.isMode(value),
     type: String
@@ -207,11 +211,15 @@ export class Enlightenment extends LitElement {
   @property({
     type: Boolean
   })
-  minimalShadowRoot = false
+  minimalShadowRoot?: boolean
 
+  // Optional Flag that will prevent the usage of requestUpdate during an
+  // attribute change.
   @property({ converter: (value) => Enlightenment.isBoolean, type: Boolean })
   once?: boolean
 
+  // Enables the usage of an SVG spritesheet with the renderImage helper
+  // methods.
   @property({
     attribute: 'svg-sprite-source',
     converter: (value) => Enlightenment.resolveURL(Enlightenment.strip(String(value)))
