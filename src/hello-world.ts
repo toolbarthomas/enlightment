@@ -30,10 +30,6 @@ class HelloWorld extends Enlightenment {
     super();
   }
 
-  updated() {
-    console.log("Up", this.capitilized);
-  }
-
   render() {
     return html`<div>
       <h1>Hello ${this.name}</h1>

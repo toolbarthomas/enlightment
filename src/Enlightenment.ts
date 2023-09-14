@@ -149,14 +149,19 @@ export class Enlightenment extends LitElement {
   // Alias to the constructor name.
   uuid: string;
 
-  @property({ attribute: "aria-current", reflect: true })
-  ariaCurrent = "false";
+  @property({
+    attribute: "aria-current",
+    converter: (value) => Enlightenment.isBoolean,
+  })
+  ariaCurrent = false;
 
   @property({
     attribute: "aria-disabled",
+    converter: (value) => Enlightenment.isBoolean,
     reflect: true,
+    type: Boolean,
   })
-  ariaDisabled = "false";
+  ariaDisabled = false;
 
   @property({
     converter: (value) => Enlightenment.isBoolean,
@@ -753,9 +758,9 @@ export class Enlightenment extends LitElement {
 
     this.commit("ariaCurrent", () => {
       if (this.isComponentContext(target as HTMLElement)) {
-        this.ariaCurrent = "true";
+        this.ariaCurrent = true;
       } else {
-        this.ariaCurrent = "false";
+        this.ariaCurrent = false;
       }
     });
   }
@@ -949,6 +954,8 @@ export class Enlightenment extends LitElement {
    * Activates the optional defined Focus Trap instance.
    */
   protected lockFocusTrap() {
+    console.log("Lock", this.focusTrap);
+
     if (!this.focusTrap || !this.focusTrap.activate) {
       this.log("Unable to lock focus, Focus Trap is not mounted.");
     }
@@ -1449,7 +1456,7 @@ export class Enlightenment extends LitElement {
 
       this.assignSlots();
 
-      if (this.ariaCurrent === "true") {
+      if (this.ariaCurrent === true) {
         this.assignCurrentElement();
       } else {
         this.omitCurrentElement();
@@ -1470,7 +1477,9 @@ export class Enlightenment extends LitElement {
    * used when TRUE.
    */
   protected updatePreventEvent() {
-    if (this.ariaDisabled === "true") {
+    console.log("Prevent?", this.ariaDisabled, this.currentElement);
+
+    if (this.ariaDisabled === true) {
       this.commit("preventEvent", true);
     } else {
       this.commit("preventEvent", false);
