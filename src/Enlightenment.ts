@@ -153,11 +153,10 @@ export class Enlightenment extends LitElement {
 
   @property({
     attribute: 'aria-disabled',
-    converter: (value) => Enlightenment.isBoolean(value),
     reflect: true,
-    type: Boolean
+    type: String
   })
-  ariaDisabled?: boolean
+  ariaDisabled: string | null = null
 
   @property({
     type: Number,
@@ -577,7 +576,7 @@ export class Enlightenment extends LitElement {
 
     try {
       //@ts-ignore
-      const value = this[property]
+      const value = this[property as any]
 
       if (typeof handler === 'function') {
         handler()
@@ -961,20 +960,6 @@ export class Enlightenment extends LitElement {
   }
 
   /**
-   * Mark the Component element as current context.
-   * @returns
-   */
-  protected isCurrentContext() {
-    const context = this.useRef(this.context)
-
-    if (!context) {
-      return
-    }
-
-    context.setAttribute('aria-current', true)
-  }
-
-  /**
    * Mark the wrapping element as hidden for each empty slot.
    * This should trigger during a slotchange event within the created element
    * context.
@@ -1183,6 +1168,7 @@ export class Enlightenment extends LitElement {
   protected requestEndpoint(name: string, property: string) {
     const state = this.useState()
 
+    //@ts-ignore
     if (this[property] === null) {
       return
     }
@@ -1347,8 +1333,6 @@ export class Enlightenment extends LitElement {
 
       this.mountFocusTrap()
 
-      this.isCurrentContext()
-
       this.hook('updated')
     }
 
@@ -1360,7 +1344,7 @@ export class Enlightenment extends LitElement {
    * used when TRUE.
    */
   protected updatePreventEvent() {
-    if (this.ariaDisabled === true) {
+    if (this.ariaDisabled === 'true') {
       this.commit('preventEvent', true)
     } else {
       this.commit('preventEvent', false)
