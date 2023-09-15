@@ -97,7 +97,7 @@ export class Enlightenment extends LitElement {
 
   // Default element reference that should be assigned to the root element
   // within the render context.
-  context: Ref<Element> = createRef()
+  context: Ref<HTMLElement> = createRef()
 
   // Optional reference to use within the Focus Trap context.
   focusContext?: Ref<Element>
@@ -969,9 +969,9 @@ export class Enlightenment extends LitElement {
 
     if (parentElement) {
       if (!isEmptyComponentSlot(event.target as HTMLSlotElement)) {
-        parentElement.removeAttribute('aria-hidden')
+        parentElement.removeAttribute('empty')
       } else {
-        parentElement.setAttribute('aria-hidden', 'true')
+        parentElement.setAttribute('empty', 'true')
       }
     }
   }
