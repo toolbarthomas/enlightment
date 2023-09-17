@@ -611,11 +611,20 @@ export class Enlightenment extends LitElement {
       const value = this[property as any]
 
       if (typeof handler === 'function') {
-        handler()
-        update = true
-      }
+        try {
+          const result = handler()
 
-      if (typeof handler !== 'function') {
+          //@ts-ignore
+          if (result !== undefined && typeof result === typeof this[property]) {
+            //@ts-ignore
+            this[property] = result
+          }
+        } catch (exception) {
+          exception && this.log(exception, 'error')
+        }
+
+        update = true
+      } else {
         if (Object.keys(this).includes(property)) {
           //@ts-ignore
           this[property] = handler
@@ -633,9 +642,10 @@ export class Enlightenment extends LitElement {
         } else {
           this.log(['Illegal property commit detected.', [property, handler]], 'error')
         }
-      } else {
-        this.log([`${this.namespace} properties commited from handler`, handler])
       }
+
+      //@ts-ignore
+      update && this.log([`${this.namespace} properties commited from handler`, this[property]])
 
       // Ensures the property update fires the component callbacks.
       update && this.requestUpdate(property, value)
@@ -868,8 +878,13 @@ export class Enlightenment extends LitElement {
       return
     }
 
+    let bubbles = true
+    if (['resize', 'scroll'].includes(name)) {
+      bubbles = false
+    }
+
     const event = new CustomEvent(name, {
-      bubbles: true,
+      bubbles,
       detail: data || {}
     })
 
