@@ -237,6 +237,38 @@ export class Enlightenment extends LitElement {
     return value !== undefined && String(value) !== 'false' ? true : false
   }
 
+  // Converts the given string value as array with potential selectors.
+  static convertToSelectors(value: string) {
+    if (typeof value !== 'string') {
+      return
+    }
+
+    return String(value)
+      .split(',')
+      .map((v) => {
+        const selector = v.split(' ').join('')
+
+        return document.getElementById(selector) || document.querySelector(selector)
+      })
+      .filter((e) => e !== null && e !== undefined) as HTMLElement[]
+  }
+
+  // Check if the defined target Element is within the current viewport.
+  static isWithinViewport(target: HTMLElement) {
+    if (!target) {
+      return false
+    }
+
+    const bounds = target.getBoundingClientRect()
+
+    return (
+      bounds.top >= 0 &&
+      bounds.left >= 0 &&
+      bounds.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+      bounds.right <= (window.innerWidth || document.documentElement.clientWidth)
+    )
+  }
+
   /**
    * Checks if the defined String value exists within the collection parameter.
    * The first value from the collection will be used as fallback if the initial
@@ -969,9 +1001,9 @@ export class Enlightenment extends LitElement {
 
     if (parentElement) {
       if (!isEmptyComponentSlot(event.target as HTMLSlotElement)) {
-        parentElement.removeAttribute('empty')
+        parentElement.removeAttribute('aria-hidden')
       } else {
-        parentElement.setAttribute('empty', 'true')
+        parentElement.setAttribute('aria-hidden', 'true')
       }
     }
   }
@@ -1273,7 +1305,7 @@ export class Enlightenment extends LitElement {
    * Helper function that ensures the given handler is only called once within
    * the defined delay.
    */
-  protected throttle(handler: EnlightenmentThrottle[0], delay?: number) {
+  protected throttle(handler: EnlightenmentThrottle[0], delay?: number, ...args: any[]) {
     if (!this.throttler || !this.throttler.handlers) {
       this.log(['Unable to throttle:', handler], 'error')
 
@@ -1307,7 +1339,10 @@ export class Enlightenment extends LitElement {
       delete this.throttler.handlers[index]
     }
 
-    const timeout = setTimeout(handler, parseInt(String(delay)) || this.throttler.delay)
+    const timeout = setTimeout(
+      () => handler.call(this, ...args),
+      parseInt(String(delay)) || this.throttler.delay
+    )
 
     this.throttler.handlers.push([handler, timeout])
 
