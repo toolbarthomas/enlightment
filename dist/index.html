@@ -36,14 +36,31 @@
     })
 
     const emptyElement = document.createElement('hello-world')
-    // emptyElement.enableFocusTrap = false
     emptyElement.setAttribute('disable-focustrap', true)
 
     window.addEventListener('load', (event) =>
     {
       document.body.appendChild(element)
-      document.body.appendChild(emptyElement)
+      // document.body.appendChild(emptyElement)
     })
+
+
+    // document.addEventListener('DOMContentLoaded', () =>
+    // {
+    //   const components = document.querySelectorAll('hello-world')
+
+    //   console.log('read')
+
+    //   // Array.from(components).forEach((component) =>
+    //   // {
+    //   //   component.addEventListener('updated', function ()
+    //   //   {
+    //   //     console.log('updated', this)
+    //   //   })
+    //   // })
+
+    // })
+
 
     // setTimeout(() => element.firstElementChild.remove(), 3000)
     // setTimeout(() => emptyElement.innerHTML = "<hello-world aria-disabled='true'><p>Lorem ipsum</p><hello-world></hello-world></hello-world>", 5000)
@@ -56,6 +73,19 @@
 </head>
 
 <body>
+  <!-- This should change if the other changes -->
+  <hello-world observe="hello-world"
+    endpoint-focustrap="https://cdn.jsdelivr.net/npm/focus-trap@7.5.2/+esm"></hello-world>
+
+
+  <!-- No Focus Trap since no endpoint -->
+  <hello-world endpoint-focustrap></hello-world>
+
+  <!-- No Focus trap since disabled -->
+  <hello-world aria-disabled="true"></hello-world>
+
+  <!-- Focus Trap -->
+  <hello-world></hello-world>
 
 </body>
 

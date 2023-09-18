@@ -12,10 +12,9 @@ import { createRef as _createRef, ref as _ref, Ref } from 'lit/directives/ref.js
 import { unsafeSVG } from 'lit/directives/unsafe-svg.js'
 
 import {
-  AnimationHandlerProps,
-  AnimationHandlerResponse,
   EnlightenmentEndpoint,
   EnlightenmentImageOptions,
+  EnlightenmentProcess,
   EnlightenmentState,
   EnlightenmentThrottle,
   GlobalEvent,
@@ -181,7 +180,7 @@ export class Enlightenment extends LitElement {
     converter: (value) => Enlightenment.isBoolean(value),
     type: Boolean
   })
-  disableGlobalEvents?: boolean
+  disableGlobalEvents?: boolean = true
 
   // Enables the Focus Trap Library with the defined endpoint value. This will
   // enable the Focus Trap feature for all similar components, but can be
@@ -209,6 +208,16 @@ export class Enlightenment extends LitElement {
     type: Boolean
   })
   minimalShadowRoot?: boolean
+
+  // Will call the process method if the defined selector names exists within
+  // the current DOM.
+  @property({
+    converter: (value) => {
+      return value ? document.body.querySelectorAll(value) : []
+    },
+    type: NodeList
+  })
+  observe?: NodeList
 
   // Optional Flag that will prevent the usage of requestUpdate during an
   // attribute change.
@@ -484,13 +493,43 @@ export class Enlightenment extends LitElement {
 
     const ctx = context || document
 
+    const exists = this.listeners.filter(([t, _, c, h]) => t === type && h === handler && c === ctx)
+
+    if (exists.length) {
+      this.log(`Unable to overwrite existing global event for ${ctx}`, 'warning')
+
+      return
+    }
+
     const fn = handler.bind(this)
 
-    this.listeners.push([type, fn, ctx])
+    this.listeners.push([type, fn, ctx, handler])
 
     ctx && ctx.addEventListener(type, fn)
 
     this.log(`Global event assigned: ${type}`)
+  }
+
+  /**
+   * Assign a new Global Event for each existing component context that is
+   * defined the listen property.
+   */
+  protected assignListeners() {
+    if (!this.observe || !this.observe.length) {
+      return
+    }
+
+    // Don't assign the actual Event Listener to the initial Component to
+    // prevent an update loop.
+    const queue = Array.from(this.observe).filter((l) => l !== this && document.contains(l))
+
+    if (!queue.length) {
+      return
+    }
+
+    for (let i = queue.length; i--; ) {
+      this.assignGlobalEvent('updated', this._process, queue[i])
+    }
   }
 
   /**
@@ -534,7 +573,8 @@ export class Enlightenment extends LitElement {
   }
 
   /**
-   * Removes the defined assigned global Events from the selected type.
+   * Removes the assigned global Events from the selected context or this
+   * Component.
    */
   protected clearGlobalEvent(type: GlobalEventType, context?: any | any[]) {
     const queue = Array.isArray(context) ? context : [context]
@@ -562,6 +602,27 @@ export class Enlightenment extends LitElement {
 
         this.log(`Global ${type} event cleared`)
       }
+    }
+  }
+
+  /**
+   * Removes the optional process callback from the Component context, this will
+   * disabl the optional process usage when sibling Components dispatch the
+   * 'updated' event.
+   */
+  private clearListeners() {
+    if (!this.observe || !this.observe.length) {
+      return
+    }
+
+    const queue = Array.from(this.observe).filter((l) => l !== this)
+
+    if (!queue.length) {
+      return
+    }
+
+    for (let i = queue.length; i--; ) {
+      this.clearGlobalEvent('updated', queue[i])
     }
   }
 
@@ -668,9 +729,9 @@ export class Enlightenment extends LitElement {
     }
 
     const entry: GlobalEvent[] = []
-    this.listeners.forEach(([t, fn, ctx]) => {
+    this.listeners.forEach(([t, fn, ctx, h]) => {
       if (t === type && fn.name.endsWith(handler.name)) {
-        entry.push([t, fn, ctx])
+        entry.push([t, fn, ctx, h])
       }
     })
 
@@ -783,6 +844,60 @@ export class Enlightenment extends LitElement {
   }
 
   /**
+   * Callback handler to use after component.updated() is triggered.
+   *
+   * @param name Dispatch the optional hook
+   */
+  protected handleUpdate(name?: string) {
+    this.updatePreventEvent()
+
+    this.assignSlots()
+
+    if (this.currentElement === true) {
+      this.assignCurrentElement()
+    } else {
+      this.omitCurrentElement()
+    }
+
+    this.mountFocusTrap()
+
+    this.dispatchUpdate(name)
+  }
+
+  /**
+   * Optional callback to use when existing Elements are attached from the
+   * listen property: listen=".foo,#bar,custom-component"
+   * @param event The actual Event Object that was created from an existing
+   * listen element.
+   */
+  private _process(event: Event) {
+    if (!this.observe) {
+      this.log(`Unable to process from undefined listeners...`, 'warning')
+
+      return
+    }
+
+    if (!event) {
+      this.log(`Unable to run process with undefined Event...`, 'warning')
+
+      return
+    }
+
+    const { target } = event || {}
+    // @ts-ignore
+    const process: undefined | EnlightenmentProcess = this.process
+
+    try {
+      process !== undefined &&
+        document.contains(target as Node) &&
+        process.call(this, target as HTMLElement)
+      this.requestUpdate()
+    } catch (exception) {
+      exception && this.log(exception, 'error')
+    }
+  }
+
+  /**
    * Ensures the a requestUpdate is used when attribtues are added or removed.
    * on the defined element.
    */
@@ -811,6 +926,8 @@ export class Enlightenment extends LitElement {
         this.shareEndpoint('focusTrap', this.endpointFocusTrap)
         this.withFocusTrap = true
       }
+
+      this.assignListeners()
     })
 
     if (!this.disableGlobalEvents) {
@@ -834,6 +951,8 @@ export class Enlightenment extends LitElement {
       this.omitGlobalEvent('keydown', this.handleGlobalKeydown)
       this.omitGlobalEvent('focus', this.handleGlobalFocus)
       this.omitGlobalEvent('focusin', this.handleGlobalFocus)
+
+      this.clearListeners()
 
       this.clearGlobalEvent(
         'slotchange',
@@ -879,7 +998,7 @@ export class Enlightenment extends LitElement {
     }
 
     let bubbles = true
-    if (['resize', 'scroll'].includes(name)) {
+    if (['resize', 'scroll', 'updated'].includes(name)) {
       bubbles = false
     }
 
@@ -1365,28 +1484,21 @@ export class Enlightenment extends LitElement {
   }
 
   /**
+   * Default hook that should be called during a component render update.
+   */
+  protected dispatchUpdate(name?: string) {
+    return this.throttle(this.hook, Enlightenment.FPS, typeof name === 'string' ? name : 'update')
+  }
+
+  /**
    * Callback to use after a component update.
    */
   protected updated(properties: PropertyValueMap<any> | Map<PropertyKey, unknown>) {
     super.updated(properties)
 
-    const fn = () => {
-      this.updatePreventEvent()
+    // console.log('Change', this, properties.size)
 
-      this.assignSlots()
-
-      if (this.currentElement === true) {
-        this.assignCurrentElement()
-      } else {
-        this.omitCurrentElement()
-      }
-
-      this.mountFocusTrap()
-
-      this.hook('updated')
-    }
-
-    this.throttle(fn)
+    this.throttle(this.handleUpdate, Enlightenment.FPS, 'updated')
   }
 
   /**
