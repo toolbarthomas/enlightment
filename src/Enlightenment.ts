@@ -105,8 +105,12 @@ export class Enlightenment extends LitElement {
   // Should insert the defined classnames within the root context.
   classes: string[] = []
 
-  // Contains the constructed Focus Trap instance.
-  focusTrap?: FocusTrap
+  // Enables the default document Events that is called within: handleGlobal...
+  // methods when TRUE.
+  enableDocumentEvents: boolean = false
+
+  // Will contain the optional Focus Trap library when undefined.
+  focusTrap?: null | FocusTrap
 
   // Internal flag that will be TRUE if the Focus Trap library is enabled and
   // constructed for the defined Component context. This should mutate while
@@ -170,16 +174,6 @@ export class Enlightenment extends LitElement {
     type: Boolean
   })
   disableFocusTrap?: boolean
-
-  // Disables the Global Event listeners that are attached during a component
-  // `connectedCallback`.
-  // @todo Should consider to revert statement to enable?
-  @property({
-    converter: (value) => Enlightenment.isBoolean(value),
-    type: Boolean
-  })
-  disableGlobalEvents?: boolean = true
-
   // Readable error to display during an exception/error within the defined
   // component context.
   @property()
@@ -494,7 +488,7 @@ export class Enlightenment extends LitElement {
 
     ctx && ctx.addEventListener(type, fn)
 
-    this.log(`Global event assigned: ${type}`)
+    this.log([`Global event assigned: ${ctx.constructor.name}@${type}`, this])
   }
 
   /**
@@ -554,7 +548,9 @@ export class Enlightenment extends LitElement {
           this.handleSlotchange({ target: slots[i] } as any)
         }
 
-        this.log([`Found ${slots.length} slot(s) from:`, this.slots])
+        if (this.slots && Object.values(this.slots).filter((s) => s).length) {
+          this.log([`Found ${this.constructor.name} ${slots.length} slot(s) from:`, this.slots])
+        }
       }
     })
   }
@@ -686,14 +682,17 @@ export class Enlightenment extends LitElement {
 
           this.hook('commit', { data })
 
-          this.log([`${this.namespace} property updated:`, handler])
+          this.log([`${this.namespace} property updated for:`, [property, handler]])
         } else {
           this.log(['Illegal property commit detected.', [property, handler]], 'error')
         }
       }
 
       //@ts-ignore
-      update && this.log([`${this.namespace} properties commited from handler`, this[property]])
+      update &&
+        this.log([
+          `${this.namespace} commit accepted from: ${this.constructor.name}['${property}']`
+        ])
 
       // Ensures the property update fires the component callbacks.
       update && this.requestUpdate(property, value)
@@ -910,7 +909,7 @@ export class Enlightenment extends LitElement {
   public connectedCallback() {
     super.connectedCallback()
 
-    if (!this.disableGlobalEvents) {
+    if (this.enableDocumentEvents) {
       this.assignGlobalEvent('click', this.handleGlobalClick)
       this.assignGlobalEvent('keydown', this.handleGlobalKeydown)
       this.assignGlobalEvent('focus', this.handleGlobalFocus)
@@ -991,7 +990,7 @@ export class Enlightenment extends LitElement {
       detail: data || {}
     })
 
-    this.log([`Hook assigned as ${name}`, event])
+    this.log([`Dispatch hook: ${this.constructor.name}@${name}`, this])
 
     if (context && context !== this) {
       return context.dispatchEvent(event)
@@ -1004,7 +1003,7 @@ export class Enlightenment extends LitElement {
    * Activates the optional defined Focus Trap instance.
    */
   protected lockFocusTrap() {
-    if (this.preventEvent || !this.withFocusTrap || this.disableFocusTrap) {
+    if (!this.focusTrap || this.preventEvent || !this.withFocusTrap || this.disableFocusTrap) {
       return
     }
 
@@ -1030,6 +1029,12 @@ export class Enlightenment extends LitElement {
    * created Component context.
    */
   protected mountFocusTrap() {
+    if (this.focusTrap === null) {
+      this.log([`Skipping Focus Trap setup for: ${this.constructor.name}`, this], 'info')
+
+      return
+    }
+
     if (!this.withFocusTrap || this.focusTrap || this.disableFocusTrap) {
       return
     }
@@ -1400,7 +1405,7 @@ export class Enlightenment extends LitElement {
     })
 
     if (exists) {
-      this.log(['Stopping previous throttler handler:', handler], 'info')
+      this.log([`Abort previous throttle:`, this], 'info')
 
       const previousTimeout = this.throttler.handlers[index]
 
@@ -1414,9 +1419,9 @@ export class Enlightenment extends LitElement {
       parseInt(String(delay)) || this.throttler.delay
     )
 
-    this.throttler.handlers.push([handler, timeout])
+    this.log([`${this.constructor.name} throttle defined:`, this], 'info')
 
-    this.log(['Throttle defined:', handler])
+    this.throttler.handlers.push([handler, timeout])
   }
 
   /**

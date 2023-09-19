@@ -7,6 +7,10 @@ import scssStyle from './hello-world.scss'
 class HelloWorld extends Enlightenment {
   static styles = [cssStyle, scssStyle]
 
+  focusTrap = null
+
+  enableDocumentEvents = true
+
   withFocusTrap: boolean = true
 
   @property({ type: String })
