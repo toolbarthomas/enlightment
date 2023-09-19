@@ -23,7 +23,6 @@
     // Test if the slot is updated from isEmpty slotchange event.
     const element = document.createElement('hello-world')
     element.setAttribute('svg-sprite-source', "/sprite.svg")
-    element.setAttribute('endpoint-focustrap', "  https://cdn.jsdelivr.net/npm/focus-trap@7.5.2/+esm")
     element.innerHTML = "<p>Id qui reprehenderit nostrud eiusmod aute voluptate adipisicing fugiat sint.</p>"
     element.addEventListener('slotchange', (event) =>
     {
@@ -74,12 +73,10 @@
 
 <body>
   <!-- This should change if the other changes -->
-  <hello-world observe="hello-world"
-    endpoint-focustrap="https://cdn.jsdelivr.net/npm/focus-trap@7.5.2/+esm"></hello-world>
+  <hello-world observe="hello-world"></hello-world>
 
-
-  <!-- No Focus Trap since no endpoint -->
-  <hello-world endpoint-focustrap></hello-world>
+  <!-- No Focus Trap since disableFocusTrap property is defined -->
+  <hello-world disableFocusTrap></hello-world>
 
   <!-- No Focus trap since disabled -->
   <hello-world aria-disabled="true"></hello-world>

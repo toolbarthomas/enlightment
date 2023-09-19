@@ -1,10 +1,4 @@
 /**
- * Defines the dynamic endpoint list that will be shared within the instance
- * global.
- */
-export type EnlightenmentEndpoint = { [key: string]: string }
-
-/**
  * Optional configuration options to use within the renderImage method.
  */
 export type EnlightenmentImageOptions =
@@ -18,7 +12,6 @@ export type EnlightenmentImageOptions =
 export type EnlightenmentState = {
   currentElements: Element[]
   mode?: string
-  endpoints: EnlightenmentEndpoint
   verbose?: boolean
 }
 

@@ -7,6 +7,8 @@ import scssStyle from './hello-world.scss'
 class HelloWorld extends Enlightenment {
   static styles = [cssStyle, scssStyle]
 
+  withFocusTrap: boolean = true
+
   @property({ type: String })
   name = 'World'
 

@@ -1,3 +1,5 @@
+import { createFocusTrap } from 'focus-trap'
+
 import {
   css as _css,
   CSSResultGroup,
@@ -12,7 +14,6 @@ import { createRef as _createRef, ref as _ref, Ref } from 'lit/directives/ref.js
 import { unsafeSVG } from 'lit/directives/unsafe-svg.js'
 
 import {
-  EnlightenmentEndpoint,
   EnlightenmentImageOptions,
   EnlightenmentProcess,
   EnlightenmentState,
@@ -140,9 +141,8 @@ export class Enlightenment extends LitElement {
   // Alias to the constructor name.
   uuid: string
 
-  // Will be TRUE if Focus Trap is constructed within the defined Component
-  // context.
-  withFocusTrap?: boolean
+  // Will enable to Focus Trap library for the defined component when true
+  withFocusTrap: boolean = false
 
   @property({
     converter: (value) => Enlightenment.isBoolean(value),
@@ -164,10 +164,8 @@ export class Enlightenment extends LitElement {
   delay = Enlightenment.FPS
 
   // Optional Attribute or property that disables the Focus Trap library for the
-  // defined Component, this is the same as unstting the `endpointFocusTrap`
-  // property within the selected context.
+  // defined Component context.
   @property({
-    attribute: 'disable-focustrap',
     converter: (value) => Enlightenment.isBoolean(value),
     type: Boolean
   })
@@ -181,16 +179,6 @@ export class Enlightenment extends LitElement {
     type: Boolean
   })
   disableGlobalEvents?: boolean = true
-
-  // Enables the Focus Trap Library with the defined endpoint value. This will
-  // enable the Focus Trap feature for all similar components, but can be
-  // specifically disabled by using `disableFocusTrap` property or assigning
-  // `endpointFocusTrap` without any value.
-  @property({
-    attribute: 'endpoint-focustrap',
-    converter: (value) => value && Enlightenment.strip(String(value))
-  })
-  endpointFocusTrap = ''
 
   // Readable error to display during an exception/error within the defined
   // component context.
@@ -436,8 +424,7 @@ export class Enlightenment extends LitElement {
       const state = {
         currentElements: [],
         mode: 'light',
-        verbose: false,
-        endpoints: {}
+        verbose: false
       } as EnlightenmentState
 
       this.useState(state)
@@ -859,7 +846,11 @@ export class Enlightenment extends LitElement {
       this.omitCurrentElement()
     }
 
-    this.mountFocusTrap()
+    if (this.disableFocusTrap && this.hasFocusTrap) {
+      this.releaseFocusTrap()
+    } else {
+      this.mountFocusTrap()
+    }
 
     this.dispatchUpdate(name)
   }
@@ -919,23 +910,16 @@ export class Enlightenment extends LitElement {
   public connectedCallback() {
     super.connectedCallback()
 
-    this.throttle(() => {
-      if (this.requestEndpoint('focusTrap', 'endpointFocusTrap')) {
-        this.withFocusTrap = true
-      } else if (this.endpointFocusTrap) {
-        this.shareEndpoint('focusTrap', this.endpointFocusTrap)
-        this.withFocusTrap = true
-      }
-
-      this.assignListeners()
-    })
-
     if (!this.disableGlobalEvents) {
       this.assignGlobalEvent('click', this.handleGlobalClick)
       this.assignGlobalEvent('keydown', this.handleGlobalKeydown)
       this.assignGlobalEvent('focus', this.handleGlobalFocus)
       this.assignGlobalEvent('focusin', this.handleGlobalFocus)
     }
+
+    this.throttle(() => {
+      this.assignListeners()
+    })
 
     this.hook('connected')
   }
@@ -953,6 +937,8 @@ export class Enlightenment extends LitElement {
       this.omitGlobalEvent('focusin', this.handleGlobalFocus)
 
       this.clearListeners()
+
+      this.releaseFocusTrap()
 
       this.clearGlobalEvent(
         'slotchange',
@@ -973,9 +959,7 @@ export class Enlightenment extends LitElement {
    * Toggles the optional defined Focus Trap instance.
    */
   public handleFocusTrap(event: Event) {
-    if (event.preventDefault) {
-      event.preventDefault()
-    }
+    event.preventDefault && event.preventDefault()
 
     if (this.hasFocusTrap) {
       this.releaseFocusTrap()
@@ -1020,7 +1004,7 @@ export class Enlightenment extends LitElement {
    * Activates the optional defined Focus Trap instance.
    */
   protected lockFocusTrap() {
-    if (this.preventEvent) {
+    if (this.preventEvent || !this.withFocusTrap || this.disableFocusTrap) {
       return
     }
 
@@ -1042,33 +1026,37 @@ export class Enlightenment extends LitElement {
   }
 
   /**
-   * Import the optional Focus Trap library from the defined endpoint value and
-   * assign it to the focusTrap instance within the element.
+   * Mount the optional focusTrap instance to lock the current focus within the
+   * created Component context.
    */
   protected mountFocusTrap() {
-    if (!this.endpointFocusTrap || !this.withFocusTrap || this.focusTrap || this.disableFocusTrap) {
+    if (!this.withFocusTrap || this.focusTrap || this.disableFocusTrap) {
       return
     }
 
-    import(this.endpointFocusTrap).then((focusTrap: any) => {
-      try {
-        this.focusTrap = focusTrap.createFocusTrap([this, this.useRef(this.focusContext)], {
-          escapeDeactivates: false, // The child component should deactivate it manually.
-          allowOutsideClick: false,
-          initialFocus: false,
-          tabbableOptions: {
-            getShadowRoot: this.minimalShadowRoot
-              ? true
-              : (node: HTMLElement | SVGElement) =>
-                  this.isComponentContext(node) ? node.shadowRoot || undefined : false
-          }
-        })
+    const context = this.useRef(this.focusContext) || this.useContext()
+    const entry: HTMLElement[] = [this]
+    if (context !== this) {
+      entry.push(context as HTMLElement)
+    }
 
-        this.focusTrap && this.log(['Focus trap mounted from', this], 'info')
-      } catch (exception) {
-        exception && this.log(exception as string, 'error')
-      }
-    })
+    try {
+      this.focusTrap = createFocusTrap(entry, {
+        escapeDeactivates: false, // The child component should deactivate it manually.
+        allowOutsideClick: false,
+        initialFocus: false,
+        tabbableOptions: {
+          getShadowRoot: this.minimalShadowRoot
+            ? true
+            : (node: HTMLElement | SVGElement) =>
+                this.isComponentContext(node) ? node.shadowRoot || undefined : false
+        }
+      })
+
+      this.focusTrap && this.log(['Focus trap mounted from', this], 'info')
+    } catch (exception) {
+      exception && this.log(exception as string, 'error')
+    }
   }
 
   /**
@@ -1265,7 +1253,7 @@ export class Enlightenment extends LitElement {
    * Deactivates the optional defined Focus Trap instance
    */
   public releaseFocusTrap() {
-    if (this.preventEvent) {
+    if (this.preventEvent || !this.withFocusTrap) {
       return
     }
 
@@ -1325,58 +1313,6 @@ export class Enlightenment extends LitElement {
           focusable="false"
           src="${this.testImageSource(source) ? source : this.svgSpriteSource}"
         />`
-  }
-
-  /**
-   * Returns the defined endpoint that has been shared from another element
-   * instance.
-   */
-  protected requestEndpoint(name: string, property: string) {
-    const state = this.useState()
-
-    //@ts-ignore
-    if (this[property] === null) {
-      return
-    }
-
-    if (!state || !state.endpoints) {
-      return
-    }
-
-    if (!name || !property) {
-      return
-    }
-
-    const value = state.endpoints[`${this.uuid}::${name}`]
-
-    if (value) {
-      this.commit(property, value)
-
-      this.log(`Using endpoint from cache: ${value}`)
-    }
-
-    return value
-  }
-
-  /**
-   * Expose the defined endpoint to the global Enlightenment state.
-   */
-  protected shareEndpoint(name: string, value: string) {
-    const state = this.useState()
-
-    if (!state || !state.endpoints) {
-      return
-    }
-
-    if (!name || !value) {
-      return
-    }
-
-    try {
-      state.endpoints[`${this.uuid}::${name}`] = value
-    } catch (exception) {
-      exception && this.log(exception as string, 'error')
-    }
   }
 
   /**
@@ -1523,7 +1459,7 @@ export class Enlightenment extends LitElement {
   /**
    * Shorthand to use the existing Lit Element reference.
    */
-  protected useRef = (ref?: Ref): Element | undefined => {
+  protected useRef = (ref?: Ref): HTMLElement | Element | SVGElement | undefined => {
     if (!ref || !ref.value) {
       return
     }
