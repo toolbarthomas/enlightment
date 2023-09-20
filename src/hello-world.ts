@@ -1,4 +1,11 @@
-import { createRef, customElement, Enlightenment, html, property, ref } from '@toolbarthomas/enlightenment'
+import {
+  createRef,
+  customElement,
+  Enlightenment,
+  html,
+  property,
+  ref
+} from '@toolbarthomas/enlightenment'
 
 import cssStyle from './hello-world.css'
 import scssStyle from './hello-world.scss'
@@ -6,10 +13,6 @@ import scssStyle from './hello-world.scss'
 @customElement('hello-world')
 class HelloWorld extends Enlightenment {
   static styles = [cssStyle, scssStyle]
-
-  // focusTrap = null
-
-  focusContext: Ref<HTMLElement> = createRef()
 
   enableDocumentEvents = true
 
@@ -58,7 +61,7 @@ class HelloWorld extends Enlightenment {
 
   render() {
     return html`
-      <focus-trap ?enabled=${this.hasFocusTrap} >
+      <focus-trap ?active=${this.hasActiveFocusTrap}>
         <div>
           <h1>Hello ${this.name}</h1>
           <div>
@@ -78,7 +81,7 @@ class HelloWorld extends Enlightenment {
           </div>
           <div><input type="text" /></div>
           <button @click=${this.handleFocusTrap}>
-            ${this.hasFocusTrap ? 'disable' : 'enable'} Focus Trap
+            ${this.hasActiveFocusTrap ? 'disable' : 'enable'} Focus Trap
           </button>
         </div>
       </focus-trap>

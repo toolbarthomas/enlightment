@@ -9,6 +9,7 @@ import {
   PropertyValueMap,
   svg
 } from 'lit'
+
 import { customElement as _customElement, property as _property } from 'lit/decorators.js'
 import { createRef as _createRef, ref as _ref, Ref } from 'lit/directives/ref.js'
 import { unsafeSVG } from 'lit/directives/unsafe-svg.js'
@@ -97,10 +98,10 @@ export class Enlightenment extends LitElement {
 
   // Default element reference that should be assigned to the root element
   // within the render context.
-  context: Ref<HTMLElement> = createRef()
+  context = createRef()
 
   // Optional reference to use within the Focus Trap context.
-  focusContext?: Ref<Element>
+  focusContext = createRef()
 
   // Should insert the defined classnames within the root context.
   classes: string[] = []
@@ -117,7 +118,7 @@ export class Enlightenment extends LitElement {
   // the `withFocusTrap` equals TRUE. This value is used internally, and should
   // not be used to disable/enable the Focus Trap library within a Component
   // instance.
-  hasFocusTrap?: boolean
+  hasActiveFocusTrap?: boolean
 
   // Dynamic storage for the running document Event listeners.
   listeners: GlobalEvent[] = []
@@ -425,10 +426,6 @@ export class Enlightenment extends LitElement {
 
       this.log([`${this.namespace} global assigned:`, state])
     }
-
-    //@todo Should check with function helper for every possible method to define
-    // the actual focus trap.
-    this.focusContext = createRef()
 
     // Setup the throttler for the new Component.
     this.throttler = {
@@ -845,11 +842,11 @@ export class Enlightenment extends LitElement {
       this.omitCurrentElement()
     }
 
-    if (this.disableFocusTrap && this.hasFocusTrap) {
-      this.releaseFocusTrap()
-    } else {
-      this.mountFocusTrap()
-    }
+    // if (this.disableFocusTrap && this.hasFocusTrap) {
+    //   this.releaseFocusTrap()
+    // } else {
+    //   this.mountFocusTrap()
+    // }
 
     this.dispatchUpdate(name)
   }
@@ -897,6 +894,8 @@ export class Enlightenment extends LitElement {
       super.attributeChangedCallback(name, _old || null, value || null)
     } else {
       this.throttle(() => {
+        console.log('Attribute change', name)
+
         super.attributeChangedCallback(name, _old || null, value || null)
         this.requestUpdate()
       })
@@ -937,8 +936,6 @@ export class Enlightenment extends LitElement {
 
       this.clearListeners()
 
-      this.releaseFocusTrap()
-
       this.clearGlobalEvent(
         'slotchange',
         this.shadowRoot && this.shadowRoot.querySelectorAll('slot')
@@ -960,7 +957,7 @@ export class Enlightenment extends LitElement {
   public handleFocusTrap(event: Event) {
     event.preventDefault && event.preventDefault()
 
-    console.log('handle', this.hasFocusTrap)
+    this.commit('hasActiveFocusTrap', !this.hasActiveFocusTrap)
 
     // if (this.hasFocusTrap) {
     //   this.releaseFocusTrap()
@@ -1001,30 +998,30 @@ export class Enlightenment extends LitElement {
     return this.dispatchEvent(event)
   }
 
-  /**
-   * Activates the optional defined Focus Trap instance.
-   */
-  protected lockFocusTrap() {
-    if (!this.focusTrap || this.preventEvent || !this.withFocusTrap || this.disableFocusTrap) {
-      return
-    }
+  // /**
+  //  * Activates the optional defined Focus Trap instance.
+  //  */
+  // protected lockFocusTrap() {
+  //   if (!this.focusTrap || this.preventEvent || !this.withFocusTrap || this.disableFocusTrap) {
+  //     return
+  //   }
 
-    if (!this.focusTrap || !this.focusTrap.activate) {
-      this.log('Unable to lock focus, Focus Trap is not mounted.')
-    }
+  //   if (!this.focusTrap || !this.focusTrap.activate) {
+  //     this.log('Unable to lock focus, Focus Trap is not mounted.')
+  //   }
 
-    if (!this.hasFocusTrap && this.withFocusTrap) {
-      try {
-        this.throttle(() => {
-          this.log(['Focus locked from', this])
-          this.focusTrap?.activate()th
-          this.commit('hasFocusTrap', true)
-        })
-      } catch (exception) {
-        this.log(exception as string, 'error')
-      }
-    }
-  }
+  //   if (!this.hasFocusTrap && this.withFocusTrap) {
+  //     try {
+  //       this.throttle(() => {
+  //         this.log(['Focus locked from', this])
+  //         this.focusTrap?.activate()
+  //         this.commit('hasFocusTrap', true)
+  //       })
+  //     } catch (exception) {
+  //       this.log(exception as string, 'error')
+  //     }
+  //   }
+  // }
 
   /**
    * Mount the optional focusTrap instance to lock the current focus within the
@@ -1256,30 +1253,30 @@ export class Enlightenment extends LitElement {
     }
   }
 
-  /**
-   * Deactivates the optional defined Focus Trap instance
-   */
-  public releaseFocusTrap() {
-    if (this.preventEvent || !this.withFocusTrap) {
-      return
-    }
+  // /**
+  //  * Deactivates the optional defined Focus Trap instance
+  //  */
+  // public releaseFocusTrap() {
+  //   if (this.preventEvent || !this.withFocusTrap) {
+  //     return
+  //   }
 
-    if (!this.focusTrap || !this.focusTrap.deactivate) {
-      this.log('Ignore focus, Focus Trap is not mounted.')
-    }
+  //   if (!this.focusTrap || !this.focusTrap.deactivate) {
+  //     this.log('Ignore focus, Focus Trap is not mounted.')
+  //   }
 
-    if (this.hasFocusTrap && this.withFocusTrap) {
-      try {
-        this.throttle(() => {
-          this.log(['Focus released from', this])
-          this.focusTrap?.deactivate()
-          this.commit('hasFocusTrap', false)
-        })
-      } catch (exception) {
-        this.log(exception as string, 'error')
-      }
-    }
-  }
+  //   if (this.hasFocusTrap && this.withFocusTrap) {
+  //     try {
+  //       this.throttle(() => {
+  //         this.log(['Focus released from', this])
+  //         this.focusTrap?.deactivate()
+  //         this.commit('hasFocusTrap', false)
+  //       })
+  //     } catch (exception) {
+  //       this.log(exception as string, 'error')
+  //     }
+  //   }
+  // }
 
   /**
    * Renders the defined image source as static image or inline SVG.
@@ -1466,7 +1463,7 @@ export class Enlightenment extends LitElement {
   /**
    * Shorthand to use the existing Lit Element reference.
    */
-  protected useRef = (ref?: Ref): HTMLElement | Element | SVGElement | undefined => {
+  protected useRef = (ref?: Ref): Node | HTMLElement | Element | SVGElement | undefined => {
     if (!ref || !ref.value) {
       return
     }
