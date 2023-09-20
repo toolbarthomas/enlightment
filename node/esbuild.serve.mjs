@@ -16,7 +16,7 @@ import { stylePlugin } from "./esbuild.style.plugin.mjs";
 (async () => {
   const context = await esbuild.context({
     bundle: true,
-    entryPoints: ["./src/hello-world.ts"],
+    entryPoints: ["./src/hello-world.ts", "./src/focus-trap.ts"],
     external: ["@toolbarthomas/enlightenment"],
     format: "esm",
     outdir: "dist",

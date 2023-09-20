@@ -19,6 +19,8 @@
       actual Enlightenment library within your working development.
   -->
   <script src="hello-world.js" type="module"></script>
+  <script src="focus-trap.js" type="module"></script>
+
   <script>
     // Test if the slot is updated from isEmpty slotchange event.
     const element = document.createElement('hello-world')
@@ -39,7 +41,7 @@
 
     window.addEventListener('load', (event) =>
     {
-      document.body.appendChild(element)
+      // document.body.appendChild(element)
       // document.body.appendChild(emptyElement)
     })
 
@@ -73,16 +75,19 @@
 
 <body>
   <!-- This should change if the other changes -->
+
   <hello-world observe="hello-world"></hello-world>
 
   <!-- No Focus Trap since disableFocusTrap property is defined -->
-  <hello-world disableFocusTrap></hello-world>
+  <!-- <hello-world disableFocusTrap></hello-world> -->
 
   <!-- No Focus trap since disabled -->
-  <hello-world aria-disabled="true"></hello-world>
+  <!-- <hello-world aria-disabled="true"></hello-world> -->
 
   <!-- Focus Trap -->
-  <hello-world></hello-world>
+  <!-- <hello-world></hello-world> -->
+
+
 
 </body>
 

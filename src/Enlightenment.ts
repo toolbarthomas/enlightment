@@ -960,11 +960,13 @@ export class Enlightenment extends LitElement {
   public handleFocusTrap(event: Event) {
     event.preventDefault && event.preventDefault()
 
-    if (this.hasFocusTrap) {
-      this.releaseFocusTrap()
-    } else {
-      this.lockFocusTrap()
-    }
+    console.log('handle', this.hasFocusTrap)
+
+    // if (this.hasFocusTrap) {
+    //   this.releaseFocusTrap()
+    // } else {
+    //   this.lockFocusTrap()
+    // }
   }
 
   /**
@@ -1015,7 +1017,7 @@ export class Enlightenment extends LitElement {
       try {
         this.throttle(() => {
           this.log(['Focus locked from', this])
-          this.focusTrap?.activate()
+          this.focusTrap?.activate()th
           this.commit('hasFocusTrap', true)
         })
       } catch (exception) {
