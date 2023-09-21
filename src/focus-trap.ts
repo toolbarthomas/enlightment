@@ -63,11 +63,10 @@ class EnlightenmentFocusTrap extends Enlightenment {
       this.log(`Focus Trap defined from: ${context}`, 'info')
     }
 
-
     const host: typeof Enlightenment = this.parentNode.host
 
-    if (host instanceof Enlightenment) {
-      this.assignGlobalEvent('slotchange', this.refresh, host)
+    if (host instanceof Enlightenment && host !== this) {
+      this.assignGlobalEvent('updated', this.refresh, host)
     }
   }
 
@@ -143,7 +142,8 @@ class EnlightenmentFocusTrap extends Enlightenment {
    */
   refresh() {
     if (this.focusTrap && this.focusTrap.active && this.useRef(this.context) !== this) {
-      this.focusTrap.updateContainerElements(this as any)
+      this.focusTrap.updateContainerElements &&
+        this.throttle(this.focusTrap.updateContainerElements, Enlightenment.FPS, this)
     }
   }
 

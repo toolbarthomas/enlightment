@@ -28,12 +28,12 @@
     element.innerHTML = "<p>Id qui reprehenderit nostrud eiusmod aute voluptate adipisicing fugiat sint.</p>"
     element.addEventListener('slotchange', (event) =>
     {
-      console.log('Slotchange callback from index.html')
+      // console.log('Slotchange callback from index.html')
     });
 
     element.addEventListener('updated', (event) =>
     {
-      console.log('Updated callback from index.html')
+      // console.log('Updated callback from index.html')
     })
 
     const emptyElement = document.createElement('hello-world')
@@ -41,7 +41,7 @@
 
     window.addEventListener('load', (event) =>
     {
-      // document.body.appendChild(element)
+      document.body.appendChild(element)
       // document.body.appendChild(emptyElement)
     })
 
@@ -75,8 +75,10 @@
 
 <body>
   <!-- This should change if the other changes -->
-
-  <hello-world observe="hello-world"></hello-world>
+  <!--
+  <hello-world observe="hello-world">
+    <a href="#href">Some example link</a>
+  </hello-world> -->
 
   <!-- No Focus Trap since disableFocusTrap property is defined -->
   <!-- <hello-world disableFocusTrap></hello-world> -->

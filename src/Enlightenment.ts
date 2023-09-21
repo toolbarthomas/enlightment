@@ -517,13 +517,11 @@ export class Enlightenment extends LitElement {
       this.log(`Unable to detect shadowRoot from ${this.namespace}`, 'error')
     }
 
-    console.log('this', 'slots', this.slots)
-
     const slots = this.shadowRoot?.querySelectorAll('slot')
 
     if (slots && !slots.length && !Object.keys(this.slots).length) {
       return
-    } else if (!slots && !Object.keys(this.slots)) {
+    } else if (!slots && !Object.keys(this.slots).length) {
       return
     }
 
@@ -844,12 +842,6 @@ export class Enlightenment extends LitElement {
       this.omitCurrentElement()
     }
 
-    // if (this.disableFocusTrap && this.hasFocusTrap) {
-    //   this.releaseFocusTrap()
-    // } else {
-    //   this.mountFocusTrap()
-    // }
-
     this.dispatchUpdate(name)
   }
 
@@ -896,8 +888,6 @@ export class Enlightenment extends LitElement {
       super.attributeChangedCallback(name, _old || null, value || null)
     } else {
       this.throttle(() => {
-        console.log('Attribute change', name)
-
         super.attributeChangedCallback(name, _old || null, value || null)
         this.requestUpdate()
       })
@@ -917,9 +907,7 @@ export class Enlightenment extends LitElement {
       this.assignGlobalEvent('focusin', this.handleGlobalFocus)
     }
 
-    this.throttle(() => {
-      this.assignListeners()
-    })
+    this.throttle(this.assignListeners)
 
     this.hook('connected')
   }
@@ -1351,13 +1339,23 @@ export class Enlightenment extends LitElement {
     }
 
     const timeout = setTimeout(
-      () => handler.call(this, ...args),
+      () => {
+        handler.call(this, ...args)
+      },
       parseInt(String(delay)) || this.throttler.delay
     )
 
     this.log([`${this.constructor.name} throttle defined:`, this], 'info')
 
     this.throttler.handlers.push([handler, timeout])
+
+    setTimeout(() => {
+      this.throttler.handlers.forEach(([h], i) => {
+        if (h === handler) {
+          delete this.throttler.handlers[i]
+        }
+      })
+    }, timeout + 1)
   }
 
   /**
