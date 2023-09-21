@@ -40,6 +40,28 @@ class EnlightenmentFocusTrap extends Enlightenment {
   }
 
   /**
+   * Notify the Component to activate the running Focus Trap instance.
+   * The Focus Trap instance will not activate if the defined context is
+   * disabled or the direct parent Enlightenment Element is disabled.
+   *
+   * You need to update the attribute 'active' via setAttribute to call
+   * this method correctly.
+   */
+  protected activate() {
+    this.commit('isActive', true)
+  }
+
+  /**
+   * Notify the Component to deactivate the running Focus Trap instance.
+   *
+   * You need to remove the attribute 'active' via setAttribute to call
+   * this method correctly.
+   */
+  protected deactivate() {
+    this.commit('isActive', false)
+  }
+
+  /**
    * Setup the actual Focus Trap instance
    */
   protected firstUpdated() {
@@ -109,7 +131,11 @@ class EnlightenmentFocusTrap extends Enlightenment {
     }
 
     // Toggle the actual Focus Trap instance.
-    if (this.getAttribute('active') != null && canContinue) {
+    if (
+      this.getAttribute('active') !== 'false' &&
+      this.getAttribute('active') != null &&
+      canContinue
+    ) {
       this.focusTrap.activate()
     } else {
       this.focusTrap.deactivate()
@@ -122,6 +148,7 @@ class EnlightenmentFocusTrap extends Enlightenment {
         host &&
         !host.hasActiveFocusTrap &&
         this.focusTrap?.active &&
+        this.getAttribute('active') !== 'false' &&
         this.getAttribute('active') != null
       ) {
         host.commit('hasActiveFocusTrap', true)
@@ -129,7 +156,7 @@ class EnlightenmentFocusTrap extends Enlightenment {
         host &&
         host.hasActiveFocusTrap &&
         !this.focusTrap?.active &&
-        this.getAttribute('active') == null
+        (this.getAttribute('active') === 'false' || this.getAttribute('active') == null)
       ) {
         host.commit('hasActiveFocusTrap', false)
       }
@@ -145,22 +172,6 @@ class EnlightenmentFocusTrap extends Enlightenment {
       this.focusTrap.updateContainerElements &&
         this.throttle(this.focusTrap.updateContainerElements, Enlightenment.FPS, this)
     }
-  }
-
-  /**
-   * Notify the Component to activate the running Focus Trap instance.
-   * The Focus Trap instance will not activate if the defined context is
-   * disabled or the direct parent Enlightenment Element is disabled.
-   */
-  activate() {
-    this.commit('isActive', true)
-  }
-
-  /**
-   * Notify the Component to deactivate the running Focus Trap instance.
-   */
-  deactivate() {
-    this.commit('isActive', false)
   }
 
   /**

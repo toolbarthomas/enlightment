@@ -2,6 +2,10 @@ h1 {
   color: red;
   appearance: none;
 
+  :host([aria-current='true']) & {
+    color: violet;
+  }
+
   h2 {
     color: blue;
 
@@ -26,13 +30,13 @@ h1 {
 div {
   padding: 1em;
 
-  &[aria-hidden="true"] {
+  &[aria-hidden='true'] {
     background-color: grey;
   }
 }
 
 :host {
-  &[aria-disabled="true"] {
+  &[aria-disabled='true'] {
     color: grey;
   }
 }

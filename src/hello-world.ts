@@ -16,8 +16,6 @@ class HelloWorld extends Enlightenment {
 
   enableDocumentEvents = true
 
-  withFocusTrap: boolean = true
-
   @property({ type: String })
   name = 'World'
 

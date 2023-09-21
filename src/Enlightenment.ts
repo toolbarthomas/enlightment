@@ -104,6 +104,10 @@ export class Enlightenment extends LitElement {
   // Should insert the defined classnames within the root context.
   classes: string[] = []
 
+  // Optional flag that can be used within the Document Event handlers to check
+  // if the current scope is within the defined Component.
+  currentElement?: boolean
+
   // Enables the default document Events that is called within: handleGlobal...
   // methods when TRUE.
   enableDocumentEvents: boolean = false
@@ -112,10 +116,9 @@ export class Enlightenment extends LitElement {
   focusTrap?: null | FocusTrap
 
   // Internal flag that will be TRUE if the Focus Trap library is enabled and
-  // constructed for the defined Component context. This should mutate while
-  // the `withFocusTrap` equals TRUE. This value is used internally, and should
-  // not be used to disable/enable the Focus Trap library within a Component
-  // instance.
+  // constructed for the defined Component context.
+  // This value is used internally, and should not be used to disable/enable
+  // the Focus Trap library within a Component instance.
   hasActiveFocusTrap?: boolean
 
   // Dynamic storage for the running document Event listeners.
@@ -143,15 +146,6 @@ export class Enlightenment extends LitElement {
 
   // Alias to the constructor name.
   uuid: string
-
-  // Will enable to Focus Trap library for the defined component when true
-  withFocusTrap: boolean = false
-
-  @property({
-    converter: (value) => Enlightenment.isBoolean(value),
-    type: String
-  })
-  currentElement?: boolean
 
   @property({
     attribute: 'aria-disabled',
@@ -733,22 +727,29 @@ export class Enlightenment extends LitElement {
   }
 
   /**
-   * Toggles the currentElement property within the defined element context that
-   * is triggerd from the defined global Events when the activeElement exists
-   * within the Enlightenment element context.
+   * Toggles the currentElement property within the defined element context.
+   *
+   * The expected attributes are updated directly without triggering a
+   * requestUpdate within the Document handler. The actual update should be
+   * called from the Component context that interacts with the property state.
    */
   protected handleCurrentElement(target: Event['target']) {
     if (this.preventEvent) {
       return
     }
 
-    this.commit('currentElement', () => {
-      if (this.isComponentContext(target as HTMLElement)) {
-        this.currentElement = true
-      } else {
-        this.currentElement = false
-      }
-    })
+    if (this.isComponentContext(target as HTMLElement)) {
+      this.currentElement = true
+      this.assignCurrentElement()
+      this.setAttribute('aria-current', 'true')
+    } else {
+      this.currentElement = false
+      this.omitCurrentElement()
+      this.setAttribute('aria-current', 'false')
+    }
+
+    // this.commit('currentElement', () => {
+    // })
   }
 
   /**
@@ -797,14 +798,20 @@ export class Enlightenment extends LitElement {
     const { keyCode, target } = event || {}
 
     if (Enlightenment.keyCodes.exit.includes(keyCode)) {
-      this.commit('currentElement', false)
+      this.handleCurrentElement(null)
+
+      // this.commit('currentElement', false)
       const t = target as HTMLElement
 
       if (t && this.isComponentContext(t) && t.blur) {
         t.blur()
       }
     } else if (!Enlightenment.keyCodes.meta.includes(keyCode)) {
-      this.commit('currentElement', true)
+      this.handleCurrentElement(this)
+    } else {
+      this.throttle(() => {
+        this.handleCurrentElement(document.activeElement)
+      })
     }
   }
 
@@ -836,11 +843,13 @@ export class Enlightenment extends LitElement {
 
     this.assignSlots()
 
-    if (this.currentElement === true) {
-      this.assignCurrentElement()
-    } else {
-      this.omitCurrentElement()
-    }
+    // if (this.currentElement === true) {
+    //   this.assignCurrentElement()
+    //   this.setAttribute('aria-current', 'true')
+    // } else {
+    //   this.omitCurrentElement()
+    //   this.removeAttribute('aria-current')
+    // }
 
     this.dispatchUpdate(name)
   }
@@ -905,6 +914,7 @@ export class Enlightenment extends LitElement {
       this.assignGlobalEvent('keydown', this.handleGlobalKeydown)
       this.assignGlobalEvent('focus', this.handleGlobalFocus)
       this.assignGlobalEvent('focusin', this.handleGlobalFocus)
+      this.assignGlobalEvent('blur', () => console.log('blur?'))
     }
 
     this.throttle(this.assignListeners)
@@ -1177,31 +1187,6 @@ export class Enlightenment extends LitElement {
       this.mode = mode
     }
   }
-
-  // /**
-  //  * Deactivates the optional defined Focus Trap instance
-  //  */
-  // public releaseFocusTrap() {
-  //   if (this.preventEvent || !this.withFocusTrap) {
-  //     return
-  //   }
-
-  //   if (!this.focusTrap || !this.focusTrap.deactivate) {
-  //     this.log('Ignore focus, Focus Trap is not mounted.')
-  //   }
-
-  //   if (this.hasFocusTrap && this.withFocusTrap) {
-  //     try {
-  //       this.throttle(() => {
-  //         this.log(['Focus released from', this])
-  //         this.focusTrap?.deactivate()
-  //         this.commit('hasFocusTrap', false)
-  //       })
-  //     } catch (exception) {
-  //       this.log(exception as string, 'error')
-  //     }
-  //   }
-  // }
 
   /**
    * Renders the defined image source as static image or inline SVG.
