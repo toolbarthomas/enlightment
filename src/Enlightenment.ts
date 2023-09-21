@@ -18,6 +18,7 @@ import {
   EnlightenmentImageOptions,
   EnlightenmentProcess,
   EnlightenmentState,
+  EnligtenmentTarget,
   EnlightenmentThrottle,
   GlobalEvent,
   GlobalEventContext,
@@ -195,9 +196,9 @@ export class Enlightenment extends LitElement {
     converter: (value) => {
       return value ? document.body.querySelectorAll(value) : []
     },
-    type: NodeList
+    type: Array
   })
-  observe?: NodeList
+  observe?: []
 
   // Optional Flag that will prevent the usage of requestUpdate during an
   // attribute change.
@@ -999,71 +1000,6 @@ export class Enlightenment extends LitElement {
     return this.dispatchEvent(event)
   }
 
-  // /**
-  //  * Activates the optional defined Focus Trap instance.
-  //  */
-  // protected lockFocusTrap() {
-  //   if (!this.focusTrap || this.preventEvent || !this.withFocusTrap || this.disableFocusTrap) {
-  //     return
-  //   }
-
-  //   if (!this.focusTrap || !this.focusTrap.activate) {
-  //     this.log('Unable to lock focus, Focus Trap is not mounted.')
-  //   }
-
-  //   if (!this.hasFocusTrap && this.withFocusTrap) {
-  //     try {
-  //       this.throttle(() => {
-  //         this.log(['Focus locked from', this])
-  //         this.focusTrap?.activate()
-  //         this.commit('hasFocusTrap', true)
-  //       })
-  //     } catch (exception) {
-  //       this.log(exception as string, 'error')
-  //     }
-  //   }
-  // }
-
-  // /**
-  //  * Mount the optional focusTrap instance to lock the current focus within the
-  //  * created Component context.
-  //  */
-  // protected mountFocusTrap() {
-  //   if (this.focusTrap === null) {
-  //     this.log([`Skipping Focus Trap setup for: ${this.constructor.name}`, this], 'info')
-
-  //     return
-  //   }
-
-  //   if (!this.withFocusTrap || this.focusTrap || this.disableFocusTrap) {
-  //     return
-  //   }
-
-  //   const context = this.useRef(this.focusContext) || this.useContext()
-  //   const entry: HTMLElement[] = [this]
-  //   if (context !== this) {
-  //     entry.push(context as HTMLElement)
-  //   }
-
-  //   try {
-  //     this.focusTrap = createFocusTrap(entry, {
-  //       escapeDeactivates: false, // The child component should deactivate it manually.
-  //       allowOutsideClick: false,
-  //       initialFocus: false,
-  //       tabbableOptions: {
-  //         getShadowRoot: this.minimalShadowRoot
-  //           ? true
-  //           : (node: HTMLElement | SVGElement) =>
-  //               this.isComponentContext(node) ? node.shadowRoot || undefined : false
-  //       }
-  //     })
-
-  //     this.focusTrap && this.log(['Focus trap mounted from', this], 'info')
-  //   } catch (exception) {
-  //     exception && this.log(exception as string, 'error')
-  //   }
-  // }
-
   /**
    * Returns the matching parent element by default or use the optional
    * selector value otherwise.
@@ -1464,7 +1400,7 @@ export class Enlightenment extends LitElement {
   /**
    * Shorthand to use the existing Lit Element reference.
    */
-  protected useRef = (ref?: Ref): Node | HTMLElement | Element | SVGElement | undefined => {
+  protected useRef = (ref?: Ref): EnligtenmentTarget => {
     if (!ref || !ref.value) {
       return
     }

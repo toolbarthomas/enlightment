@@ -1,11 +1,8 @@
 /**
  * Optional configuration options to use within the renderImage method.
  */
-export type EnlightenmentImageOptions =
-  | {
-      classname?: string
-    }
-  | string
+export type EnlightenmentImageOptions = { classname?: string } | string
+
 /**
  * Defines the Global state typing that is assigned to the Window context.
  */
@@ -14,6 +11,12 @@ export type EnlightenmentState = {
   mode?: string
   verbose?: boolean
 }
+
+/**
+ * Defines the expected Element types to use during any DOM logic.
+ */
+export type EnligtenmentTarget = Element | HTMLElement | Node | SVGElement | undefined
+
 
 /**
  * Definition of a single throttled handler that will not stack if called
