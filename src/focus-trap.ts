@@ -45,7 +45,7 @@ class EnlightenmentFocusTrap extends Enlightenment {
   protected firstUpdated() {
     super.firstUpdated()
 
-    const context = this.useRef(this.focusContext) || this
+    const context = this.useRef(this.context) || this
 
     if (context && !this.focusTrap) {
       this.focusTrap = createFocusTrap(context, {
@@ -61,6 +61,13 @@ class EnlightenmentFocusTrap extends Enlightenment {
       })
 
       this.log(`Focus Trap defined from: ${context}`, 'info')
+    }
+
+
+    const host: typeof Enlightenment = this.parentNode.host
+
+    if (host instanceof Enlightenment) {
+      this.assignGlobalEvent('slotchange', this.refresh, host)
     }
   }
 
@@ -131,6 +138,16 @@ class EnlightenmentFocusTrap extends Enlightenment {
   }
 
   /**
+   * Callback handler to update the Focus Trap context that should be used
+   * during any component update.
+   */
+  refresh() {
+    if (this.focusTrap && this.focusTrap.active && this.useRef(this.context) !== this) {
+      this.focusTrap.updateContainerElements(this as any)
+    }
+  }
+
+  /**
    * Notify the Component to activate the running Focus Trap instance.
    * The Focus Trap instance will not activate if the defined context is
    * disabled or the direct parent Enlightenment Element is disabled.
@@ -194,10 +211,8 @@ class EnlightenmentFocusTrap extends Enlightenment {
    * @returns
    */
   render() {
-    if (this.focusTrap && this.focusTrap.active && this.useRef(this.focusContext) !== this) {
-      this.focusTrap.updateContainerElements(this as any)
-    }
+    this.refresh()
 
-    return html`<slot ref=${ref(this.focusContext)}></slot>`
+    return html`<slot ref=${ref(this.context)}></slot>`
   }
 }

@@ -42,5 +42,5 @@ export const isEmptyComponentSlot = (slot: HTMLSlotElement) => {
     return;
   }
 
-  return slot.assignedNodes().length === 0;
+  return slot.assignedNodes({ flatten: true }).length === 0;
 };
