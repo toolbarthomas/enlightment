@@ -1,5 +1,3 @@
-import { createFocusTrap } from 'focus-trap'
-
 import {
   css as _css,
   CSSResultGroup,
@@ -29,8 +27,6 @@ import {
 
 import { isEmptyComponentSlot } from './mixins/dom'
 
-import { FocusTrap } from 'focus-trap'
-
 export const createRef = _createRef
 export const css = _css
 export const customElement = _customElement
@@ -48,7 +44,6 @@ export const ref = _ref
  *  - (inline) SVG & Image insertion (@TODO)
  *  - Image extension validation (@TODO)
  *  - Target validation (@TODO currentElement)
- *  - Focus context (@TODO Focus Trap)
  *  - Hooks/Event Dispatcher (@TODO)
  *  - context validation (@TODO isComponentContext)
  *  - optional logging (@TODO)
@@ -112,13 +107,8 @@ export class Enlightenment extends LitElement {
   // methods when TRUE.
   enableDocumentEvents: boolean = false
 
-  // Will contain the optional Focus Trap library when undefined.
-  focusTrap?: null | FocusTrap
-
-  // Internal flag that will be TRUE if the Focus Trap library is enabled and
-  // constructed for the defined Component context.
-  // This value is used internally, and should not be used to disable/enable
-  // the Focus Trap library within a Component instance.
+  // Will be TRUE if the optional Focus Trap Element exists within the Component
+  // and is currently active.
   hasActiveFocusTrap?: boolean
 
   // Dynamic storage for the running document Event listeners.
@@ -160,13 +150,6 @@ export class Enlightenment extends LitElement {
   })
   delay = Enlightenment.FPS
 
-  // Optional Attribute or property that disables the Focus Trap library for the
-  // defined Component context.
-  @property({
-    converter: (value) => Enlightenment.isBoolean(value),
-    type: Boolean
-  })
-  disableFocusTrap?: boolean
   // Readable error to display during an exception/error within the defined
   // component context.
   @property()
@@ -949,21 +932,6 @@ export class Enlightenment extends LitElement {
         this.log(error as string, 'error')
       }
     }
-  }
-
-  /**
-   * Toggles the optional defined Focus Trap instance.
-   */
-  public handleFocusTrap(event: Event) {
-    event.preventDefault && event.preventDefault()
-
-    this.commit('hasActiveFocusTrap', !this.hasActiveFocusTrap)
-
-    // if (this.hasFocusTrap) {
-    //   this.releaseFocusTrap()
-    // } else {
-    //   this.lockFocusTrap()
-    // }
   }
 
   /**

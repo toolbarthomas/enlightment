@@ -46,7 +46,6 @@
   },
   "homepage": "https://github.com/toolbarthomas/enlightenment#readme",
   "dependencies": {
-    "focus-trap": "^7.5.2",
     "glob": "^10.3.4",
     "lit": "^2.8.0"
   },

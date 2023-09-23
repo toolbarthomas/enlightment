@@ -34,6 +34,21 @@ class HelloWorld extends Enlightenment {
   }
 
   /**
+   * Toggles the optional defined Focus Trap instance.
+   */
+  public handleFocusTrap(event: Event) {
+    event.preventDefault && event.preventDefault()
+
+    this.commit('hasActiveFocusTrap', !this.hasActiveFocusTrap)
+
+    // if (this.hasFocusTrap) {
+    //   this.releaseFocusTrap()
+    // } else {
+    //   this.lockFocusTrap()
+    // }
+  }
+
+  /**
    * Optional callback that is used within Enlightenment._process().
    * The callback will be triggered during a Enlightenment Component update
    * (excluding this). You should define any logic within this optional method
@@ -77,10 +92,6 @@ class HelloWorld extends Enlightenment {
               height: '100px'
             })}
           </div>
-          <div><input type="text" /></div>
-          <button @click=${this.handleFocusTrap}>
-            ${this.hasActiveFocusTrap ? 'disable' : 'enable'} Focus Trap
-          </button>
         </div>
       </focus-trap>
     `

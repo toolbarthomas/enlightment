@@ -1,6 +1,6 @@
-import { existsSync, copyFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { dirname, join, resolve } from "node:path";
+import { existsSync, copyFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import { dirname, join, resolve } from 'node:path'
 
 /**
  * Resolve the requested Enlightenment package from @toolbarthomas/enlightenment
@@ -14,26 +14,27 @@ import { dirname, join, resolve } from "node:path";
  * Esbuild plugin.
  */
 export const resolvePlugin = (options) => ({
-  name: "resolve-plugin",
+  name: 'resolve-plugin',
   setup: (build) => {
-    const { destination, minify, namespace } = options || {};
-    const d = destination || "/Enlightenment.js";
-    const n = namespace || "Enlightenment";
-    const { initialOptions } = build || {};
-    const { outdir } = initialOptions;
-    const m = minify || false;
+    const { destination, minify, namespace } = options || {}
+    const d = destination || '/Enlightenment.js'
+    const n = namespace || 'Enlightenment'
+    const { initialOptions } = build || {}
+    const { outdir } = initialOptions
+    const m = minify || false
 
     if (d && !existsSync(d)) {
       const from = resolve(
         fileURLToPath(import.meta.url),
-        `../../dist/Enlightenment${minify ? ".min" : ""}.js`
-      );
-      const to = join(process.cwd(), outdir || "", d);
+        `../../dist/Enlightenment${minify ? '.min' : ''}.js`
+      )
+
+      const to = join(process.cwd(), outdir || '', d.split('../').join('/'))
 
       try {
-        existsSync(from) && copyFileSync(from, to);
+        existsSync(from) && copyFileSync(from, to)
       } catch (exception) {
-        exception && Error(exception);
+        exception && Error(exception)
       }
     }
 
@@ -41,8 +42,8 @@ export const resolvePlugin = (options) => ({
       return {
         path: d,
         external: true,
-        namespace: n,
-      };
-    });
-  },
-});
+        namespace: n
+      }
+    })
+  }
+})
