@@ -1,7 +1,7 @@
-import esbuild from "esbuild";
+import esbuild from 'esbuild'
 
-import { resolvePlugin } from "./esbuild.resolve.plugin.mjs";
-import { stylePlugin } from "./esbuild.style.plugin.mjs";
+import { resolvePlugin } from './esbuild.resolve.plugin.mjs'
+import { stylePlugin } from './esbuild.style.plugin.mjs'
 
 /**
  * Esbuild example workflow for transforming an actual Enlightenment Element.
@@ -13,24 +13,22 @@ import { stylePlugin } from "./esbuild.style.plugin.mjs";
  *
  *
  */
-(async () => {
+;(async () => {
   const context = await esbuild.context({
     bundle: true,
-    entryPoints: ["./src/hello-world.ts", "./src/focus-trap.ts"],
-    external: ["@toolbarthomas/enlightenment"],
-    format: "esm",
-    outdir: "dist",
-    platform: "browser",
-    plugins: [resolvePlugin(), stylePlugin()],
-  });
+    entryPoints: ['./src/hello-world.ts'],
+    external: ['@toolbarthomas/enlightenment'],
+    format: 'esm',
+    outdir: 'dist',
+    platform: 'browser',
+    plugins: [resolvePlugin(), stylePlugin()]
+  })
 
   context
     .serve({
-      servedir: "dist",
+      servedir: 'dist'
     })
     .then((result) => {
-      console.log(
-        `Enlightenment test server started: ${result.host}:${result.port}`
-      );
-    });
-})();
+      console.log(`Enlightenment test server started: ${result.host}:${result.port}`)
+    })
+})()

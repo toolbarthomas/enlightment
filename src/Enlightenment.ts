@@ -13,11 +13,12 @@ import { createRef as _createRef, ref as _ref, Ref } from 'lit/directives/ref.js
 import { unsafeSVG } from 'lit/directives/unsafe-svg.js'
 
 import {
+  EnlightenmentHandler,
   EnlightenmentImageOptions,
   EnlightenmentProcess,
   EnlightenmentState,
-  EnligtenmentTarget,
   EnlightenmentThrottle,
+  EnligtenmentTarget,
   GlobalEvent,
   GlobalEventContext,
   GlobalEventHandler,
@@ -175,7 +176,7 @@ export class Enlightenment extends LitElement {
     },
     type: Array
   })
-  observe?: []
+  observe?: NodeList
 
   // Optional Flag that will prevent the usage of requestUpdate during an
   // attribute change.
@@ -838,6 +839,27 @@ export class Enlightenment extends LitElement {
   }
 
   /**
+   * Calls the defined function handler for the existing Observer HTMl elements
+   * that wass defined from observe attribute.
+   *
+   * @param handler The function handler to call for the observerd elements
+   */
+  protected processObserved(handler?: EnlightenmentHandler) {
+    if (!this.observe || typeof handler !== 'function') {
+      return
+    }
+
+    try {
+      for (let i = Object.keys(this.observe).length; i--; ) {
+        // this.throttle(handler, Enlightenment.FPS, )
+        handler(this.observe[i] as HTMLElement)
+      }
+    } catch (exception) {
+      exception && this.log(exception, 'error')
+    }
+  }
+
+  /**
    * Optional callback to use when existing Elements are attached from the
    * listen property: listen=".foo,#bar,custom-component"
    * @param event The actual Event Object that was created from an existing
@@ -1157,6 +1179,38 @@ export class Enlightenment extends LitElement {
   }
 
   /**
+   * Returns the existing Component if the defined context exists within the
+   * observed Elements from the instance method.
+   *
+   * @param context Traverse from the actual element to get the host Component
+   * that will be checked with `this`.
+   */
+  private useObserved(context: HTMLElement) {
+    if (!context) {
+      return
+    }
+    // let { observe } = context as Enlightenment
+    let target: HTMLElement
+
+    if (!target && !this.isComponentContext(context)) {
+      let current = context
+
+      while (current.parentNode && !target) {
+        if (Object.values(this.observe).includes(current) && current !== this) {
+          target = current
+          break
+        } else if (current.tagName === this.tagName) {
+          break
+        }
+
+        current = current.parentNode as HTMLElement
+      }
+    }
+
+    return target
+  }
+
+  /**
    * Renders the defined image source as static image or inline SVG.
    */
   public renderImage(source: string, options?: EnlightenmentImageOptions) {
@@ -1293,7 +1347,11 @@ export class Enlightenment extends LitElement {
 
     const timeout = setTimeout(
       () => {
-        handler.call(this, ...args)
+        try {
+          handler.call(this, ...args)
+        } catch (exception) {
+          exception && this.log(exception, 'error')
+        }
       },
       parseInt(String(delay)) || this.throttler.delay
     )
