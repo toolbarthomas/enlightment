@@ -742,6 +742,8 @@ export class Enlightenment extends LitElement {
           const data: { [key: string]: any } = {}
           data[property] = handler
 
+          // Use this.hook directly since a throttle will be called by the
+          // component.requestUpdate method.
           this.hook('commit', { data })
 
           this.log([`${this.namespace} property updated for:`, [property, handler]])
@@ -794,7 +796,7 @@ export class Enlightenment extends LitElement {
 
     this.useMode()
 
-    this.hook('updated')
+    this.dispatchUpdate('updated')
   }
 
   /**
@@ -902,7 +904,7 @@ export class Enlightenment extends LitElement {
     this.isEmptySlot(event)
     this.assignSlottedEvent(event)
 
-    this.hook('slotchange')
+    this.dispatchUpdate('slotchange')
   }
 
   /**
@@ -1010,8 +1012,7 @@ export class Enlightenment extends LitElement {
     }
 
     this.throttle(this.assignListeners)
-
-    this.hook('connected')
+    this.dispatchUpdate('connected')
   }
 
   /**
@@ -1039,6 +1040,8 @@ export class Enlightenment extends LitElement {
         Object.values(slots).forEach((slot) => this.clearSlottedEvents(slot))
       }
 
+      // Use this.hook directly since the context would not exist anymore after
+      // the throttled handler is called.
       this.hook('disconnected')
 
       super.disconnectedCallback()
@@ -1192,7 +1195,7 @@ export class Enlightenment extends LitElement {
       state.currentElements = commit
     }
 
-    this.hook('omit')
+    this.dispatchUpdate('omit')
   }
 
   /**
@@ -1233,7 +1236,7 @@ export class Enlightenment extends LitElement {
 
     this.log(`Global ${type} event removed:`)
 
-    this.hook('omit')
+    this.dispatchUpdate('omit')
   }
 
   /**
