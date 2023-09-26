@@ -416,7 +416,7 @@ export class Enlightenment extends LitElement {
    * Marks the defined Enlightenment element context as active global element
    * within the constructed this.root Object.
    */
-  protected assignCurrentElement() {
+  private assignCurrentElement() {
     const state = this.useState()
 
     if (state && !state.currentElements.filter((ce) => ce === this).length) {
@@ -428,7 +428,7 @@ export class Enlightenment extends LitElement {
    * Assigns a new global event for the rendered component context.
    * The actual event is stored within the instance to prevent Event stacking.
    */
-  protected assignGlobalEvent(
+  private assignGlobalEvent(
     type: GlobalEventType,
     handler: GlobalEventHandler,
     context?: GlobalEventContext
@@ -468,7 +468,7 @@ export class Enlightenment extends LitElement {
    * Assign a new Global Event for each existing component context that is
    * defined the listen property.
    */
-  protected assignListeners() {
+  private assignListeners() {
     if (!this.observe || !this.observe.length) {
       return
     }
@@ -490,7 +490,7 @@ export class Enlightenment extends LitElement {
    * Assigns the rendered slots within the current element instance to
    * instance.slots Object.
    */
-  protected assignSlots(name?: string) {
+  private assignSlots(name?: string) {
     if (!this.shadowRoot) {
       this.log(`Unable to detect shadowRoot from ${this.namespace}`, 'error')
     }
@@ -512,14 +512,16 @@ export class Enlightenment extends LitElement {
         for (let i = 0; i < slots.length; i += 1) {
           const name = slots[i].name || Enlightenment.defaults.slot
 
+          this.clearSlottedEvents(slots[i])
+
           if (!Object.values(this.slots).includes(slots[i])) {
             this.slots[name] = isEmptyComponentSlot(slots[i]) ? undefined : slots[i]
 
-            this.assignGlobalEvent('slotchange', this.handleSlotchange, slots[i])
+            this.assignGlobalEvent('slotchange', this.handleSlotChange, slots[i])
           }
 
           if (this.slots[name] !== undefined) {
-            this.handleSlotchange({ target: slots[i] } as any)
+            this.handleSlotChange({ target: slots[i] } as any)
           }
         }
 
@@ -531,10 +533,49 @@ export class Enlightenment extends LitElement {
   }
 
   /**
+   * Assign additional global Event listeners for the direct child elements with
+   * the [handle] attribute from the defined Component. The [handle] attribute
+   * requires an existing method name of the component:
+   *
+   * Component.start(...) => handle="start()"
+   *
+   * A click Event will be created by default but you can define different Event
+   * types by including it within the attribute value; this will be called
+   * during a focus Event instead:
+   *
+   *  Component.start(...) => handle="focus:start()"
+   *
+   * @param Event Use the Event target as actual context.
+   */
+  private assignSlottedEvent(event: Event) {
+    const actions = [
+      ...(this.querySelectorAll(`[handle]`) || []),
+      ...(event.target.querySelectorAll('[handle]') || [])
+    ]
+
+    if (actions.length) {
+      actions.forEach((element) => {
+        let [type, name] = element.getAttribute('handle').split(':')
+
+        if (!name) {
+          name = type
+          type = 'click'
+        }
+
+        const fn: Function = this[name.split('(')[0]]
+
+        if (typeof fn === 'function' && Enlightenment.useHost(element) === this) {
+          this.assignGlobalEvent(type, fn.bind(this), element)
+        }
+      })
+    }
+  }
+
+  /**
    * Removes the assigned global Events from the selected context or this
    * Component.
    */
-  protected clearGlobalEvent(type: GlobalEventType, context?: any | any[]) {
+  private clearGlobalEvent(type: GlobalEventType, context?: any | any[]) {
     const queue = Array.isArray(context) ? context : [context]
 
     for (let i = 0; i < queue.length; i += 1) {
@@ -585,10 +626,41 @@ export class Enlightenment extends LitElement {
   }
 
   /**
+   * Removes the additional Event listeners from the direct child elements
+   * that have the [handle] attribute defined. This should be called after a
+   * slot is changed or removed to cleanup obsolete Event handlers.
+   *
+   * @param slot Look for additional [handler] elements within the selected slot
+   * and remove the assigned Global Events.
+   */
+  protected clearSlottedEvents(slot?: HTMLSlotElement) {
+    const actions: HTMLElement[] = [...(this.querySelectorAll(`[handle]`) || [])]
+
+    if (slot) {
+      actions.push(...(slot.querySelectorAll('[handle]') || []))
+    }
+
+    actions.forEach((element) => {
+      let [type, name] = element.getAttribute('handle').split(':')
+
+      if (Enlightenment.useHost(element) !== this) {
+        return
+      }
+
+      if (!name) {
+        name = type
+        type = 'click'
+      }
+
+      this.clearGlobalEvent(type, element)
+    })
+  }
+
+  /**
    * Cleanup the defined throttler handlers and stop any defined throttle
    * timeout.
    */
-  protected clearThrottler() {
+  private clearThrottler() {
     const { handlers } = this.throttler
 
     if (!handlers || !handlers.length) {
@@ -610,7 +682,7 @@ export class Enlightenment extends LitElement {
    * Helper function that updates the defined property from the constructed
    * Enlightenment instance.
    */
-  protected commit(property: string, handler: any) {
+  private commit(property: string, handler: any) {
     if (!property) {
       this.log([`Unable to commit undefined property`])
 
@@ -630,16 +702,12 @@ export class Enlightenment extends LitElement {
       const value = this[property as any]
 
       if (typeof handler === 'function') {
-        try {
-          const result = handler()
+        const result = handler()
 
+        //@ts-ignore
+        if (result !== undefined && typeof result === typeof this[property]) {
           //@ts-ignore
-          if (result !== undefined && typeof result === typeof this[property]) {
-            //@ts-ignore
-            this[property] = result
-          }
-        } catch (exception) {
-          exception && this.log(exception, 'error')
+          this[property] = result
         }
 
         update = true
@@ -684,7 +752,7 @@ export class Enlightenment extends LitElement {
    * Validates if the defined Event handler has already been defined as
    * global Event.
    */
-  protected filterGlobalEvent(type: GlobalEventType, handler: GlobalEventHandler) {
+  private filterGlobalEvent(type: GlobalEventType, handler: GlobalEventHandler) {
     if (!this.listeners.length) {
       return []
     }
@@ -803,7 +871,7 @@ export class Enlightenment extends LitElement {
    * Defines the global slotchange Event handler that will trigger a slotchange
    * event on the main element context.
    */
-  protected handleSlotchange(event: Event) {
+  handleSlotChange(event: Event) {
     if (this.preventEvent) {
       return
     }
@@ -813,6 +881,7 @@ export class Enlightenment extends LitElement {
     }
 
     this.isEmptySlot(event)
+    this.assignSlottedEvent(event)
 
     this.hook('slotchange')
   }
@@ -826,7 +895,6 @@ export class Enlightenment extends LitElement {
     this.updatePreventEvent()
 
     this.assignSlots()
-
     // if (this.currentElement === true) {
     //   this.assignCurrentElement()
     //   this.setAttribute('aria-current', 'true')
@@ -842,7 +910,7 @@ export class Enlightenment extends LitElement {
    * Calls the defined function handler for the existing Observer HTMl elements
    * that wass defined from observe attribute.
    *
-   * @param handler The function handler to call for the observerd elements
+   * @param handler The function handler to call for the observed elements
    */
   protected processObserved(handler?: EnlightenmentHandler) {
     if (!this.observe || typeof handler !== 'function') {
@@ -941,10 +1009,16 @@ export class Enlightenment extends LitElement {
 
       this.clearListeners()
 
-      this.clearGlobalEvent(
-        'slotchange',
-        this.shadowRoot && this.shadowRoot.querySelectorAll('slot')
-      )
+      const slots = this.shadowRoot && this.shadowRoot.querySelectorAll('slot')
+
+      if (slots.length) {
+        // Clear the assigned Slotchange event manually since the slotchange
+        // Event can be ignored at this point.
+        this.clearGlobalEvent('slotchange', slots)
+
+        // Ensure the Slotted Events are removed.
+        Object.values(slots).forEach((slot) => this.clearSlottedEvents(slot))
+      }
 
       this.hook('disconnected')
 
@@ -1080,7 +1154,7 @@ export class Enlightenment extends LitElement {
 
     const { verbose } = this.useState() || {}
 
-    if (verbose) {
+    if (verbose || type === 'error') {
       //@ts-ignore
       output.forEach((m) => console[type || 'log'](m))
     }
@@ -1164,6 +1238,32 @@ export class Enlightenment extends LitElement {
         component.throttle(component.requestUpdate.bind(component))
       }
     }
+  }
+
+  static useHost(context: HTMLElement) {
+    if (!context) {
+      return
+    }
+
+    let target: HTMLElement
+    if (!target) {
+      let current = context
+
+      while (current.parentNode && !target) {
+        if (current.host || current instanceof Enlightenment) {
+          if (current !== context) {
+            target = current.host || current
+            break
+          }
+        } else if (target) {
+          break
+        }
+
+        current = current.parentNode as HTMLElement
+      }
+    }
+
+    return target
   }
 
   /**
@@ -1347,11 +1447,11 @@ export class Enlightenment extends LitElement {
 
     const timeout = setTimeout(
       () => {
-        try {
-          handler.call(this, ...args)
-        } catch (exception) {
-          exception && this.log(exception, 'error')
-        }
+        // try {
+        handler.call(this, ...args)
+        // } catch (exception) {
+        // exception && this.log(exception, 'error')
+        // }
       },
       parseInt(String(delay)) || this.throttler.delay
     )

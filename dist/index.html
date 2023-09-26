@@ -74,10 +74,15 @@
 
 <body>
   <hello-world observe="hello-world">
-    <a href="#href">Some example link</a>
+    <a href="#href" id="bar">Some example link</a>
   </hello-world>
 
-  <hello-world name="Foo"></hello-world>
+  <hello-world name="Foo">
+    <hello-world @callback="click:start()">
+      <a href="#second">Second</a>
+      <button handle="click:start()">Start</button>
+    </hello-world>
+  </hello-world>
 </body>
 
 </html>

@@ -16,6 +16,22 @@ class HelloWorld extends Enlightenment {
 
   enableDocumentEvents = true
 
+  @property({
+    attribute: '@callback',
+    converter: (value) => {
+      let [type, name]: [string, string | undefined] = value.split(':')
+
+      if (!name) {
+        name = type
+        type = 'click'
+      }
+
+      return [type, name.split('(')[0]]
+    },
+    type: Array
+  })
+  callback?: [string, string]
+
   @property({ type: String })
   name = 'World'
 
@@ -66,10 +82,30 @@ class HelloWorld extends Enlightenment {
    * @param target The expected html target
    */
   process(target: any) {
-    if (target.preventEvent) {
-      this.commit('name', `Updated ${this.name}`)
-    }
+    // if (target.preventEvent) {
+    //   this.commit('name', `Updated ${this.name}`)
+    // }
     // this.commit('name', `Updated ${this.name}`)
+  }
+
+  handleSlotChange(event: Event) {
+    super.handleSlotChange(event)
+
+    if (!this.callback || !this.callback.length) {
+      return
+    }
+
+    // const [type, name] = this.callback
+    // const host = Enlightenment.useHost(this)
+
+    // console.log('HOST', typeof host[name], host.start)
+
+    // this.clearGlobalEvent(type, this)
+    // if (host && typeof host[name] === 'function') {
+    //   this.assignGlobalEvent(type, host[name].bind(host), this)
+    // }
+
+    // console.log('Firstupdated', this.callback)
   }
 
   render() {
@@ -95,5 +131,9 @@ class HelloWorld extends Enlightenment {
         </div>
       </focus-trap>
     `
+  }
+
+  start() {
+    console.log('Start', this)
   }
 }
