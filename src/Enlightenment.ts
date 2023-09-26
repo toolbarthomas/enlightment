@@ -548,20 +548,31 @@ export class Enlightenment extends LitElement {
    * @param Event Use the Event target as actual context.
    */
   private assignSlottedEvent(event: Event) {
-    const actions = [
-      ...(this.querySelectorAll(`[handle]`) || []),
-      ...(event.target.querySelectorAll('[handle]') || [])
-    ]
+    const actions: HTMLElement[] = []
+
+    actions.push(...(Object.values(this.querySelectorAll('[handle]')) as HTMLElement[]))
+
+    const target = event.target as HTMLElement
+    if (target) {
+      actions.push(...(Object.values(target.querySelectorAll('[handle]')) as HTMLElement[]))
+    }
 
     if (actions.length) {
       actions.forEach((element) => {
-        let [type, name] = element.getAttribute('handle').split(':')
+        const value = element.getAttribute('handle')
+
+        if (!value) {
+          return
+        }
+
+        let [type, name] = value.split(':')
 
         if (!name) {
           name = type
           type = 'click'
         }
 
+        //@ts-ignore
         const fn: Function = this[name.split('(')[0]]
 
         if (typeof fn === 'function' && Enlightenment.useHost(element) === this) {
@@ -634,14 +645,22 @@ export class Enlightenment extends LitElement {
    * and remove the assigned Global Events.
    */
   protected clearSlottedEvents(slot?: HTMLSlotElement) {
-    const actions: HTMLElement[] = [...(this.querySelectorAll(`[handle]`) || [])]
+    const actions: HTMLElement[] = []
+
+    actions.push(...(Object.values(this.querySelectorAll(`[handle]`)) as HTMLElement[]))
 
     if (slot) {
-      actions.push(...(slot.querySelectorAll('[handle]') || []))
+      actions.push(...(Object.values(slot.querySelectorAll('[handle]')) as HTMLElement[]))
     }
 
     actions.forEach((element) => {
-      let [type, name] = element.getAttribute('handle').split(':')
+      const value = element.getAttribute('handle')
+
+      if (!value) {
+        return
+      }
+
+      let [type, name] = value.split(':')
 
       if (Enlightenment.useHost(element) !== this) {
         return
@@ -1011,7 +1030,7 @@ export class Enlightenment extends LitElement {
 
       const slots = this.shadowRoot && this.shadowRoot.querySelectorAll('slot')
 
-      if (slots.length) {
+      if (slots && slots.length) {
         // Clear the assigned Slotchange event manually since the slotchange
         // Event can be ignored at this point.
         this.clearGlobalEvent('slotchange', slots)
@@ -1245,9 +1264,10 @@ export class Enlightenment extends LitElement {
       return
     }
 
-    let target: HTMLElement
+    let target: HTMLElement | undefined = undefined
+
     if (!target) {
-      let current = context
+      let current: any = context
 
       while (current.parentNode && !target) {
         if (current.host || current instanceof Enlightenment) {
@@ -1289,8 +1309,13 @@ export class Enlightenment extends LitElement {
     if (!context) {
       return
     }
+
+    if (!this.observe) {
+      return
+    }
+
     // let { observe } = context as Enlightenment
-    let target: HTMLElement
+    let target: HTMLElement | undefined = undefined
 
     if (!target && !this.isComponentContext(context)) {
       let current = context

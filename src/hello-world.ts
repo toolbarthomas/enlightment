@@ -16,21 +16,21 @@ class HelloWorld extends Enlightenment {
 
   enableDocumentEvents = true
 
-  @property({
-    attribute: '@callback',
-    converter: (value) => {
-      let [type, name]: [string, string | undefined] = value.split(':')
+  // @property({
+  //   attribute: '@callback',
+  //   converter: (value) => {
+  //     let [type, name]: [string, string | undefined] = value.split(':')
 
-      if (!name) {
-        name = type
-        type = 'click'
-      }
+  //     if (!name) {
+  //       name = type
+  //       type = 'click'
+  //     }
 
-      return [type, name.split('(')[0]]
-    },
-    type: Array
-  })
-  callback?: [string, string]
+  //     return [type, name.split('(')[0]]
+  //   },
+  //   type: Array
+  // })
+  // callback?: [string, string]
 
   @property({ type: String })
   name = 'World'
