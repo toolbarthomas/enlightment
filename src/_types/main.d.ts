@@ -5,7 +5,9 @@ export type EnlightenmentHandler = (context: HTMLElement) => void
 /**
  * Optional configuration options to use within the renderImage method.
  */
-export type EnlightenmentImageOptions = { classname?: string } | string
+export type EnlightenmentImageOptions =
+  | { classname?: string; width?: string; height?: string }
+  | string
 
 /**
  * Defines the Global state typing that is assigned to the Window context.

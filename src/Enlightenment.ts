@@ -89,10 +89,6 @@ export const ref = _ref
  * <script src="my-component.js" type="module"></script>
  */
 export class Enlightenment extends LitElement {
-  //@TODO should remove?
-  // Defines the default styles to include for the defined Enlightenment instance.
-  // static styles?: _CSSResultGroup | undefined = [styles];
-
   // Default element reference that should be assigned to the root element
   // within the render context.
   context = createRef()
@@ -164,6 +160,7 @@ export class Enlightenment extends LitElement {
   mode?: string
 
   @property({
+    converter: (value) => Enlightenment.isBoolean(value),
     type: Boolean
   })
   minimalShadowRoot?: boolean
