@@ -253,6 +253,46 @@ export class Enlightenment extends LitElement {
     return collection.includes(value) ? value : fallback
   }
 
+  static getElementsFromSlot(slot: HTMLSlotElement, tags: string[]) {
+    if (!slot || !slot.assignedElements || !tags) {
+      return []
+    }
+
+    const inputs: Element[] = []
+
+    Object.values(slot.assignedElements()).forEach((element) => {
+      inputs.push(...Enlightenment.getElements(element, tags))
+    })
+
+    return [...new Set(inputs)]
+  }
+
+  static getElements(context: Element, tags: string[]) {
+    if (!context) {
+      return []
+    }
+
+    const elements: Element[] = []
+
+    if (context.shadowRoot) {
+      Object.values(context.shadowRoot.children).forEach((child) =>
+        elements.push(...Enlightenment.getElements(child, tags))
+      )
+    }
+
+    if (context.children) {
+      Object.values(context.children).forEach((child) =>
+        elements.push(...Enlightenment.getElements(child, tags))
+      )
+    }
+
+    if (tags.includes(context.tagName.toLowerCase()) && !elements.includes(context)) {
+      elements.push(context)
+    }
+
+    return [...new Set(elements)]
+  }
+
   /**
    * Validates if the defined url value is external.
    */
