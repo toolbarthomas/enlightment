@@ -372,6 +372,10 @@ export class Enlightenment extends LitElement {
 
         current = current.parentNode as HTMLElement
       }
+
+      if (!target && current.host !== context) {
+        target = current.host
+      }
     }
 
     return target
