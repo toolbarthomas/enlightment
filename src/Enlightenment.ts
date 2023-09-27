@@ -449,7 +449,7 @@ export class Enlightenment extends LitElement {
 
     this.useMode()
 
-    this.dispatchUpdate('updated')
+    this.dispatchUpdate('ready')
   }
 
   /**
@@ -732,7 +732,7 @@ export class Enlightenment extends LitElement {
 
     ctx && ctx.addEventListener(type, fn)
 
-    this.log([`Global event assigned: ${ctx.constructor.name}@${type}`, this])
+    this.log([`Global event assigned: ${ctx.constructor.name}@${type}`, ctx])
   }
 
   /**
@@ -1080,8 +1080,10 @@ export class Enlightenment extends LitElement {
     const { verbose } = this.useState() || {}
 
     if (verbose || type === 'error') {
+      let t = type === 'warning' ? 'warn' : type
+
       //@ts-ignore
-      output.forEach((m) => console[type || 'log'](m))
+      output.forEach((m) => console[t || 'log'](m))
     }
   }
 
@@ -1106,19 +1108,19 @@ export class Enlightenment extends LitElement {
    */
   private omitGlobalEvent(type: GlobalEventType, handler: GlobalEventHandler) {
     if (!type) {
-      this.log('Unable to omit undefined global Event', 'error')
+      this.log('Unable to omit undefined global Event', 'warning')
 
       return
     }
 
     if (typeof handler !== 'function') {
-      this.log(`Unable to omit global ${type} Event, no valid function was defined.`, 'error')
+      this.log(`Unable to omit global ${type} Event, no valid function was defined.`, 'warning')
     }
 
     const [t, fn, ctx] = this.filterGlobalEvent(type, handler)
 
     if (!t || !fn || !ctx) {
-      this.log(`Unable to omit undefined global ${type} Event`, 'error')
+      this.log(`Unable to omit undefined global ${type} Event`, 'warning')
 
       return
     }
