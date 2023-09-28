@@ -1,5 +1,3 @@
-import { Enlightenment } from 'src/Enlightenment'
-
 export type EnlightenmentHandler = (context: HTMLElement) => void
 
 /**
@@ -54,5 +52,5 @@ export type GlobalEvent = [
  */
 export type HookOptions = {
   context?: Element
-  data: any
+  data?: any
 }

@@ -4,6 +4,7 @@ import {
   LitElement as _LitElement,
   html as _html,
   nothing as _nothing,
+  PropertyValues,
   PropertyValueMap,
   svg
 } from 'lit'
@@ -99,6 +100,8 @@ export class Enlightenment extends LitElement {
   // Optional flag that can be used within the Document Event handlers to check
   // if the current scope is within the defined Component.
   currentElement?: boolean
+
+  disabled?: boolean
 
   // Enables the default document Events that is called within: handleGlobal...
   // methods when TRUE.
@@ -203,9 +206,9 @@ export class Enlightenment extends LitElement {
   }
 
   // Converts the given string value as array with potential selectors.
-  static convertToSelectors(value: string) {
+  static convertToSelectors(value: any) {
     if (typeof value !== 'string') {
-      return
+      return []
     }
 
     return String(value)
@@ -258,7 +261,7 @@ export class Enlightenment extends LitElement {
       return []
     }
 
-    const inputs: Element[] = []
+    const inputs: HTMLElement[] = []
 
     Object.values(slot.assignedElements()).forEach((element) => {
       inputs.push(...Enlightenment.getElements(element, tags))
@@ -272,7 +275,7 @@ export class Enlightenment extends LitElement {
       return []
     }
 
-    const elements: Element[] = []
+    const elements: HTMLElement[] = []
 
     if (context.shadowRoot) {
       Object.values(context.shadowRoot.children).forEach((child) =>
@@ -286,8 +289,11 @@ export class Enlightenment extends LitElement {
       )
     }
 
-    if (tags.includes(context.tagName.toLowerCase()) && !elements.includes(context)) {
-      elements.push(context)
+    if (
+      tags.includes(context.tagName.toLowerCase()) &&
+      !elements.includes(context as HTMLElement)
+    ) {
+      elements.push(context as HTMLElement)
     }
 
     return [...new Set(elements)]
@@ -691,6 +697,27 @@ export class Enlightenment extends LitElement {
   }
 
   /**
+   * Alias for the default console to use during development.
+   */
+  protected log(message: any | any[], type?: string) {
+    //@ts-ignore
+    if (typeof console[type || 'log'] !== 'function') {
+      return
+    }
+
+    let output = Array.isArray(message) ? message : [message]
+
+    const { verbose } = this.useState() || {}
+
+    if (verbose || type === 'error') {
+      let t = type === 'warning' ? 'warn' : type
+
+      //@ts-ignore
+      output.forEach((m) => console[t || 'log'](m))
+    }
+  }
+
+  /**
    * Optional callback to use when existing Elements are attached from the
    * listen property: listen=".foo,#bar,custom-component"
    * @param event The actual Event Object that was created from an existing
@@ -739,7 +766,7 @@ export class Enlightenment extends LitElement {
    * Assigns a new global event for the rendered component context.
    * The actual event is stored within the instance to prevent Event stacking.
    */
-  private assignGlobalEvent(
+  protected assignGlobalEvent(
     type: GlobalEventType,
     handler: GlobalEventHandler,
     context?: GlobalEventContext
@@ -858,7 +885,7 @@ export class Enlightenment extends LitElement {
    *
    * @param Event Use the Event target as actual context.
    */
-  private assignSlottedEvent(event: Event) {
+  protected assignSlottedEvent(event: Event) {
     const actions: HTMLElement[] = []
 
     actions.push(...(Object.values(this.querySelectorAll('[handle]')) as HTMLElement[]))
@@ -897,7 +924,7 @@ export class Enlightenment extends LitElement {
    * Removes the assigned global Events from the selected context or this
    * Component.
    */
-  private clearGlobalEvent(type: GlobalEventType, context?: any | any[]) {
+  protected clearGlobalEvent(type: GlobalEventType, context?: any | any[]) {
     const queue = Array.isArray(context) ? context : [context]
 
     for (let i = 0; i < queue.length; i += 1) {
@@ -931,7 +958,7 @@ export class Enlightenment extends LitElement {
    * disabl the optional process usage when sibling Components dispatch the
    * 'updated' event.
    */
-  private clearListeners() {
+  protected clearListeners() {
     if (!this.observe || !this.observe.length) {
       return
     }
@@ -1009,78 +1036,6 @@ export class Enlightenment extends LitElement {
   }
 
   /**
-   * Helper function that updates the defined property from the constructed
-   * Enlightenment instance.
-   */
-  private commit(property: string, handler: any) {
-    if (!property) {
-      this.log([`Unable to commit undefined property`])
-
-      return
-    }
-
-    if (handler === null) {
-      this.log([`Unable to commit ${property}`])
-
-      return
-    }
-
-    let update = false
-
-    try {
-      //@ts-ignore
-      const value = this[property as any]
-
-      if (typeof handler === 'function') {
-        const result = handler()
-
-        //@ts-ignore
-        if (result !== undefined && typeof result === typeof this[property]) {
-          //@ts-ignore
-          this[property] = result
-        }
-
-        update = true
-      } else {
-        if (Object.keys(this).includes(property)) {
-          //@ts-ignore
-          this[property] = handler
-
-          if (handler !== value) {
-            update = true
-          }
-
-          const data: { [key: string]: any } = {}
-          data[property] = handler
-
-          // Use this.hook directly since a throttle will be called by the
-          // component.requestUpdate method.
-          this.hook('commit', { data })
-
-          this.log([`${this.namespace} property updated for:`, [property, handler]])
-        } else {
-          this.log(['Illegal property commit detected.', [property, handler]], 'error')
-        }
-      }
-
-      //@ts-ignore
-      update &&
-        this.log([
-          `${this.namespace} commit accepted from: ${this.constructor.name}['${property}']`
-        ])
-
-      // Ensures the property update fires the component callbacks.
-      update && this.requestUpdate(property, value)
-    } catch (error) {
-      if (error) {
-        this.log(error, 'error')
-
-        update = false
-      }
-    }
-  }
-
-  /**
    * Default hook that should be called during a component render update.
    */
   private dispatchUpdate(name?: string) {
@@ -1104,27 +1059,6 @@ export class Enlightenment extends LitElement {
     })
 
     return entry.length ? entry[0] : []
-  }
-
-  /**
-   * Alias for the default console to use during development.
-   */
-  private log(message: any | any[], type?: string) {
-    //@ts-ignore
-    if (typeof console[type || 'log'] !== 'function') {
-      return
-    }
-
-    let output = Array.isArray(message) ? message : [message]
-
-    const { verbose } = this.useState() || {}
-
-    if (verbose || type === 'error') {
-      let t = type === 'warning' ? 'warn' : type
-
-      //@ts-ignore
-      output.forEach((m) => console[t || 'log'](m))
-    }
   }
 
   /**
@@ -1290,6 +1224,78 @@ export class Enlightenment extends LitElement {
         super.attributeChangedCallback(name, _old || null, value || null)
         this.requestUpdate()
       })
+    }
+  }
+
+  /**
+   * Helper function that updates the defined property from the constructed
+   * Enlightenment instance.
+   */
+  public commit(property: string, handler: any) {
+    if (!property) {
+      this.log([`Unable to commit undefined property`])
+
+      return
+    }
+
+    if (handler === null) {
+      this.log([`Unable to commit ${property}`])
+
+      return
+    }
+
+    let update = false
+
+    try {
+      //@ts-ignore
+      const value = this[property as any]
+
+      if (typeof handler === 'function') {
+        const result = handler()
+
+        //@ts-ignore
+        if (result !== undefined && typeof result === typeof this[property]) {
+          //@ts-ignore
+          this[property] = result
+        }
+
+        update = true
+      } else {
+        if (Object.keys(this).includes(property)) {
+          //@ts-ignore
+          this[property] = handler
+
+          if (handler !== value) {
+            update = true
+          }
+
+          const data: { [key: string]: any } = {}
+          data[property] = handler
+
+          // Use this.hook directly since a throttle will be called by the
+          // component.requestUpdate method.
+          this.hook('commit', { data })
+
+          this.log([`${this.namespace} property updated for:`, [property, handler]])
+        } else {
+          this.log(['Illegal property commit detected.', [property, handler]], 'error')
+        }
+      }
+
+      //@ts-ignore
+      update &&
+        this.log([
+          `${this.namespace} commit accepted from: ${this.constructor.name}['${property}']`
+        ])
+
+      // Ensures the property update fires the component callbacks.
+      update && this.requestUpdate(property, value)
+    } catch (error) {
+      if (error) {
+        this.log(error, 'error')
+
+        update = false
+      }
     }
   }
 
@@ -1542,7 +1548,7 @@ export class Enlightenment extends LitElement {
   /**
    * Callback to use after a component update.
    */
-  protected updated(properties: PropertyValueMap<any> | Map<PropertyKey, unknown>) {
+  protected updated(properties: any) {
     super.updated(properties)
 
     // console.log('Change', this, properties.size)
