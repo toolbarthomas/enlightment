@@ -351,8 +351,9 @@ export class Enlightenment extends LitElement {
 
   // The keycodes that could be validated within a class method.
   static keyCodes = {
-    meta: [9, 16, 17, 18, 20],
-    exit: [27]
+    confirm: [13, 32],
+    exit: [27],
+    meta: [9, 16, 17, 18, 20]
   }
 
   /**
