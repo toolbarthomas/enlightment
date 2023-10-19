@@ -256,20 +256,32 @@ export class Enlightenment extends LitElement {
     return collection.includes(value) ? value : fallback
   }
 
+  /**
+   * Returns a Nodelist from the defined element tag within given Slot context.
+   *
+   * @param slot Find any element within the defined Slot context.
+   * @param tags Find any valid tag from the given context.
+   */
   static getElementsFromSlot(slot: HTMLSlotElement, tags: string[]) {
     if (!slot || !slot.assignedElements || !tags) {
       return []
     }
 
-    const inputs: HTMLElement[] = []
+    const elements: HTMLElement[] = []
 
     Object.values(slot.assignedElements()).forEach((element) => {
-      inputs.push(...Enlightenment.getElements(element, tags))
+      elements.push(...Enlightenment.getElements(element, tags))
     })
 
-    return [...new Set(inputs)]
+    return [...new Set(elements)]
   }
 
+  /**
+   * Returns the element from the given context.
+   *
+   * @param slot Find any element within the defined context.
+   * @param tags Find any valid tag from the given context.
+   */
   static getElements(context: Element, tags: string[]) {
     if (!context) {
       return []
