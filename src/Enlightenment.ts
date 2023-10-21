@@ -1181,8 +1181,21 @@ export class Enlightenment extends LitElement {
    */
   private useMode() {
     const { mode } = this.useState() || {}
+    const host = Enlightenment.useHost(this)
 
-    if (!this.mode && mode && this.mode !== mode) {
+    if (!this.hasAttribute('mode') && host) {
+      const inheritMode = Enlightenment.isMode(host.getAttribute('mode'))
+
+      if (inheritMode && this.mode !== inheritMode) {
+        this.mode = inheritMode
+
+        // Update the inherited mode value as actual HTML attribute in order to
+        // apply the actual CSS styles.
+        this.mode && this.setAttribute('mode', this.mode)
+      } else if (this.mode === undefined) {
+        this.mode = mode
+      }
+    } else if (!this.mode && mode && this.mode !== mode) {
       this.mode = mode
     }
   }
