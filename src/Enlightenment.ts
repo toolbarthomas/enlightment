@@ -257,6 +257,20 @@ export class Enlightenment extends LitElement {
   }
 
   /**
+   * Generates a new ID value from the current timestamp without any validation.
+   */
+  static generateTimestampID() {
+    return `uuid${btoa(
+      (String(Date.now()).match(/.{1,2}/g) || [])
+        .sort(() => Math.random() - 0.5)
+        .map((c) => String.fromCharCode(parseInt(c)))
+        .join('')
+    )
+      .replaceAll('=', '')
+      .replaceAll('/', '')}`
+  }
+
+  /**
    * Returns a Nodelist from the defined element tag within given Slot context.
    *
    * @param slot Find any element within the defined Slot context.
@@ -438,6 +452,19 @@ export class Enlightenment extends LitElement {
     }
 
     return target
+  }
+
+  /**
+   * Generates a new valid element id selector for the current DOM.
+   */
+  static useElementID() {
+    let id = Enlightenment.generateTimestampID()
+
+    while (document.getElementById(id)) {
+      id = Enlightenment.generateTimestampID()
+    }
+
+    return id
   }
 
   /**
