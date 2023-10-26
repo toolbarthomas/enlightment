@@ -528,6 +528,50 @@ export class Enlightenment extends LitElement {
   }
 
   /**
+   * Find the closest Element from the defined selector that should exists
+   * within the initial or any parent ShadowDOM.
+   *
+   * @param selector Requires a valid querySelector value.
+   */
+  protected findParentElement(selector: string) {
+    if (typeof selector !== 'string') {
+      return
+    }
+
+    let host = Enlightenment.useHost(this) as Enlightenment
+
+    if (!host) {
+      return
+    }
+
+    let context = host.useContext()
+
+    while (context && context.tagName !== selector.toUpperCase()) {
+      host = Enlightenment.useHost(host) as Enlightenment
+
+      if (!host) {
+        break
+      }
+
+      const target = host.shadowRoot && host.shadowRoot.querySelector(selector.toLowerCase())
+
+      if (target) {
+        context = target
+
+        break
+      }
+
+      context = host.useContext()
+    }
+
+    if (!context || context.tagName !== selector.toUpperCase()) {
+      return
+    }
+
+    return context
+  }
+
+  /**
    * Setup the actual featuers for the constructed Enlightenment component.
    */
   protected firstUpdated(properties: PropertyValueMap<any> | Map<PropertyKey, unknown>) {
