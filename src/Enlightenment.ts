@@ -1694,6 +1694,8 @@ export class Enlightenment extends LitElement {
 
     if (name && this.slots && this.slots[name]) {
       return this.slots[name] as HTMLSlotElement
+    } else if (name && !Object.keys(this.slots).includes(name)) {
+      return
     }
 
     const [result] = Object.entries(this.slots).filter(
