@@ -180,8 +180,16 @@ export class Enlightenment extends LitElement {
 
   // Optional Flag that will prevent the usage of requestUpdate during an
   // attribute change.
-  @property({ converter: (value) => Enlightenment.isBoolean, type: Boolean })
+  @property({ converter: (value) => Enlightenment.isBoolean(value), type: Boolean })
   once?: boolean
+
+  // Optional Flag that should render the component indicator during a loading
+  // state of the defined component.
+  @property({
+    converter: (value) => Enlightenment.isBoolean(value),
+    type: Boolean
+  })
+  pending?: boolean
 
   // Enables the usage of an SVG spritesheet with the renderImage helper
   // methods.
