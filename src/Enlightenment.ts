@@ -833,10 +833,11 @@ export class Enlightenment extends LitElement {
     const process: undefined | EnlightenmentProcess = this.process
 
     try {
-      process !== undefined &&
-        document.contains(target as Node) &&
+      if (process !== undefined && document.contains(target as Node)) {
         process.call(this, target as HTMLElement)
-      this.requestUpdate()
+      }
+
+      this.throttle(this.requestUpdate)
     } catch (exception) {
       exception && this.log(exception, 'error')
     }
@@ -1325,10 +1326,8 @@ export class Enlightenment extends LitElement {
     if (this.once) {
       super.attributeChangedCallback(name, _old || null, value || null)
     } else {
-      this.throttle(() => {
-        super.attributeChangedCallback(name, _old || null, value || null)
-        this.requestUpdate()
-      })
+      super.attributeChangedCallback(name, _old || null, value || null)
+      this.throttle(this.requestUpdate)
     }
   }
 
@@ -1336,7 +1335,7 @@ export class Enlightenment extends LitElement {
    * Helper function that updates the defined property from the constructed
    * Enlightenment instance.
    */
-  public commit(property: string, handler: any) {
+  public commit(property: string, handler: any, strict?: boolean) {
     if (!property) {
       this.log([`Unable to commit undefined property`])
 
@@ -1384,6 +1383,12 @@ export class Enlightenment extends LitElement {
           this.log([`${this.namespace} property updated for:`, [property, handler]])
         } else {
           this.log(['Illegal property commit detected.', [property, handler]], 'error')
+        }
+
+        // Prevent the component update if the proposed value is an identical
+        // Array.
+        if (Array.isArray(value) && Array.isArray(handler)) {
+          update = !(handler as []).every((node: any, index: number) => node === value[index])
         }
       }
 
