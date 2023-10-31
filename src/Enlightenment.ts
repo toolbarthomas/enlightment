@@ -671,7 +671,7 @@ export class Enlightenment extends LitElement {
         t.blur()
       }
     } else if (!Enlightenment.keyCodes.meta.includes(keyCode)) {
-      this.handleCurrentElement(this)
+      this.handleCurrentElement(event.target)
     } else {
       this.throttle(() => {
         this.handleCurrentElement(document.activeElement)
