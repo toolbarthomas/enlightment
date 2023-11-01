@@ -1388,7 +1388,7 @@ export class Enlightenment extends LitElement {
         // Prevent the component update if the proposed value is an identical
         // Array.
         if (Array.isArray(value) && Array.isArray(handler)) {
-          update = !(handler as []).every((node: any, index: number) => node === value[index])
+          update = !this.compareValue(value, handler)
         }
       }
 
@@ -1407,6 +1407,38 @@ export class Enlightenment extends LitElement {
         update = false
       }
     }
+  }
+
+  /**
+   * Compares the defined values by typing and (nested) values.
+   *
+   * @param commit The first value to compare.
+   * @param initial The second value to compare.
+   */
+  public compareValue(commit: any, initial: any): boolean | undefined {
+    try {
+      if (typeof commit !== typeof initial) {
+        return false
+      }
+
+      if (Array.isArray(commit) && Array.isArray(initial)) {
+        return Array.from(commit).every((value, index) => this.compareValue(value, initial[index]))
+      }
+
+      if (commit instanceof Object && initial instanceof Object) {
+        return JSON.stringify(commit) === JSON.stringify(initial)
+      }
+
+      if (commit === initial) {
+        return true
+      }
+    } catch (error) {
+      if (error) {
+        this.log(error, 'error')
+      }
+    }
+
+    return false
   }
 
   /**
