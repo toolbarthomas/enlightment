@@ -1335,7 +1335,7 @@ export class Enlightenment extends LitElement {
    * Helper function that updates the defined property from the constructed
    * Enlightenment instance.
    */
-  public commit(property: string, handler: any, strict?: boolean) {
+  public commit(property: string, handler: any) {
     if (!property) {
       this.log([`Unable to commit undefined property`])
 
@@ -1418,6 +1418,10 @@ export class Enlightenment extends LitElement {
   public compareValue(commit: any, initial: any): boolean | undefined {
     try {
       if (typeof commit !== typeof initial) {
+        return false
+      }
+
+      if (commit.length !== initial.length) {
         return false
       }
 
@@ -1692,8 +1696,6 @@ export class Enlightenment extends LitElement {
    */
   protected updated(properties: any) {
     super.updated(properties)
-
-    // console.log('Change', this, properties.size)
 
     this.throttle(this.handleUpdate, Enlightenment.FPS, 'updated')
   }
