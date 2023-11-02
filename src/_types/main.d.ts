@@ -54,3 +54,5 @@ export type HookOptions = {
   context?: Element
   data?: any
 }
+
+export type ColorMode = 'light' | 'dark'

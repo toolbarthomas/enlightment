@@ -28,6 +28,7 @@ import {
 } from './_types/main'
 
 import { isEmptyComponentSlot } from './mixins/dom'
+import { Globals } from './providers/Globals'
 
 export const createRef = _createRef
 export const css = _css
@@ -206,6 +207,8 @@ export class Enlightenment extends LitElement {
 
   // Expected interval value of 60HZ refresh rate.
   static FPS = 1000 / 60
+
+  static globals = new Globals()
 
   // Defines the attribute state from the given value, non-defined attributes
   // should be undefined while attributes without values should be true.
@@ -603,17 +606,10 @@ export class Enlightenment extends LitElement {
     }
 
     if (this.isComponentContext(target as HTMLElement)) {
-      this.currentElement = true
-      this.assignCurrentElement()
-      this.setAttribute('aria-current', 'true')
+      this.attachCurrentElement()
     } else {
-      this.currentElement = false
-      this.omitCurrentElement()
-      this.setAttribute('aria-current', 'false')
+      this.detachCurrentElement()
     }
-
-    // this.commit('currentElement', () => {
-    // })
   }
 
   /**
@@ -844,15 +840,12 @@ export class Enlightenment extends LitElement {
   }
 
   /**
-   * Marks the defined Enlightenment element context as active global element
-   * within the constructed this.root Object.
+   * Attaches the defined component to the currentElement global.
    */
-  private assignCurrentElement() {
-    const state = this.useState()
+  private attachCurrentElement() {
+    this.currentElement = true
 
-    if (state && !state.currentElements.filter((ce) => ce === this).length) {
-      state.currentElements.push(this)
-    }
+    Enlightenment.globals.assignCurrentElement(this)
   }
 
   /**
@@ -1155,18 +1148,12 @@ export class Enlightenment extends LitElement {
   }
 
   /**
-   * Removes the defined Enlightenment element context from the active global
-   * Element collection.
+   * Removes the defined Enlightenment element from the currentElements global
+   * and notify any related Enlightenment components.
    */
-  private omitCurrentElement() {
-    const state = this.useState()
-
-    if (state && state.currentElements && state.currentElements.length) {
-      const commit = state.currentElements.filter((ce) => ce !== this)
-
-      state.currentElements = commit
-    }
-
+  private detachCurrentElement() {
+    this.currentElement = false
+    Enlightenment.globals.omitCurrentElement(this)
     this.dispatchUpdate('omit')
   }
 
