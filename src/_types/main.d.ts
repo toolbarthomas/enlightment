@@ -8,15 +8,6 @@ export type EnlightenmentImageOptions =
   | string
 
 /**
- * Defines the Global state typing that is assigned to the Window context.
- */
-export type EnlightenmentState = {
-  currentElements: Element[]
-  mode?: string
-  verbose?: boolean
-}
-
-/**
  * Defines the expected Element types to use during any DOM logic.
  */
 export type EnligtenmentTarget = Element | HTMLElement | Node | SVGElement | undefined

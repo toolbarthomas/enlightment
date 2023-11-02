@@ -134,6 +134,6 @@ class HelloWorld extends Enlightenment {
   }
 
   start() {
-    console.log('Start', this)
+    console.log('Hello World', this)
   }
 }

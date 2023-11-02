@@ -17,7 +17,6 @@ import {
   EnlightenmentHandler,
   EnlightenmentImageOptions,
   EnlightenmentProcess,
-  EnlightenmentState,
   EnlightenmentThrottle,
   EnligtenmentTarget,
   GlobalEvent,
@@ -28,7 +27,7 @@ import {
 } from './_types/main'
 
 import { isEmptyComponentSlot } from './mixins/dom'
-import { Globals } from './providers/Globals'
+import { EnlightenmentGlobals } from './providers/Globals'
 
 export const createRef = _createRef
 export const css = _css
@@ -208,7 +207,7 @@ export class Enlightenment extends LitElement {
   // Expected interval value of 60HZ refresh rate.
   static FPS = 1000 / 60
 
-  static globals = new Globals()
+  static globals = new EnlightenmentGlobals()
 
   // Defines the attribute state from the given value, non-defined attributes
   // should be undefined while attributes without values should be true.
@@ -516,19 +515,6 @@ export class Enlightenment extends LitElement {
 
     this.uuid = this.constructor.name
 
-    // Ensure the Global state is defined for the initial custom elements.
-    if (!this.useState()) {
-      const state = {
-        currentElements: [],
-        mode: 'light',
-        verbose: false
-      } as EnlightenmentState
-
-      this.useState(state)
-
-      this.log([`${this.namespace} global assigned:`, state])
-    }
-
     // Setup the throttler for the new Component.
     this.throttler = {
       delay: parseInt(String(this.delay)) || Enlightenment.FPS,
@@ -795,7 +781,7 @@ export class Enlightenment extends LitElement {
 
     let output = Array.isArray(message) ? message : [message]
 
-    const { verbose } = this.useState() || {}
+    const { verbose } = Enlightenment.globals
 
     if (verbose || type === 'error') {
       let t = type === 'warning' ? 'warn' : type
@@ -1247,7 +1233,7 @@ export class Enlightenment extends LitElement {
    * specified mode value from the global state as default value otherwise.
    */
   private useMode() {
-    const { mode } = this.useState() || {}
+    const { mode } = Enlightenment.globals
     const host = Enlightenment.useHost(this)
 
     if (!this.hasAttribute('mode') && host) {
@@ -1737,35 +1723,5 @@ export class Enlightenment extends LitElement {
     )
 
     return result && result[1]
-  }
-
-  /**
-   * Returns the global Enlightenment state from the defined root context.
-   */
-  protected useState(state?: EnlightenmentState) {
-    if (state) {
-      //@ts-ignore
-      if (this.root && this.root[this.namespace]) {
-        // Update the current global State with the optional state values.
-        //@ts-ignore
-        this.root[this.namespace] = {
-          ...state,
-          //@ts-ignore
-          ...this.root[this.namespace]
-        } as EnlightenmentState
-      } else {
-        // Define the initial global state.
-        //@ts-ignore
-        this.root[this.namespace] = state
-      }
-    }
-
-    //@ts-ignore
-    if (this.root && this.root[this.namespace]) {
-      //@ts-ignore
-      return this.root[this.namespace] as EnlightenmentState
-    }
-
-    return undefined
   }
 }
