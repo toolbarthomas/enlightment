@@ -37,6 +37,7 @@ export const html = _html
 export const nothing = _nothing
 export const property = _property
 export const ref = _ref
+export const NAMESPACE = 'NLGHTNMNT'
 
 // import styles from "src/styles.scss";
 
@@ -115,7 +116,7 @@ export class Enlightenment extends LitElement {
   listeners: GlobalEvent[] = []
 
   // Value to use for the naming of the Global state.
-  namespace: string = 'NLGHTNMNT'
+  namespace: string = NAMESPACE
 
   // Blocks the default handle methods when TRUE.
   preventEvent: boolean = false
@@ -207,7 +208,8 @@ export class Enlightenment extends LitElement {
   // Expected interval value of 60HZ refresh rate.
   static FPS = 1000 / 60
 
-  static globals = new EnlightenmentGlobals()
+  // Shared globals for the running component instances.
+  static globals = new EnlightenmentGlobals(NAMESPACE)
 
   // Defines the attribute state from the given value, non-defined attributes
   // should be undefined while attributes without values should be true.
