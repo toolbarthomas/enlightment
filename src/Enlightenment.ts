@@ -217,6 +217,11 @@ export class Enlightenment extends LitElement {
     return value !== undefined && String(value) !== 'false' ? true : false
   }
 
+  // Ensures the given value is parsed as Integer value.
+  static isInteger(value: any) {
+    return value && parseInt(value)
+  }
+
   // Converts the given string value as array with potential selectors.
   static convertToSelectors(value: any) {
     if (typeof value !== 'string') {
