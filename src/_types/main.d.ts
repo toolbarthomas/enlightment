@@ -31,6 +31,11 @@ export type EnlightenmentProcess = (target?: HTMLElement) => void
 export type GlobalEventType = Event['type']
 export type GlobalEventHandler = Function
 export type GlobalEventContext = EventTarget
+export type GlobalEventOptions = {
+  context?: GlobalEventContext
+  once?: boolean
+}
+
 export type GlobalEvent = [
   GlobalEventType,
   GlobalEventHandler,

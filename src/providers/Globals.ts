@@ -13,6 +13,10 @@ export class EnlightenmentGlobals {
   // The current Element is attached and detached by the Global Event listeners.
   currentElements: Element[] = []
 
+  // Defines the Attribute name to use when the initial component has been
+  // flagged as currentElement.
+  currentAttribute: string = 'aria-current'
+
   // Use the accepted Color mode for all Components with undefined [mode]
   // HTML Attributes.
   mode?: ColorMode = 'light'
@@ -46,7 +50,7 @@ export class EnlightenmentGlobals {
     if (!this.currentElements.filter((currentElement) => currentElement === context).length) {
       this.currentElements.push(context)
 
-      context.setAttribute('aria-current', 'true')
+      context.setAttribute(this.currentAttribute, 'true')
     }
   }
 
@@ -66,7 +70,7 @@ export class EnlightenmentGlobals {
 
       this.currentElements = commit
 
-      context.setAttribute('aria-current', 'false')
+      context.setAttribute(this.currentAttribute, 'false')
     }
   }
 }

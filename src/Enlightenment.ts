@@ -20,8 +20,8 @@ import {
   EnlightenmentThrottle,
   EnligtenmentTarget,
   GlobalEvent,
-  GlobalEventContext,
   GlobalEventHandler,
+  GlobalEventOptions,
   GlobalEventType,
   HookOptions
 } from './_types/main'
@@ -843,7 +843,7 @@ export class Enlightenment extends LitElement {
   protected assignGlobalEvent(
     type: GlobalEventType,
     handler: GlobalEventHandler,
-    context?: GlobalEventContext
+    options?: GlobalEventOptions
   ) {
     if (!type) {
       this.log('Unable to assign global event.', 'error')
@@ -856,6 +856,8 @@ export class Enlightenment extends LitElement {
 
       return
     }
+
+    const { context, once } = options || {}
 
     const ctx = context || document
 
@@ -871,7 +873,7 @@ export class Enlightenment extends LitElement {
 
     this.listeners.push([type, fn, ctx, handler])
 
-    ctx && ctx.addEventListener(type, fn)
+    ctx && ctx.addEventListener(type, fn, { once })
 
     this.log([`Global event assigned: ${ctx.constructor.name}@${type}`, ctx])
   }
@@ -894,7 +896,7 @@ export class Enlightenment extends LitElement {
     }
 
     for (let i = queue.length; i--; ) {
-      this.assignGlobalEvent('updated', this._process, queue[i])
+      this.assignGlobalEvent('updated', this._process, { context: queue[i] })
     }
   }
 
@@ -930,12 +932,12 @@ export class Enlightenment extends LitElement {
           if (!Object.values(this.slots).includes(slot)) {
             this.slots[name] = isEmptyComponentSlot(slot) ? undefined : slot
 
-            this.assignGlobalEvent('slotchange', this.handleSlotChange, slot)
+            this.assignGlobalEvent('slotchange', this.handleSlotChange, { context: slot })
           }
 
           if (this.slots[name] !== undefined) {
             this.addEventListener(
-              'ready',
+              'updated',
               (event) => this.handleSlotChange({ ...event, target: slot } as Event),
               {
                 once: true
@@ -995,7 +997,7 @@ export class Enlightenment extends LitElement {
         const fn: Function = this[name.split('(')[0]]
 
         if (typeof fn === 'function' && Enlightenment.useHost(element) === this) {
-          this.assignGlobalEvent(type, fn.bind(this), element)
+          this.assignGlobalEvent(type, fn.bind(this), { context: element })
         }
       })
     }
@@ -1438,7 +1440,6 @@ export class Enlightenment extends LitElement {
       this.assignGlobalEvent('keydown', this.handleGlobalKeydown)
       this.assignGlobalEvent('focus', this.handleGlobalFocus)
       this.assignGlobalEvent('focusin', this.handleGlobalFocus)
-      this.assignGlobalEvent('blur', () => console.log('blur?'))
     }
 
     this.throttle(this.assignListeners)
