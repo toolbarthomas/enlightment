@@ -922,18 +922,25 @@ export class Enlightenment extends LitElement {
         this.slots = {}
       } else {
         for (let i = 0; i < slots.length; i += 1) {
-          const name = slots[i].name || Enlightenment.defaults.slot
+          const slot = slots[i]
+          const name = slot.name || Enlightenment.defaults.slot
 
-          this.clearSlottedEvents(slots[i])
+          this.clearSlottedEvents(slot)
 
-          if (!Object.values(this.slots).includes(slots[i])) {
-            this.slots[name] = isEmptyComponentSlot(slots[i]) ? undefined : slots[i]
+          if (!Object.values(this.slots).includes(slot)) {
+            this.slots[name] = isEmptyComponentSlot(slot) ? undefined : slot
 
-            this.assignGlobalEvent('slotchange', this.handleSlotChange, slots[i])
+            this.assignGlobalEvent('slotchange', this.handleSlotChange, slot)
           }
 
           if (this.slots[name] !== undefined) {
-            this.handleSlotChange({ target: slots[i] } as any)
+            this.addEventListener(
+              'ready',
+              (event) => this.handleSlotChange({ ...event, target: slot } as Event),
+              {
+                once: true
+              }
+            )
           }
         }
 
@@ -1489,7 +1496,7 @@ export class Enlightenment extends LitElement {
     }
 
     let bubbles = true
-    if (['resize', 'scroll', 'updated'].includes(name)) {
+    if (['resize', 'scroll', 'updated', 'slotchange'].includes(name)) {
       bubbles = false
     }
 
@@ -1669,7 +1676,7 @@ export class Enlightenment extends LitElement {
   /**
    * Callback to use after a component update.
    */
-  protected updated(properties: any) {
+  protected updated(properties: PropertyValues) {
     super.updated(properties)
 
     this.throttle(this.handleUpdate, Enlightenment.FPS, 'updated')
