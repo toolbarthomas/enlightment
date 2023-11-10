@@ -681,6 +681,8 @@ export class Enlightenment extends LitElement {
       return
     }
 
+    console.log('THIS SLOTSCHANGE', this, event)
+
     this.isEmptySlot(event)
     this.assignSlottedEvent(event)
 
@@ -941,12 +943,12 @@ export class Enlightenment extends LitElement {
           }
 
           if (this.slots[name] !== undefined) {
-            this.addEventListener(
-              'updated',
-              (event) => this.handleSlotChange({ ...event, target: slot } as Event),
-              {
-                once: true
-              }
+            this.assignGlobalEvent(
+              'ready',
+              (event: Event) => {
+                this.handleSlotChange({ ...event, target: slot } as Event)
+              },
+              { context: this, once: true }
             )
           }
         }
