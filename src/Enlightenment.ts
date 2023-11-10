@@ -681,8 +681,6 @@ export class Enlightenment extends LitElement {
       return
     }
 
-    console.log('THIS SLOTSCHANGE', this, event)
-
     this.isEmptySlot(event)
     this.assignSlottedEvent(event)
 
@@ -937,19 +935,13 @@ export class Enlightenment extends LitElement {
           this.clearSlottedEvents(slot)
 
           if (!Object.values(this.slots).includes(slot)) {
+            if (!this.slots[name]) {
+              this.handleSlotChange({ ...event, target: slot } as Event)
+            }
+
             this.slots[name] = isEmptyComponentSlot(slot) ? undefined : slot
 
             this.assignGlobalEvent('slotchange', this.handleSlotChange, { context: slot })
-          }
-
-          if (this.slots[name] !== undefined) {
-            this.assignGlobalEvent(
-              'ready',
-              (event: Event) => {
-                this.handleSlotChange({ ...event, target: slot } as Event)
-              },
-              { context: this, once: true }
-            )
           }
         }
 
