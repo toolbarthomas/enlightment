@@ -129,6 +129,9 @@ export class Enlightenment extends LitElement {
   // the actual rendered slots existence.
   slots: { [key: string]: HTMLSlotElement | undefined } = {}
 
+  // Will be TRUE during the inital callback of handleSlot
+  slotLoaded?: boolean
+
   // Contains the assigned handlers that will be called once.
   throttler: {
     delay: number
@@ -340,6 +343,21 @@ export class Enlightenment extends LitElement {
     }
 
     return [...new Set(elements)]
+  }
+
+  /**
+   * Get all related components from the given context and Document by default
+   * or use the defined element selector.
+   */
+  static getRelatedComponents(context: Element, selector?: string) {
+    return [
+      ...new Set([
+        ...Array.from(document.querySelectorAll(selector || context.tagName)),
+        ...(context.parentNode
+          ? Array.from(context.parentNode.querySelectorAll(selector || context.tagName))
+          : [])
+      ])
+    ].filter((element) => element !== context)
   }
 
   /**
@@ -685,6 +703,16 @@ export class Enlightenment extends LitElement {
     this.assignSlottedEvent(event)
 
     this.dispatchUpdate('slotchange')
+
+    if (!this.slotLoaded) {
+      Object.defineProperty(this, 'slotLoaded', {
+        configurable: false,
+        writable: false,
+        value: true
+      })
+
+      this.throttle(this.requestUpdate)
+    }
   }
 
   /**
@@ -936,7 +964,7 @@ export class Enlightenment extends LitElement {
 
           if (!Object.values(this.slots).includes(slot)) {
             if (!this.slots[name]) {
-              this.handleSlotChange({ ...event, target: slot } as Event)
+              this.throttle(this.handleSlotChange, Enlightenment.FPS, { ...event, target: slot })
             }
 
             this.slots[name] = isEmptyComponentSlot(slot) ? undefined : slot
