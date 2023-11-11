@@ -1085,6 +1085,243 @@ export class Enlightenment extends LitElement {
   }
 
   /**
+   * Clones the names Slot element that can be used when the defined component
+   * includes multiple slot elements with duplicate name values.
+   *
+   * @param name Clones all existing names Slot elements from the initial
+   * Slot name.
+   */
+  protected cloneSlot(name?: string) {
+    const slot = this.useInitialSlot(name || Enlightenment.defaults.slot)
+
+    if (!slot || !slot.assignedElements) {
+      return
+    }
+
+    if (!this.shadowRoot) {
+      return
+    }
+
+    this.throttle(() => {
+      const nodes = slot.assignedElements()
+      const context = this.shadowRoot || this
+      const slots = context.querySelectorAll(`slot[name="${name || ''}"]`)
+      const html = [...slot.assignedElements().map((element) => element.outerHTML)].join('')
+
+      for (let index = 0; index < slots.length; index++) {
+        if (slots[index] === slot) {
+          continue
+        }
+
+        slots[index].innerHTML = html
+      }
+    })
+  }
+
+  /**
+   * Validates if the given image source should be renderd as inline image when
+   * TRUE or static image as default.
+   */
+  protected testImage(initial: boolean, source: string) {
+    if (
+      !this.svgSpriteSource ||
+      !this.testImageSource(this.svgSpriteSource) ||
+      this.testImageSource(source)
+    ) {
+      return false
+    }
+
+    if (initial && this.svgSpriteSource) {
+      if (source && this.testImageSource(this.svgSpriteSource) && this.testImageSource(source)) {
+        return false
+      }
+
+      return true
+    } else if (initial) {
+      return false
+    }
+
+    if (this.svgSpriteSource && source) {
+      if (
+        this.testImageSource(this.svgSpriteSource) &&
+        this.testImageSource(Enlightenment.strip(source))
+      ) {
+        return false
+      }
+
+      return true
+    }
+
+    return false
+  }
+
+  /**
+   * Validates if the defined source is a valid image path.
+   */
+  protected testImageSource(source: string) {
+    if (typeof source !== 'string') {
+      return
+    }
+
+    let result = false
+
+    Enlightenment.supportedImageExtensions.forEach((extension) => {
+      if (Enlightenment.strip(source).endsWith(extension)) {
+        result = true
+      }
+    })
+
+    return result
+  }
+
+  /**
+   * Helper function that ensures the given handler is only called once within
+   * the defined delay.
+   */
+  protected throttle(handler: EnlightenmentThrottle[0], delay?: number, ...args: any[]) {
+    if (!this.throttler || !this.throttler.handlers) {
+      this.log(['Unable to throttle:', handler], 'error')
+
+      return
+    }
+
+    if (typeof handler !== 'function') {
+      this.log('Unable to use throttle, the defined handler is not a function', 'error')
+    }
+
+    let index = -1
+    const [exists] = this.throttler.handlers.filter(([h], i) => {
+      if (h === handler) {
+        if (index < 0) {
+          index = i
+        }
+
+        return h === handler
+      }
+
+      return undefined
+    })
+
+    if (exists) {
+      this.log([`Abort previous throttle:`, this], 'info')
+
+      const previousTimeout = this.throttler.handlers[index]
+
+      previousTimeout && previousTimeout[1] && clearTimeout(previousTimeout[1])
+
+      delete this.throttler.handlers[index]
+    }
+
+    const timeout = setTimeout(
+      () => {
+        // try {
+        handler.call(this, ...args)
+        // } catch (exception) {
+        // exception && this.log(exception, 'error')
+        // }
+      },
+      parseInt(String(delay)) || this.throttler.delay
+    )
+
+    this.log([`${this.constructor.name} throttle defined:`, this], 'info')
+
+    this.throttler.handlers.push([handler, timeout])
+
+    setTimeout(() => {
+      this.throttler.handlers.forEach(([h], i) => {
+        if (h === handler) {
+          delete this.throttler.handlers[i]
+        }
+      })
+    }, timeout + 1)
+  }
+
+  /**
+   * Callback to use after a component update.
+   */
+  protected updated(properties: PropertyValues) {
+    super.updated(properties)
+
+    this.throttle(this.handleUpdate, Enlightenment.FPS, 'updated')
+  }
+
+  /**
+   * Updates the preventEvent flag that should disable other handlers to be
+   * used when TRUE.
+   */
+  protected updatePreventEvent() {
+    if (this.ariaDisabled === 'true' || this.hasAttribute('disabled')) {
+      this.commit('preventEvent', true)
+    } else {
+      this.commit('preventEvent', false)
+    }
+  }
+
+  /**
+   * Returns the root node of the defined Enlightenment instance.
+   */
+  public useContext() {
+    return this.context && this.context.value ? this.context.value : this
+  }
+
+  protected useInitialSlot(name: string) {
+    if (!this.shadowRoot) {
+      return
+    }
+
+    const slots = this.shadowRoot.querySelectorAll(`slot[name="${name}"]`)
+
+    if (!slots.length) {
+      return
+    }
+
+    return slots[0] as HTMLSlotElement
+  }
+
+  /**
+   * Shorthand to use the existing Lit Element reference.
+   */
+  protected useRef = (ref?: Ref): EnligtenmentTarget => {
+    if (!ref || !ref.value) {
+      return
+    }
+
+    return ref.value
+  }
+
+  /**
+   * Returns the slot from the defined name or return the default slot
+   * otherwise.
+   *
+   * @param name Returns the existing Slot element from the defined name.
+   * @param strict Only returns the selected slot if it has any assigned
+   * elements.
+   */
+  protected useSlot(name?: string, strict?: boolean) {
+    if (!this.slots || !Object.keys(this.slots).length) {
+      return
+    }
+
+    const slot = this.slots[name || '']
+
+    if (slot) {
+      if (strict && !slot.assignedElements().length) {
+        return
+      }
+
+      return slot
+    } else if (name && !Object.keys(this.slots).includes(name)) {
+      return
+    }
+
+    const [result] = Object.entries(this.slots).filter(
+      ([n, slot]) => n === Enlightenment.defaults.slot
+    )
+
+    return result && result[1]
+  }
+
+  /**
    * Removes the additional Event listeners from the direct child elements
    * that have the [handle] attribute defined. This should be called after a
    * slot is changed or removed to cleanup obsolete Event handlers.
@@ -1581,184 +1818,5 @@ export class Enlightenment extends LitElement {
           focusable="false"
           src="${this.testImageSource(source) ? source : this.svgSpriteSource}"
         />`
-  }
-
-  /**
-   * Validates if the given image source should be renderd as inline image when
-   * TRUE or static image as default.
-   */
-  protected testImage(initial: boolean, source: string) {
-    if (
-      !this.svgSpriteSource ||
-      !this.testImageSource(this.svgSpriteSource) ||
-      this.testImageSource(source)
-    ) {
-      return false
-    }
-
-    if (initial && this.svgSpriteSource) {
-      if (source && this.testImageSource(this.svgSpriteSource) && this.testImageSource(source)) {
-        return false
-      }
-
-      return true
-    } else if (initial) {
-      return false
-    }
-
-    if (this.svgSpriteSource && source) {
-      if (
-        this.testImageSource(this.svgSpriteSource) &&
-        this.testImageSource(Enlightenment.strip(source))
-      ) {
-        return false
-      }
-
-      return true
-    }
-
-    return false
-  }
-
-  /**
-   * Validates if the defined source is a valid image path.
-   */
-  protected testImageSource(source: string) {
-    if (typeof source !== 'string') {
-      return
-    }
-
-    let result = false
-
-    Enlightenment.supportedImageExtensions.forEach((extension) => {
-      if (Enlightenment.strip(source).endsWith(extension)) {
-        result = true
-      }
-    })
-
-    return result
-  }
-
-  /**
-   * Helper function that ensures the given handler is only called once within
-   * the defined delay.
-   */
-  protected throttle(handler: EnlightenmentThrottle[0], delay?: number, ...args: any[]) {
-    if (!this.throttler || !this.throttler.handlers) {
-      this.log(['Unable to throttle:', handler], 'error')
-
-      return
-    }
-
-    if (typeof handler !== 'function') {
-      this.log('Unable to use throttle, the defined handler is not a function', 'error')
-    }
-
-    let index = -1
-    const [exists] = this.throttler.handlers.filter(([h], i) => {
-      if (h === handler) {
-        if (index < 0) {
-          index = i
-        }
-
-        return h === handler
-      }
-
-      return undefined
-    })
-
-    if (exists) {
-      this.log([`Abort previous throttle:`, this], 'info')
-
-      const previousTimeout = this.throttler.handlers[index]
-
-      previousTimeout && previousTimeout[1] && clearTimeout(previousTimeout[1])
-
-      delete this.throttler.handlers[index]
-    }
-
-    const timeout = setTimeout(
-      () => {
-        // try {
-        handler.call(this, ...args)
-        // } catch (exception) {
-        // exception && this.log(exception, 'error')
-        // }
-      },
-      parseInt(String(delay)) || this.throttler.delay
-    )
-
-    this.log([`${this.constructor.name} throttle defined:`, this], 'info')
-
-    this.throttler.handlers.push([handler, timeout])
-
-    setTimeout(() => {
-      this.throttler.handlers.forEach(([h], i) => {
-        if (h === handler) {
-          delete this.throttler.handlers[i]
-        }
-      })
-    }, timeout + 1)
-  }
-
-  /**
-   * Callback to use after a component update.
-   */
-  protected updated(properties: PropertyValues) {
-    super.updated(properties)
-
-    this.throttle(this.handleUpdate, Enlightenment.FPS, 'updated')
-  }
-
-  /**
-   * Updates the preventEvent flag that should disable other handlers to be
-   * used when TRUE.
-   */
-  protected updatePreventEvent() {
-    if (this.ariaDisabled === 'true' || this.hasAttribute('disabled')) {
-      this.commit('preventEvent', true)
-    } else {
-      this.commit('preventEvent', false)
-    }
-  }
-
-  /**
-   * Returns the root node of the defined Enlightenment instance.
-   */
-  public useContext() {
-    return this.context && this.context.value ? this.context.value : this
-  }
-
-  /**
-   * Shorthand to use the existing Lit Element reference.
-   */
-  protected useRef = (ref?: Ref): EnligtenmentTarget => {
-    if (!ref || !ref.value) {
-      return
-    }
-
-    return ref.value
-  }
-
-  /**
-   * Returns the slot from the defined name or return the default slot
-   * otherwise.
-   */
-  protected useSlot(name?: string) {
-    if (!this.slots || !Object.keys(this.slots).length) {
-      return
-    }
-
-    if (name && this.slots && this.slots[name]) {
-      return this.slots[name] as HTMLSlotElement
-    } else if (name && !Object.keys(this.slots).includes(name)) {
-      return
-    }
-
-    const [result] = Object.entries(this.slots).filter(
-      ([n, slot]) => n === Enlightenment.defaults.slot
-    )
-
-    return result && result[1]
   }
 }
