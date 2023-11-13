@@ -40,7 +40,7 @@
 
     window.addEventListener('load', (event) =>
     {
-      document.body.appendChild(element)
+      // document.body.appendChild(element)
       // document.body.appendChild(emptyElement)
     })
 
@@ -73,7 +73,7 @@
 </head>
 
 <body>
-  <hello-world observe="hello-world">
+  <!-- <hello-world observe="hello-world">
     <a href="#href" id="bar">Some example link</a>
   </hello-world>
 
@@ -82,7 +82,11 @@
       <a href="#second">Second</a>
       <button handle="click:start()">Start</button>
     </hello-world>
-  </hello-world>
+  </hello-world> -->
+
+  <hello-world data="['bar', 'Somebody in the world']"></hello-world>
+  <hello-world data="{'entries': true}"></hello-world>
+
 </body>
 
 </html>

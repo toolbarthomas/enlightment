@@ -426,17 +426,17 @@ export class Enlightenment extends LitElement {
     try {
       const escaped = value.replaceAll(`'`, `"`)
       json = JSON.parse(escaped)
-
-      if (Array.isArray(json)) {
-        return json as string[]
-      }
-
-      return [json] as { [key: string]: any }[]
     } catch (exception) {
       if (exception) {
         return []
       }
     }
+
+    if (Array.isArray(json)) {
+      return json as string[]
+    }
+
+    return [json] as { [key: string]: any }[]
   }
 
   // The keycodes that could be validated within a class method.
