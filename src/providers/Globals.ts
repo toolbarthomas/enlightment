@@ -1,4 +1,9 @@
-import { ColorMode, EnligtenmentTarget } from 'src/_types/main'
+import {
+  ColorMode,
+  EnlightenmentProvider,
+  EnlightenmentProviders,
+  EnligtenmentTarget
+} from 'src/_types/main'
 
 /**
  * The EnlightenmentGlobals implements the mandatory global variables and
@@ -28,6 +33,9 @@ export class EnlightenmentGlobals {
   // method.
   verbose?: boolean
 
+  // Reference array of the constructed Enlightenment Providers.
+  providers: EnlightenmentProviders = []
+
   constructor(namespace: string) {
     this.namespace = namespace
   }
@@ -52,6 +60,36 @@ export class EnlightenmentGlobals {
 
       context.setAttribute(this.currentAttribute, 'true')
     }
+  }
+
+  /**
+   * Assigns the defined provider to the actual instance.
+   *
+   * @param provider The provider to assign.
+   */
+  assignProvider(provider?: EnlightenmentProvider) {
+    if (!provider || this.hasProvider(provider)) {
+      return
+    }
+
+    if (provider === this) {
+      return
+    }
+
+    this.providers.push(provider)
+  }
+
+  /**
+   * Checks if the defined provider is assigned to the instance.
+   *
+   * @param provider The actual provider to check.
+   */
+  hasProvider(provider?: EnlightenmentProvider) {
+    if (!this.providers.length || !provider) {
+      return false
+    }
+
+    return this.providers.includes(provider)
   }
 
   /**

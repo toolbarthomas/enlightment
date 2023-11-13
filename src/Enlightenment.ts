@@ -33,6 +33,7 @@ import {
 
 import { isEmptyComponentSlot } from './mixins/dom'
 import { EnlightenmentGlobals } from './providers/Globals'
+import { EnlightenmentTheme } from './providers/Theme'
 
 export const createRef = _createRef
 export const css = _css
@@ -96,118 +97,6 @@ export const NAMESPACE = 'NLGHTNMNT'
  * <script src="my-component.js" type="module"></script>
  */
 export class Enlightenment extends LitElement {
-  // Default element reference that should be assigned to the root element
-  // within the render context.
-  context = createRef()
-
-  // Should insert the defined classnames within the root context.
-  classes: string[] = []
-
-  // Optional flag that can be used within the Document Event handlers to check
-  // if the current scope is within the defined Component.
-  currentElement?: boolean
-
-  disabled?: boolean
-
-  // Enables the default document Events that is called within: handleGlobal...
-  // methods when TRUE.
-  enableDocumentEvents: boolean = false
-
-  // Will be TRUE if the optional Focus Trap Element exists within the Component
-  // and is currently active.
-  hasActiveFocusTrap?: boolean
-
-  // Dynamic storage for the running document Event listeners.
-  listeners: GlobalEvent[] = []
-
-  // Value to use for the naming of the Global state.
-  namespace: string = NAMESPACE
-
-  // Blocks the default handle methods when TRUE.
-  preventEvent: boolean = false
-
-  // Reference to the parent Window object that holds the global state of the
-  // created instance.
-  root: Window = window
-
-  // Contains the Shadow Root slot target contexts in order to validate
-  // the actual rendered slots existence.
-  slots: { [key: string]: HTMLSlotElement | undefined } = {}
-
-  // Will be TRUE during the inital callback of handleSlot
-  slotLoaded?: boolean
-
-  // Contains the assigned handlers that will be called once.
-  throttler: {
-    delay: number
-    handlers: EnlightenmentThrottle[]
-  }
-
-  // Alias to the constructor name.
-  uuid: string
-
-  @property({
-    attribute: 'aria-disabled',
-    reflect: true,
-    type: String
-  })
-  ariaDisabled: string | null = null
-
-  @property({
-    type: Number,
-    converter: (value) => parseInt(String(value)) || Enlightenment.FPS
-  })
-  delay = Enlightenment.FPS
-
-  // Readable error to display during an exception/error within the defined
-  // component context.
-  @property()
-  error = ''
-
-  // Defines the Color Mode to use: Dark/Light
-  @property({
-    converter: (value) => Enlightenment.isMode(value),
-    type: String
-  })
-  mode?: string
-
-  @property({
-    converter: (value) => Enlightenment.isBoolean(value),
-    type: Boolean
-  })
-  minimalShadowRoot?: boolean
-
-  // Will call the process method if the defined selector names exists within
-  // the current DOM.
-  @property({
-    converter: (value) => {
-      return value ? document.body.querySelectorAll(value) : []
-    },
-    type: Array
-  })
-  observe?: NodeList
-
-  // Optional Flag that will prevent the usage of requestUpdate during an
-  // attribute change.
-  @property({ converter: (value) => Enlightenment.isBoolean(value), type: Boolean })
-  once?: boolean
-
-  // Optional Flag that should render the component indicator during a loading
-  // state of the defined component.
-  @property({
-    converter: (value) => Enlightenment.isBoolean(value),
-    type: Boolean
-  })
-  pending?: boolean
-
-  // Enables the usage of an SVG spritesheet with the renderImage helper
-  // methods.
-  @property({
-    attribute: 'svg-sprite-source',
-    converter: (value) => Enlightenment.resolveURL(Enlightenment.strip(String(value)))
-  })
-  svgSpriteSource = ''
-
   // Defines any fallback to use for optional properties.
   static defaults = {
     slot: '_content'
@@ -218,6 +107,13 @@ export class Enlightenment extends LitElement {
 
   // Shared globals for the running component instances.
   static globals = new EnlightenmentGlobals(NAMESPACE)
+
+  // Triggers the cleanup handler when the amount of function calls has reached
+  // the defined maximum value.
+  static MAX_THREADS = 128
+
+  // Includes the global Stylesheets within the defined Components & Document.
+  static theme = new EnlightenmentTheme()
 
   // Converts the given string value as array with potential selectors.
   static convertToSelectors(value: any) {
@@ -535,6 +431,19 @@ export class Enlightenment extends LitElement {
   // Defines the usable extensions for webfont sources.
   static supportedWebfontExtensions = ['.woff', '.woff2']
 
+  /**
+   * Generates a new valid element id selector for the current DOM.
+   */
+  static useElementID() {
+    let id = Enlightenment.generateTimestampID()
+
+    while (document.getElementById(id)) {
+      id = Enlightenment.generateTimestampID()
+    }
+
+    return id
+  }
+
   // Traverse from the defined context and return the host Component
   static useHost(context: HTMLElement) {
     if (!context) {
@@ -565,19 +474,6 @@ export class Enlightenment extends LitElement {
     }
 
     return target
-  }
-
-  /**
-   * Generates a new valid element id selector for the current DOM.
-   */
-  static useElementID() {
-    let id = Enlightenment.generateTimestampID()
-
-    while (document.getElementById(id)) {
-      id = Enlightenment.generateTimestampID()
-    }
-
-    return id
   }
 
   /**
@@ -626,6 +522,122 @@ export class Enlightenment extends LitElement {
 
     this.useMode()
   }
+
+  // Interal timeout ID that should be redefined during any cleanup calls.
+  cid?: number
+
+  // Default element reference that should be assigned to the root element
+  // within the render context.
+  context = createRef()
+
+  // Should insert the defined classnames within the root context.
+  classes: string[] = []
+
+  // Optional flag that can be used within the Document Event handlers to check
+  // if the current scope is within the defined Component.
+  currentElement?: boolean
+
+  // Boolean flag that should behave like the existing Input Element disabled
+  // attribute.
+  disabled?: boolean
+
+  // Enables the default document Events that is called within: handleGlobal...
+  // methods when TRUE.
+  enableDocumentEvents: boolean = false
+
+  // Will be TRUE if the optional Focus Trap Element exists within the Component
+  // and is currently active.
+  hasActiveFocusTrap?: boolean
+
+  // Dynamic storage for the running document Event listeners.
+  listeners: GlobalEvent[] = []
+
+  // Value to use for the naming of the Global state.
+  namespace: string = NAMESPACE
+
+  // Blocks the default handle methods when TRUE.
+  preventEvent: boolean = false
+
+  // Reference to the parent Window object that holds the global state of the
+  // created instance.
+  root: Window = window
+
+  // Contains the Shadow Root slot target contexts in order to validate
+  // the actual rendered slots existence.
+  slots: { [key: string]: HTMLSlotElement | undefined } = {}
+
+  // Boolean flag that should mutate only once when the actual slot elements
+  // are initiated.
+  slotReady?: boolean
+
+  // Contains the assigned handlers that will be called once.
+  throttler: {
+    delay: number
+    handlers: EnlightenmentThrottle[]
+  }
+
+  // Alias to the constructor name.
+  uuid: string
+
+  @property({
+    attribute: 'aria-disabled',
+    reflect: true,
+    type: String
+  })
+  ariaDisabled: string | null = null
+
+  @property({
+    type: Number,
+    converter: (value) => parseInt(String(value)) || Enlightenment.FPS
+  })
+  delay = Enlightenment.FPS
+
+  // Readable error to display during an exception/error within the defined
+  // component context.
+  @property()
+  error = ''
+
+  // Defines the Color Mode to use: Dark/Light
+  @property({
+    converter: (value) => Enlightenment.isMode(value),
+    type: String
+  })
+  mode?: string
+
+  @property({
+    converter: (value) => Enlightenment.isBoolean(value),
+    type: Boolean
+  })
+  minimalShadowRoot?: boolean
+
+  // Will call the process method if the defined selector names exists within
+  // the current DOM.
+  @property({
+    converter: (value) => Enlightenment.convertToSelectors(value),
+    type: Array
+  })
+  observe?: NodeList
+
+  // Optional Flag that will prevent the usage of requestUpdate during an
+  // attribute change.
+  @property({ converter: (value) => Enlightenment.isBoolean(value), type: Boolean })
+  once?: boolean
+
+  // Optional Flag that should render the component indicator during a loading
+  // state of the defined component.
+  @property({
+    converter: (value) => Enlightenment.isBoolean(value),
+    type: Boolean
+  })
+  pending?: boolean
+
+  // Enables the usage of an SVG spritesheet with the renderImage helper
+  // methods.
+  @property({
+    attribute: 'svg-sprite-source',
+    converter: (value) => Enlightenment.resolveURL(Enlightenment.strip(String(value)))
+  })
+  svgSpriteSource = ''
 
   /**
    * Find the closest Element from the defined selector that should exists
@@ -676,6 +688,10 @@ export class Enlightenment extends LitElement {
    */
   protected firstUpdated(properties: PropertyValueMap<any> | Map<PropertyKey, unknown>) {
     super.firstUpdated(properties)
+
+    // this.useDefaultStyleSheet()
+
+    Enlightenment.theme.assignDefaultStylesheet(this)
 
     this.useMode()
 
@@ -780,10 +796,10 @@ export class Enlightenment extends LitElement {
     this.isEmptySlot(event)
     this.assignSlottedEvent(event)
 
-    this.dispatchUpdate('slotchange')
+    this.dispatchUpdate('updated')
 
-    if (!this.slotLoaded) {
-      Object.defineProperty(this, 'slotLoaded', {
+    if (!this.slotReady) {
+      Object.defineProperty(this, 'slotReady', {
         configurable: false,
         writable: false,
         value: true
@@ -930,9 +946,9 @@ export class Enlightenment extends LitElement {
     try {
       if (process !== undefined && document.contains(target as Node)) {
         process.call(this, target as HTMLElement)
-      }
 
-      this.throttle(this.requestUpdate)
+        this.throttle(this.requestUpdate)
+      }
     } catch (exception) {
       exception && this.log(exception, 'error')
     }
@@ -1018,9 +1034,11 @@ export class Enlightenment extends LitElement {
   private assignSlots(name?: string) {
     if (!this.shadowRoot) {
       this.log(`Unable to detect shadowRoot from ${this.namespace}`, 'error')
+
+      return
     }
 
-    const slots = this.shadowRoot?.querySelectorAll('slot')
+    const slots = this.shadowRoot.querySelectorAll('slot')
 
     if (slots && !slots.length && !Object.keys(this.slots).length) {
       return
@@ -1109,6 +1127,23 @@ export class Enlightenment extends LitElement {
   }
 
   /**
+   * Optimize the defined Component by removing the obsolete property values.
+   * This method can only be called once since it is invoked within an unique
+   * Timeout handler that will reset when calling this method.
+   */
+  protected cleanup() {
+    if (this.cid) {
+      clearTimeout(this.cid)
+    }
+
+    this.cid = setTimeout(() => {
+      if (this.throttler.handlers.length > Enlightenment.MAX_THREADS) {
+        this.throttler.handlers = this.throttler.handlers.filter((h) => h !== undefined)
+      }
+    }, this.throttler.handlers.length + Enlightenment.FPS)
+  }
+
+  /**
    * Removes the assigned global Events from the selected context or this
    * Component.
    */
@@ -1180,20 +1215,40 @@ export class Enlightenment extends LitElement {
       return
     }
 
-    this.throttle(() => {
-      const nodes = slot.assignedElements()
-      const context = this.shadowRoot || this
-      const slots = context.querySelectorAll(`slot[name="${name || ''}"]`)
-      const html = [...slot.assignedElements().map((element) => element.outerHTML)].join('')
+    this.throttle(this.cloneSlotCallback, Enlightenment.FPS, slot)
+  }
 
-      for (let index = 0; index < slots.length; index++) {
-        if (slots[index] === slot) {
-          continue
-        }
+  /**
+   * Actual callback handler to use from the cloneSlot() instance method.
+   *
+   * @param slot The expected slot Element to clone.
+   * @param name Clones the selected slots with the matchin name value.
+   */
+  cloneSlotCallback(slot: HTMLSlotElement, name?: string) {
+    if (!slot) {
+      return
+    }
 
-        slots[index].innerHTML = html
+    const nodes = slot.assignedElements()
+    const context = this.shadowRoot || this
+    const slots = name
+      ? context.querySelectorAll(`slot[name="${name || ''}"]`)
+      : context.querySelectorAll('slot')
+    const html = [...slot.assignedElements().map((element) => element.outerHTML)].join('')
+
+    if (!html || !slots.length) {
+      return
+    }
+
+    for (let index = 0; index < slots.length; index++) {
+      if (slots[index] === slot) {
+        continue
       }
-    })
+
+      slots[index].innerHTML = html
+    }
+
+    return html
   }
 
   /**
@@ -1294,6 +1349,7 @@ export class Enlightenment extends LitElement {
       () => {
         // try {
         handler.call(this, ...args)
+
         // } catch (exception) {
         // exception && this.log(exception, 'error')
         // }
@@ -1311,6 +1367,8 @@ export class Enlightenment extends LitElement {
           delete this.throttler.handlers[i]
         }
       })
+
+      this.cleanup()
     }, timeout + 1)
   }
 
@@ -1397,6 +1455,51 @@ export class Enlightenment extends LitElement {
     )
 
     return result && result[1]
+  }
+
+  /**
+   * Use the assigned Slot elements from initial slot and clone the content
+   * within the defined component fragment elements.
+   *
+   * @param name Use the slot element with matching name attribute value.
+   * @param tag Use the defined tagname as alternative instead of the default
+   * <fragment> element.
+   */
+  protected assignFragment(name?: string, tag?: string) {
+    const attr = `${name ? `[name="${name}"]` : ''}`
+    const slot: HTMLSlotElement | null = this.shadowRoot
+      ? this.shadowRoot.querySelector(`slot${attr}`)
+      : this.querySelector(`slot${attr}`)
+
+    if (!slot) {
+      return
+    }
+
+    const fragments = Array.from(
+      this.shadowRoot
+        ? this.shadowRoot.querySelectorAll(`${tag || 'fragment'}${attr}`)
+        : this.querySelectorAll(`${tag || 'fragment'}${attr}`)
+    )
+
+    const elements = slot.assignedElements()
+
+    if (!slot || !fragments.length || !elements.length) {
+      return
+    }
+
+    const html = elements.map((element) => element.outerHTML).join('\n')
+
+    if (!html) {
+      return
+    }
+
+    fragments.forEach((fragment) => {
+      if (fragment.childElementCount) {
+        return
+      }
+
+      fragment.innerHTML = html
+    })
   }
 
   /**
@@ -1777,6 +1880,13 @@ export class Enlightenment extends LitElement {
   public connectedCallback() {
     super.connectedCallback()
 
+    // Invoke the defined Enlightenment providers once and include them
+    // to the constructed Enlightenment Globals.
+    if (!Enlightenment.globals.hasProvider(Enlightenment.theme)) {
+      Enlightenment.theme.assignDocumentStylesheet()
+      Enlightenment.globals.assignProvider(Enlightenment.theme)
+    }
+
     if (this.enableDocumentEvents) {
       this.assignGlobalEvent('click', this.handleGlobalClick)
       this.assignGlobalEvent('keydown', this.handleGlobalKeydown)
@@ -1796,9 +1906,10 @@ export class Enlightenment extends LitElement {
       this.clearThrottler()
 
       this.omitGlobalEvent('click', this.handleGlobalClick)
-      this.omitGlobalEvent('keydown', this.handleGlobalKeydown)
       this.omitGlobalEvent('focus', this.handleGlobalFocus)
       this.omitGlobalEvent('focusin', this.handleGlobalFocus)
+      this.omitGlobalEvent('keydown', this.handleGlobalKeydown)
+      this.omitGlobalEvent('updated', this._process)
 
       this.clearListeners()
 

@@ -1,3 +1,6 @@
+import { EnlightenmentGlobals } from 'src/providers/Globals'
+import { EnlightenmentTheme } from 'src/providers/Theme'
+
 export type EnlightenmentHandler = (context: HTMLElement) => void
 
 /**
@@ -20,6 +23,12 @@ export type EnlightenmentJSONResponseTransformer = (
 export type EnlightenmentJSONResponse =
   | EnlightenmentJSONResponseArray
   | EnlightenmentJSONResponseObject[]
+
+/**
+ * Type reference for all the existing Enlightenment Providers.
+ */
+export type EnlightenmentProvider = EnlightenmentGlobals | EnlightenmentTheme
+export type EnlightenmentProviders = EnlightenmentProvider[]
 
 /**
  * Defines the expected Element types to use during any DOM logic.
