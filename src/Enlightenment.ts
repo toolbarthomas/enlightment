@@ -455,7 +455,8 @@ export class Enlightenment extends LitElement {
             payload[key] = value
 
             const body: EnlightenmentJSONResponseValue = typeof value === 'string' ? value : payload
-            const result = transform(body)
+
+            const result = transform(value)
 
             if (result instanceof Object) {
               Object.freeze(result)
