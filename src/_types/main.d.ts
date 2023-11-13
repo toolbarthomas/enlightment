@@ -8,6 +8,16 @@ export type EnlightenmentImageOptions =
   | string
 
 /**
+ * Expected response to use for stringified JSON values.
+ */
+export type EnlightenmentJSONResponseValue = any
+export type EnlightenmentJSONResponseArray = EnlightenmentJSONResponseValue[]
+export type EnlightenmentJSONResponseObject = { [key: string]: EnlightenmentJSONResponseValue }[]
+export type EnlightenmentJSONResponse =
+  | EnlightenmentJSONResponseArray
+  | EnlightenmentJSONResponseObject
+
+/**
  * Defines the expected Element types to use during any DOM logic.
  */
 export type EnligtenmentTarget = Element | HTMLElement | Node | SVGElement | undefined

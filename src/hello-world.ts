@@ -38,7 +38,13 @@ class HelloWorld extends Enlightenment {
   @property({ type: String })
   helloWorld = 'new'
 
-  @property({ converter: Enlightenment.parseJSON, type: Array })
+  @property({
+    converter: (value: string) =>
+      Enlightenment.parseJSON(value, (r: any) => {
+        console.log('Do something', r)
+      }),
+    type: Array
+  })
   data?: string[]
 
   @property({

@@ -16,6 +16,9 @@ import { unsafeSVG } from 'lit/directives/unsafe-svg.js'
 import {
   EnlightenmentHandler,
   EnlightenmentImageOptions,
+  EnlightenmentJSONResponse,
+  EnlightenmentJSONResponseArray,
+  EnlightenmentJSONResponseObject,
   EnlightenmentProcess,
   EnlightenmentThrottle,
   EnligtenmentTarget,
@@ -415,8 +418,10 @@ export class Enlightenment extends LitElement {
    * Array regardless of the result.
    *
    * @param value The string value to parse.
+   * @param transform Call to optional transform handler and use the return
+   * value instead of the parsed JSON.
    */
-  static parseJSON(value: any) {
+  static parseJSON(value: any, transform?: (json: EnlightenmentJSONResponse) => any) {
     let json: any
 
     if (!value || !value.length) {
@@ -432,11 +437,19 @@ export class Enlightenment extends LitElement {
       }
     }
 
-    if (Array.isArray(json)) {
-      return json as string[]
+    if (typeof transform === 'function') {
+      const response = transform(json)
+
+      if (response) {
+        return response as EnlightenmentJSONResponse
+      }
     }
 
-    return [json] as { [key: string]: any }[]
+    if (Array.isArray(json)) {
+      return json as EnlightenmentJSONResponseArray
+    }
+
+    return [json] as EnlightenmentJSONResponseObject
   }
 
   // The keycodes that could be validated within a class method.
