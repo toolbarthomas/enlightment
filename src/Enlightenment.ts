@@ -9,7 +9,7 @@ import {
   svg
 } from 'lit'
 
-import { customElement as _customElement, property as _property } from 'lit/decorators.js'
+import { customElement as _customElement, property as _property, query } from 'lit/decorators.js'
 import { createRef as _createRef, ref as _ref, Ref } from 'lit/directives/ref.js'
 import { unsafeSVG } from 'lit/directives/unsafe-svg.js'
 
@@ -19,6 +19,8 @@ import {
   EnlightenmentJSONResponse,
   EnlightenmentJSONResponseArray,
   EnlightenmentJSONResponseObject,
+  EnlightenmentJSONResponseTransformer,
+  EnlightenmentJSONResponseValue,
   EnlightenmentProcess,
   EnlightenmentThrottle,
   EnligtenmentTarget,
@@ -418,11 +420,13 @@ export class Enlightenment extends LitElement {
    * Array regardless of the result.
    *
    * @param value The string value to parse.
-   * @param transform Call to optional transform handler and use the return
-   * value instead of the parsed JSON.
+   * @param transform Optional handler to transform the initial values of the
+   * parsed JSON. This can be used to mutate the initial Array entry or include
+   * additional properties within the initial JSON Object.
    */
-  static parseJSON(value: any, transform?: (json: EnlightenmentJSONResponse) => any) {
+  static parseJSON(value: any, transform?: EnlightenmentJSONResponseTransformer) {
     let json: any
+    let isValid = false
 
     if (!value || !value.length) {
       return []
@@ -431,31 +435,48 @@ export class Enlightenment extends LitElement {
     try {
       const escaped = value.replaceAll(`'`, `"`)
       json = JSON.parse(escaped)
-    } catch (exception: any) {
+      isValid = true
+    } catch (exception) {
       if (exception) {
         return []
 
-        throw Error(exception)
+        //@TODO use existing Console instead?
+        console.error(exception)
       }
     }
 
     if (typeof transform === 'function') {
-      let response: EnlightenmentJSONResponse = []
-      let isValid = false
+      const response: EnlightenmentJSONResponseValue[] = []
 
       try {
-        response = transform(json) as EnlightenmentJSONResponse
-        isValid = true
-      } catch (error: any) {
-        if (error) {
+        Object.entries(json).forEach(
+          ([key, value]: [string, EnlightenmentJSONResponseValue], index) => {
+            const payload: EnlightenmentJSONResponseObject = {}
+            payload[key] = value
+
+            const body: EnlightenmentJSONResponseValue = typeof value === 'string' ? value : payload
+            const result = transform(body)
+
+            if (result instanceof Object) {
+              Object.freeze(result)
+            }
+
+            response.push(result !== undefined ? result : body)
+          }
+        )
+
+        isValid = Object.values(response).filter((r) => r !== undefined && r).length ? true : false
+      } catch (exception) {
+        if (exception) {
           isValid = false
 
-          throw Error(error)
+          //@TODO use existing Console instead?
+          console.error(exception)
         }
       }
 
-      if (response && response.length && isValid) {
-        return response as EnlightenmentJSONResponse
+      if (isValid) {
+        return (Array.isArray(response) ? response : [response]) as EnlightenmentJSONResponse
       }
     }
 

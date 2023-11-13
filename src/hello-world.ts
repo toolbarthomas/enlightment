@@ -41,7 +41,18 @@ class HelloWorld extends Enlightenment {
   @property({
     converter: (value: string) =>
       Enlightenment.parseJSON(value, (r: any) => {
-        console.log('Do something', r)
+        console.log('Hello World JSON', r)
+
+        if (r.entries) {
+          return {
+            nested: true,
+            data: {
+              raw: '<!--'
+            }
+          }
+        }
+
+        return r
       }),
     type: Array
   })

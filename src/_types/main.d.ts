@@ -12,10 +12,14 @@ export type EnlightenmentImageOptions =
  */
 export type EnlightenmentJSONResponseValue = any
 export type EnlightenmentJSONResponseArray = EnlightenmentJSONResponseValue[]
-export type EnlightenmentJSONResponseObject = { [key: string]: EnlightenmentJSONResponseValue }[]
+export type EnlightenmentJSONResponseObject = { [key: string]: EnlightenmentJSONResponseValue }
+export type EnlightenmentJSONResponseTransformer = (
+  value: EnlightenmentJSONResponseValue
+) => EnlightenmentJSONResponseValue
+
 export type EnlightenmentJSONResponse =
   | EnlightenmentJSONResponseArray
-  | EnlightenmentJSONResponseObject
+  | EnlightenmentJSONResponseObject[]
 
 /**
  * Defines the expected Element types to use during any DOM logic.
