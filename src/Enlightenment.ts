@@ -431,16 +431,30 @@ export class Enlightenment extends LitElement {
     try {
       const escaped = value.replaceAll(`'`, `"`)
       json = JSON.parse(escaped)
-    } catch (exception) {
+    } catch (exception: any) {
       if (exception) {
         return []
+
+        throw Error(exception)
       }
     }
 
     if (typeof transform === 'function') {
-      const response = transform(json)
+      let response: EnlightenmentJSONResponse = []
+      let isValid = false
 
-      if (response) {
+      try {
+        response = transform(json) as EnlightenmentJSONResponse
+        isValid = true
+      } catch (error: any) {
+        if (error) {
+          isValid = false
+
+          throw Error(error)
+        }
+      }
+
+      if (response && response.length && isValid) {
         return response as EnlightenmentJSONResponse
       }
     }
