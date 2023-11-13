@@ -38,6 +38,9 @@ class HelloWorld extends Enlightenment {
   @property({ type: String })
   helloWorld = 'new'
 
+  @property({ converter: Enlightenment.isJSON, type: Array })
+  data?: string[]
+
   @property({
     converter: Enlightenment.isBoolean,
     reflect: true,

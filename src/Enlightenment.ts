@@ -214,17 +214,6 @@ export class Enlightenment extends LitElement {
   // Shared globals for the running component instances.
   static globals = new EnlightenmentGlobals(NAMESPACE)
 
-  // Defines the attribute state from the given value, non-defined attributes
-  // should be undefined while attributes without values should be true.
-  static isBoolean(value: any) {
-    return value !== undefined && String(value) !== 'false' ? true : false
-  }
-
-  // Ensures the given value is parsed as Integer value.
-  static isInteger(value: any) {
-    return value && parseInt(value)
-  }
-
   // Converts the given string value as array with potential selectors.
   static convertToSelectors(value: any) {
     if (typeof value !== 'string') {
@@ -239,22 +228,6 @@ export class Enlightenment extends LitElement {
         return document.getElementById(selector) || document.querySelector(selector)
       })
       .filter((e) => e !== null && e !== undefined) as HTMLElement[]
-  }
-
-  // Check if the defined target Element is within the current viewport.
-  static isWithinViewport(target: HTMLElement) {
-    if (!target) {
-      return false
-    }
-
-    const bounds = target.getBoundingClientRect()
-
-    return (
-      bounds.top >= 0 &&
-      bounds.left >= 0 &&
-      bounds.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-      bounds.right <= (window.innerWidth || document.documentElement.clientWidth)
-    )
   }
 
   /**
@@ -360,6 +333,33 @@ export class Enlightenment extends LitElement {
     ].filter((element) => element !== context)
   }
 
+  // Defines the attribute state from the given value, non-defined attributes
+  // should be undefined while attributes without values should be true.
+  static isBoolean(value: any) {
+    return value !== undefined && String(value) !== 'false' ? true : false
+  }
+
+  // Ensures the given value is parsed as Integer value.
+  static isInteger(value: any) {
+    return value && parseInt(value)
+  }
+
+  // Check if the defined target Element is within the current viewport.
+  static isWithinViewport(target: HTMLElement) {
+    if (!target) {
+      return false
+    }
+
+    const bounds = target.getBoundingClientRect()
+
+    return (
+      bounds.top >= 0 &&
+      bounds.left >= 0 &&
+      bounds.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+      bounds.right <= (window.innerWidth || document.documentElement.clientWidth)
+    )
+  }
+
   /**
    * Validates if the defined url value is external.
    */
@@ -408,6 +408,35 @@ export class Enlightenment extends LitElement {
    */
   static isTarget(value: any) {
     return Enlightenment.filterProperty(value, ['_self', '_blank', '_parent', '_top'])
+  }
+
+  /**
+   * Parses the defined string value as JSON and return the output within an
+   * Array regardless of the result.
+   *
+   * @param value The string value to parse.
+   */
+  static parseJSON(value: any) {
+    let json: any
+
+    if (!value || !value.length) {
+      return []
+    }
+
+    try {
+      const escaped = value.replaceAll(`'`, `"`)
+      json = JSON.parse(escaped)
+
+      if (Array.isArray(json)) {
+        return json as string[]
+      }
+
+      return [json] as { [key: string]: any }[]
+    } catch (exception) {
+      if (exception) {
+        return []
+      }
+    }
   }
 
   // The keycodes that could be validated within a class method.
