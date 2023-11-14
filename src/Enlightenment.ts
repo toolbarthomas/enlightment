@@ -545,6 +545,10 @@ export class Enlightenment extends LitElement {
   // methods when TRUE.
   enableDocumentEvents: boolean = false
 
+  // Enables fragment usage within the defined component to repeat any HTML
+  // within the named Slot.
+  enableFragments: boolean = false
+
   // Will be TRUE if the optional Focus Trap Element exists within the Component
   // and is currently active.
   hasActiveFocusTrap?: boolean
@@ -794,7 +798,10 @@ export class Enlightenment extends LitElement {
     }
 
     this.isEmptySlot(event)
+
     this.assignSlottedEvent(event)
+
+    this.updateFragments()
 
     this.dispatchUpdate('updated')
 
@@ -1463,9 +1470,13 @@ export class Enlightenment extends LitElement {
    *
    * @param name Use the slot element with matching name attribute value.
    * @param tag Use the defined tagname as alternative instead of the default
-   * <fragment> element.
+   * [fragment] element.
    */
-  protected assignFragment(name?: string, tag?: string) {
+  protected assignFragments(name?: string, tag?: string) {
+    if (!this.enableFragments) {
+      return
+    }
+
     const attr = `${name ? `[name="${name}"]` : ''}`
     const slot: HTMLSlotElement | null = this.shadowRoot
       ? this.shadowRoot.querySelector(`slot${attr}`)
@@ -1477,8 +1488,8 @@ export class Enlightenment extends LitElement {
 
     const fragments = Array.from(
       this.shadowRoot
-        ? this.shadowRoot.querySelectorAll(`${tag || 'fragment'}${attr}`)
-        : this.querySelectorAll(`${tag || 'fragment'}${attr}`)
+        ? this.shadowRoot.querySelectorAll(`${tag || 'div'}[fragment="${name || ''}"]`)
+        : this.querySelectorAll(`${tag || 'div'}[fragment="${name || ''}"]`)
     )
 
     const elements = slot.assignedElements()
@@ -1493,13 +1504,21 @@ export class Enlightenment extends LitElement {
       return
     }
 
+    let mutated = false
+
     fragments.forEach((fragment) => {
       if (fragment.childElementCount) {
         return
       }
 
+      mutated = true
+
       fragment.innerHTML = html
     })
+
+    if (mutated) {
+      slot.style.display = 'none'
+    }
   }
 
   /**
@@ -1600,6 +1619,45 @@ export class Enlightenment extends LitElement {
   }
 
   /**
+   * Clears the named fragment Elements from the defined Component and remove
+   * any fragment related properties to the connected slot.
+   *
+   * @param name Clears the fragments from the defined name value.
+   */
+  protected omitFragments(name: string) {
+    if (!this.enableFragments) {
+      return
+    }
+
+    if (!name) {
+      return
+    }
+
+    const slot = this.useSlot(name)
+
+    if (!slot || slot.style.display !== 'none') {
+      return
+    }
+
+    const selector = `div[fragment="${name}"]:not(:empty)`
+    const fragments = this.shadowRoot
+      ? this.shadowRoot.querySelectorAll(selector)
+      : this.querySelectorAll(selector)
+
+    if (!fragments.length) {
+      return
+    }
+
+    fragments.forEach((fragment) => {
+      fragment.innerHTML = ''
+    })
+
+    slot.style.display = ''
+
+    this.throttle(this.requestUpdate)
+  }
+
+  /**
    * Removes the assigned global Event handler.
    */
   private omitGlobalEvent(type: GlobalEventType, handler: GlobalEventHandler) {
@@ -1682,6 +1740,33 @@ export class Enlightenment extends LitElement {
         component.throttle(component.requestUpdate.bind(component))
       }
     }
+  }
+
+  /**
+   * Callback handler that checks the changed slot Elements and clears the
+   * filled fragments.
+   */
+  protected updateFragments() {
+    if (!this.enableFragments) {
+      return
+    }
+
+    Object.values(this.slots).forEach((slot) => {
+      if (!slot) {
+        return
+      }
+
+      if (!isEmptyComponentSlot(slot)) {
+        return
+      }
+
+      if (slot.style.display !== 'none') {
+        return
+      }
+
+      const name = slot.getAttribute('name')
+      this.omitFragments(name)
+    })
   }
 
   /**

@@ -12,11 +12,11 @@ export class EnlightenmentTheme {
       box-sizing: border-box;
     }
 
-    fragment:empty {
+    [fragment]:empty {
       display: none;
     }
 
-    fragment {
+    [fragment] {
       display: block;
     }
   ` as unknown as string
