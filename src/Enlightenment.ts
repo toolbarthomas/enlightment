@@ -521,6 +521,10 @@ export class Enlightenment extends LitElement {
     }
 
     this.useMode()
+
+    if (this.enableFragments) {
+      this.log(`Fragments enabled for ${this.uuid}`, 'log')
+    }
   }
 
   // Interal timeout ID that should be redefined during any cleanup calls.
@@ -1104,33 +1108,36 @@ export class Enlightenment extends LitElement {
     actions.push(...(Object.values(this.querySelectorAll('[handle]')) as HTMLElement[]))
 
     const target = event.target as HTMLElement
+
     if (target) {
       actions.push(...(Object.values(target.querySelectorAll('[handle]')) as HTMLElement[]))
     }
 
-    if (actions.length) {
-      actions.forEach((element) => {
-        const value = element.getAttribute('handle')
-
-        if (!value) {
-          return
-        }
-
-        let [type, name] = value.split(':')
-
-        if (!name) {
-          name = type
-          type = 'click'
-        }
-
-        //@ts-ignore
-        const fn: Function = this[name.split('(')[0]]
-
-        if (typeof fn === 'function' && Enlightenment.useHost(element) === this) {
-          this.assignGlobalEvent(type, fn.bind(this), { context: element })
-        }
-      })
+    if (!actions.length) {
+      return
     }
+
+    actions.forEach((element) => {
+      const value = element.getAttribute('handle')
+
+      if (!value) {
+        return
+      }
+
+      let [type, name] = value.split(':')
+
+      if (!name) {
+        name = type
+        type = 'click'
+      }
+
+      //@ts-ignore
+      const fn: Function = this[name.split('(')[0]]
+
+      if (typeof fn === 'function' && Enlightenment.useHost(element) === this) {
+        this.assignGlobalEvent(type, fn.bind(this), { context: element })
+      }
+    })
   }
 
   /**
@@ -1139,15 +1146,18 @@ export class Enlightenment extends LitElement {
    * Timeout handler that will reset when calling this method.
    */
   protected cleanup() {
-    if (this.cid) {
+    if (this.cid != null) {
       clearTimeout(this.cid)
     }
 
-    this.cid = setTimeout(() => {
-      if (this.throttler.handlers.length > Enlightenment.MAX_THREADS) {
-        this.throttler.handlers = this.throttler.handlers.filter((h) => h !== undefined)
-      }
-    }, this.throttler.handlers.length + Enlightenment.FPS)
+    this.cid = setTimeout(
+      () => {
+        if (this.throttler.handlers.length > Enlightenment.MAX_THREADS) {
+          this.throttler.handlers = this.throttler.handlers.filter((h) => h != null)
+        }
+      },
+      this.throttler.handlers.length + Enlightenment.FPS * Enlightenment.MAX_THREADS
+    )
   }
 
   /**
@@ -1504,21 +1514,15 @@ export class Enlightenment extends LitElement {
       return
     }
 
-    let mutated = false
-
     fragments.forEach((fragment) => {
-      if (fragment.childElementCount) {
+      if (fragment.innerHTML === html) {
         return
       }
-
-      mutated = true
 
       fragment.innerHTML = html
     })
 
-    if (mutated) {
-      slot.style.display = 'none'
-    }
+    slot.style.display = 'none'
   }
 
   /**
@@ -1624,7 +1628,7 @@ export class Enlightenment extends LitElement {
    *
    * @param name Clears the fragments from the defined name value.
    */
-  protected omitFragments(name: string) {
+  protected omitFragments(name: string | null) {
     if (!this.enableFragments) {
       return
     }
