@@ -27,7 +27,8 @@ import {
   GlobalEventHandler,
   GlobalEventOptions,
   GlobalEventType,
-  HookOptions
+  HookOptions,
+  EnlightenmentDataEntry
 } from './_types/main'
 
 import { isEmptyComponentSlot } from './mixins/dom'
@@ -341,7 +342,7 @@ export class Enlightenment extends LitElement {
     }
 
     if (typeof transform === 'function') {
-      const response: EnlightenmentJSONResponseValue[] = []
+      const response: EnlightenmentDataEntry[] = []
 
       try {
         Object.entries(json).forEach(
@@ -349,12 +350,14 @@ export class Enlightenment extends LitElement {
             const payload: EnlightenmentJSONResponseObject = {}
             payload[key] = value
 
-            const body: EnlightenmentJSONResponseValue = typeof value === 'string' ? value : payload
+            const body = (typeof value === 'string' ? value : payload) as EnlightenmentDataEntry
 
             const result = transform(value)
 
-            if (result instanceof Object) {
+            if (result && result instanceof Object) {
               Object.freeze(result)
+            } else if (body instanceof Object) {
+              Object.freeze(body)
             }
 
             response.push(result !== undefined ? result : body)

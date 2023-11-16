@@ -5,7 +5,7 @@ import { EnlightenmentTheme } from 'src/providers/Theme'
  * Defines a single entry of the parsed json data form the
  * Enlightenment.parseJSON() method.
  */
-export type EnlightenmentDateEntry =
+export type EnlightenmentDataEntry =
   | string
   | {
       data?: string
@@ -16,7 +16,7 @@ export type EnlightenmentDateEntry =
 /**
  * Definition for the callback function used within Enlightenment.process
  */
-export type EnlightenmentProcessHandler = (context?: HTMLElement) => void
+export type EnlightenmentProcessHandler = (context: HTMLElement) => void
 
 /**
  * Optional configuration options to use within the renderImage method.
