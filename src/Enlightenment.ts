@@ -14,14 +14,13 @@ import { createRef as _createRef, ref as _ref, Ref } from 'lit/directives/ref.js
 import { unsafeSVG } from 'lit/directives/unsafe-svg.js'
 
 import {
-  EnlightenmentHandler,
+  EnlightenmentProcessHandler,
   EnlightenmentImageOptions,
   EnlightenmentJSONResponse,
   EnlightenmentJSONResponseArray,
   EnlightenmentJSONResponseObject,
   EnlightenmentJSONResponseTransformer,
   EnlightenmentJSONResponseValue,
-  EnlightenmentProcess,
   EnlightenmentThrottle,
   EnligtenmentTarget,
   GlobalEvent,
@@ -952,7 +951,7 @@ export class Enlightenment extends LitElement {
 
     const { target } = event || {}
     // @ts-ignore
-    const process: undefined | EnlightenmentProcess = this.process
+    const process: undefined | EnlightenmentProcessHandler = this.process
 
     try {
       if (process !== undefined && document.contains(target as Node)) {
@@ -1708,7 +1707,7 @@ export class Enlightenment extends LitElement {
    *
    * @param handler The function handler to call for the observed elements
    */
-  private processObserved(handler?: EnlightenmentHandler) {
+  private processObserved(handler?: EnlightenmentProcessHandler) {
     if (!this.observe || typeof handler !== 'function') {
       return
     }

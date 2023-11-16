@@ -1,7 +1,22 @@
 import { EnlightenmentGlobals } from 'src/providers/Globals'
 import { EnlightenmentTheme } from 'src/providers/Theme'
 
-export type EnlightenmentHandler = (context: HTMLElement) => void
+/**
+ * Defines a single entry of the parsed json data form the
+ * Enlightenment.parseJSON() method.
+ */
+export type EnlightenmentDateEntry =
+  | string
+  | {
+      data?: string
+      title: string
+      value?: string
+    }
+
+/**
+ * Definition for the callback function used within Enlightenment.process
+ */
+export type EnlightenmentProcessHandler = (context?: HTMLElement) => void
 
 /**
  * Optional configuration options to use within the renderImage method.
@@ -40,12 +55,6 @@ export type EnligtenmentTarget = Element | HTMLElement | Node | SVGElement | und
  * multiple times within the defined throttle delay.
  */
 export type EnlightenmentThrottle = [Function, ReturnType<typeof setTimeout>]
-
-/**
- * Type reference for the expected process method that assigned within an
- * Enlightenment Component.
- */
-export type EnlightenmentProcess = (target?: HTMLElement) => void
 
 /**
  * Contains the active document Event listeners that are created from the
