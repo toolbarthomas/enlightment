@@ -595,12 +595,6 @@ export class Enlightenment extends LitElement {
   ariaDisabled: string | null = null
 
   @property({
-    converter: (value) => Enlightenment.isBoolean(value),
-    type: Boolean
-  })
-  busy?: boolean
-
-  @property({
     type: Number,
     converter: (value) => parseInt(String(value)) || Enlightenment.FPS
   })
@@ -838,7 +832,7 @@ export class Enlightenment extends LitElement {
    * @param name Dispatch the optional hook
    */
   protected handleUpdate(name?: string) {
-    this.updateBusy()
+    this.updatePending()
     this.updatePreventEvent()
     this.assignSlots()
     this.dispatchUpdate(name)
@@ -1427,10 +1421,11 @@ export class Enlightenment extends LitElement {
   }
 
   /**
-   * Updats the busy flag that should indicate the components loading state.
+   * Updats the pending Attribute that should indicate the components
+   * loading state.
    */
-  protected updateBusy() {
-    if (this.busy) {
+  protected updatePending() {
+    if (this.pending) {
       this.setAttribute('aria-busy', 'true')
     } else {
       this.removeAttribute('aria-busy')
@@ -1444,7 +1439,7 @@ export class Enlightenment extends LitElement {
   protected updatePreventEvent() {
     let preventEvent = false
 
-    if (this.ariaDisabled === 'true' || this.hasAttribute('disabled') || this.busy) {
+    if (this.ariaDisabled === 'true' || this.hasAttribute('disabled') || this.pending) {
       preventEvent = true
     }
 
