@@ -968,9 +968,10 @@ export class Enlightenment extends LitElement {
     const process: undefined | EnlightenmentProcessHandler = this.process
 
     try {
-      this.throttle(process, this.slotReady ? Enlightenment.FPS : Enlightenment.MAX_THREADS, {
-        target
-      })
+      process &&
+        this.throttle(process, this.slotReady ? Enlightenment.FPS : Enlightenment.MAX_THREADS, {
+          target
+        })
     } catch (exception) {
       exception && this.log(exception, 'error')
     }
