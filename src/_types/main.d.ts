@@ -8,8 +8,12 @@ import { EnlightenmentTheme } from 'src/providers/Theme'
 export type EnlightenmentDataEntry =
   | string
   | {
-      data?: string
-      title: string
+      checked?: boolean
+      disabled?: boolean
+      id?: string
+      label?: string
+      name?: string
+      title?: string
       value?: string
     }
 

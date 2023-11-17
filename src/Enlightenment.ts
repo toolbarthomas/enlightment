@@ -543,10 +543,6 @@ export class Enlightenment extends LitElement {
   // if the current scope is within the defined Component.
   currentElement?: boolean
 
-  // Boolean flag that should behave like the existing Input Element disabled
-  // attribute.
-  disabled?: boolean
-
   // Enables the default document Events that is called within: handleGlobal...
   // methods when TRUE.
   enableDocumentEvents: boolean = false
@@ -567,6 +563,8 @@ export class Enlightenment extends LitElement {
 
   // Blocks the default handle methods when TRUE.
   preventEvent: boolean = false
+
+  pid?: number
 
   // Reference to the parent Window object that holds the global state of the
   // created instance.
@@ -597,10 +595,24 @@ export class Enlightenment extends LitElement {
   ariaDisabled: string | null = null
 
   @property({
+    converter: (value) => Enlightenment.isBoolean(value),
+    type: Boolean
+  })
+  busy?: boolean
+
+  @property({
     type: Number,
     converter: (value) => parseInt(String(value)) || Enlightenment.FPS
   })
   delay = Enlightenment.FPS
+
+  // Boolean flag that should behave like the existing Input Element disabled
+  // attribute.
+  @property({
+    converter: (value) => Enlightenment.isBoolean(value),
+    type: Boolean
+  })
+  disabled?: boolean
 
   // Readable error to display during an exception/error within the defined
   // component context.
@@ -809,8 +821,6 @@ export class Enlightenment extends LitElement {
 
     this.updateFragments()
 
-    this.dispatchUpdate('updated')
-
     if (!this.slotReady) {
       Object.defineProperty(this, 'slotReady', {
         configurable: false,
@@ -828,6 +838,7 @@ export class Enlightenment extends LitElement {
    * @param name Dispatch the optional hook
    */
   protected handleUpdate(name?: string) {
+    this.updateBusy()
     this.updatePreventEvent()
     this.assignSlots()
     this.dispatchUpdate(name)
@@ -957,11 +968,9 @@ export class Enlightenment extends LitElement {
     const process: undefined | EnlightenmentProcessHandler = this.process
 
     try {
-      if (process !== undefined && document.contains(target as Node)) {
-        process.call(this, target as HTMLElement)
-
-        this.throttle(this.requestUpdate)
-      }
+      this.throttle(process, this.slotReady ? Enlightenment.FPS : Enlightenment.MAX_THREADS, {
+        target
+      })
     } catch (exception) {
       exception && this.log(exception, 'error')
     }
@@ -1137,7 +1146,21 @@ export class Enlightenment extends LitElement {
       const fn: Function = this[name.split('(')[0]]
 
       if (typeof fn === 'function' && Enlightenment.useHost(element) === this) {
-        this.assignGlobalEvent(type, fn.bind(this), { context: element })
+        this.assignGlobalEvent(
+          type,
+          () => {
+            try {
+              this.throttle(fn)
+            } catch (exception) {
+              if (exception) {
+                this.log(exception, 'error')
+              }
+            }
+          },
+          {
+            context: element
+          }
+        )
       }
     })
   }
@@ -1152,11 +1175,13 @@ export class Enlightenment extends LitElement {
       clearTimeout(this.cid)
     }
 
+    if (this.throttler.handlers.length <= Enlightenment.MAX_THREADS) {
+      return
+    }
+
     this.cid = setTimeout(
       () => {
-        if (this.throttler.handlers.length > Enlightenment.MAX_THREADS) {
-          this.throttler.handlers = this.throttler.handlers.filter((h) => h != null)
-        }
+        this.throttler.handlers = this.throttler.handlers.filter((h) => h != null)
       },
       this.throttler.handlers.length + Enlightenment.FPS * Enlightenment.MAX_THREADS
     )
@@ -1401,14 +1426,29 @@ export class Enlightenment extends LitElement {
   }
 
   /**
+   * Updats the busy flag that should indicate the components loading state.
+   */
+  protected updateBusy() {
+    if (this.busy) {
+      this.setAttribute('aria-busy', 'true')
+    } else {
+      this.removeAttribute('aria-busy')
+    }
+  }
+
+  /**
    * Updates the preventEvent flag that should disable other handlers to be
    * used when TRUE.
    */
   protected updatePreventEvent() {
-    if (this.ariaDisabled === 'true' || this.hasAttribute('disabled')) {
-      this.commit('preventEvent', true)
-    } else {
-      this.commit('preventEvent', false)
+    let preventEvent = false
+
+    if (this.ariaDisabled === 'true' || this.hasAttribute('disabled') || this.busy) {
+      preventEvent = true
+    }
+
+    if (this.preventEvent !== preventEvent) {
+      this.preventEvent = preventEvent
     }
   }
 
@@ -2041,7 +2081,7 @@ export class Enlightenment extends LitElement {
     }
 
     let bubbles = true
-    if (['resize', 'scroll', 'updated', 'slotchange'].includes(name)) {
+    if (['resize', 'scroll', 'update', 'updated', 'slotchange'].includes(name)) {
       bubbles = false
     }
 
