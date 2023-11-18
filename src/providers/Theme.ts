@@ -43,7 +43,7 @@ export class EnlightenmentTheme {
       }
     }
 
-    @keyframes spawn {
+    @keyframes fadeInFromTop {
       from {
         opacity: 0;
         transform: translateY(-50%);
