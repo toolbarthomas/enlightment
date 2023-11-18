@@ -1,5 +1,5 @@
 h1 {
-  color: red;
+  color: var(--accent-400);
   appearance: none;
 
   :host([aria-current='true']) & {

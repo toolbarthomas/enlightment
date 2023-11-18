@@ -1,5 +1,6 @@
 import {
   createRef,
+  css,
   customElement,
   Enlightenment,
   html,
@@ -12,9 +13,18 @@ import scssStyle from './hello-world.scss'
 
 @customElement('hello-world')
 class HelloWorld extends Enlightenment {
-  static styles = [cssStyle, scssStyle]
+  static styles = [
+    cssStyle,
+    scssStyle,
+    css`
+      slot {
+        background: red;
+      }
+    `
+  ]
 
   enableDocumentEvents = true
+  enableFragments = true
 
   // @property({
   //   attribute: '@callback',
@@ -102,6 +112,8 @@ class HelloWorld extends Enlightenment {
    * @param target The expected html target
    */
   process(target: any) {
+    console.log('Process hello world', this)
+
     // if (target.preventEvent) {
     //   this.commit('name', `Updated ${this.name}`)
     // }
@@ -128,6 +140,17 @@ class HelloWorld extends Enlightenment {
     // console.log('Firstupdated', this.callback)
   }
 
+  firstUpdated() {
+    super.firstUpdated()
+
+    this.assignFragments('optional')
+
+    // setTimeout(() => {
+    //   this.omitFragments('optional')
+    //   console.log('bar')
+    // }, 5000)
+  }
+
   render() {
     return html`
       <focus-trap ?active=${this.hasActiveFocusTrap}>
@@ -148,12 +171,18 @@ class HelloWorld extends Enlightenment {
               height: '100px'
             })}
           </div>
+          Result:
+          <div fragment="optional" @click="${() => console.log('Click fragment')}">
+            Default fragment text
+          </div>
+          <div fragment="optional"></div>
         </div>
+        <slot name="optional"></slot>
       </focus-trap>
     `
   }
 
   start() {
-    console.log('Hello World', this)
+    console.log('Hello World Start', this)
   }
 }

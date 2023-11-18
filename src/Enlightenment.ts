@@ -592,6 +592,13 @@ export class Enlightenment extends LitElement {
   // Alias to the constructor name.
   uuid: string
 
+  // Generates the optional accent color for the defined component.
+  @property({
+    converter: (value) => Enlightenment.theme.useColor(value),
+    type: String
+  })
+  accent?: string
+
   @property({
     attribute: 'aria-disabled',
     reflect: true,
@@ -599,6 +606,8 @@ export class Enlightenment extends LitElement {
   })
   ariaDisabled: string | null = null
 
+  // Optional throttle delay to use instead of the default Enlightenment.FPS
+  // value
   @property({
     type: Number,
     converter: (value) => parseInt(String(value)) || Enlightenment.FPS
@@ -625,15 +634,18 @@ export class Enlightenment extends LitElement {
   })
   mode?: string
 
+  // Returns the full Component context when FALSE.
   @property({
     converter: (value) => Enlightenment.isBoolean(value),
     type: Boolean
   })
   minimalShadowRoot?: boolean
 
-  // Ensures aria hidden attribute is also updated.
-  @property({ converter: Enlightenment.isBoolean, reflect: true, type: Boolean })
-  hidden?: boolean = false
+  @property({
+    converter: (value) => Enlightenment.theme.useColor(value),
+    type: String
+  })
+  neutral?: string
 
   // Will call the process method if the defined selector names exists within
   // the current DOM.
@@ -1442,6 +1454,9 @@ export class Enlightenment extends LitElement {
   protected updated(properties: PropertyValues) {
     super.updated(properties)
 
+    Enlightenment.theme.useAccent(this, this.accent, EnlightenmentTheme.colorChart.delta)
+    Enlightenment.theme.useNeutral(this, this.neutral)
+
     this.throttle(this.handleUpdate, Enlightenment.FPS, 'updated')
   }
 
@@ -1899,6 +1914,17 @@ export class Enlightenment extends LitElement {
   }
 
   /**
+   * Use the full or direct shadowRoot context based from the defined
+   * minimalShadowRoot property.
+   */
+  private useShadowRoot() {
+    return this.minimalShadowRoot
+      ? true
+      : (node: HTMLElement | SVGElement) =>
+          this.isComponentContext(node) ? node.shadowRoot || undefined : false
+  }
+
+  /**
    * Ensures the a requestUpdate is used when attribtues are added or removed.
    * on the defined element.
    */
@@ -2036,6 +2062,17 @@ export class Enlightenment extends LitElement {
     // to the constructed Enlightenment Globals.
     if (!Enlightenment.globals.hasProvider(Enlightenment.theme)) {
       Enlightenment.theme.assignDocumentStylesheet()
+
+      const sheet = Enlightenment.theme.assignColorStylesheet(
+        EnlightenmentTheme.colorChart.colors,
+        {
+          accent: this.accent || EnlightenmentTheme.colorChart.accent,
+          neutral: this.neutral || EnlightenmentTheme.colorChart.neutral,
+          delta: EnlightenmentTheme.colorChart.delta,
+          type: EnlightenmentTheme.colorChart.type
+        }
+      )
+
       Enlightenment.globals.assignProvider(Enlightenment.theme)
     }
 
