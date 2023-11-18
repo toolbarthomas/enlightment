@@ -5,6 +5,58 @@ import { css } from 'lit'
  * Component without assigning it to the Component styles static.
  */
 export class EnlightenmentTheme {
+  // Global Keyframe definition that could be used within the component context.
+  static keyframes = css`
+    @keyframes rotate {
+      to {
+        transform: rotate(1turn);
+      }
+    }
+
+    @keyframes rotateFromCenter {
+      to {
+        transform: translate(-50%, -50%) rotate(1turn);
+      }
+    }
+
+    @keyframes rippleSmall {
+      to {
+        transform: scale(1.6);
+        opacity: 0;
+      }
+    }
+
+    @keyframes rippleMedium {
+      to {
+        transform: scale(4);
+        opacity: 0;
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes spawn {
+      from {
+        opacity: 0;
+        transform: translateY(-50%);
+      }
+
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+  ` as unknown as string
+
+  // Default component styles that is included for each Component.
   static component = css`
     *,
     *::before,
@@ -21,6 +73,7 @@ export class EnlightenmentTheme {
     }
   ` as unknown as string
 
+  // Defines the default document styles for the current application.
   static document = css`
     html,
     body {
@@ -51,11 +104,14 @@ export class EnlightenmentTheme {
     }
 
     const defaultStylesheet = new CSSStyleSheet()
+    const keyframeStylesheet = new CSSStyleSheet()
     defaultStylesheet.replaceSync(EnlightenmentTheme.component)
+    keyframeStylesheet.replaceSync(EnlightenmentTheme.keyframes)
 
     context.shadowRoot.adoptedStyleSheets = [
       ...context.shadowRoot.adoptedStyleSheets,
-      defaultStylesheet
+      defaultStylesheet,
+      keyframeStylesheet
     ]
   }
 }
