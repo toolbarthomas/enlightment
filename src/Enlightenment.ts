@@ -1521,6 +1521,17 @@ export class Enlightenment extends LitElement {
   }
 
   /**
+   * Use the full or direct shadowRoot context based from the defined
+   * minimalShadowRoot property.
+   */
+  protected useShadowRoot() {
+    return this.minimalShadowRoot
+      ? true
+      : (node: HTMLElement | SVGElement) =>
+          this.isComponentContext(node) ? node.shadowRoot || undefined : false
+  }
+
+  /**
    * Returns the slot from the defined name or return the default slot
    * otherwise.
    *
@@ -1911,17 +1922,6 @@ export class Enlightenment extends LitElement {
     }
 
     return target
-  }
-
-  /**
-   * Use the full or direct shadowRoot context based from the defined
-   * minimalShadowRoot property.
-   */
-  private useShadowRoot() {
-    return this.minimalShadowRoot
-      ? true
-      : (node: HTMLElement | SVGElement) =>
-          this.isComponentContext(node) ? node.shadowRoot || undefined : false
   }
 
   /**
