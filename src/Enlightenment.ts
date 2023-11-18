@@ -555,6 +555,11 @@ export class Enlightenment extends LitElement {
   // and is currently active.
   hasActiveFocusTrap?: boolean
 
+  // Defines the optional state properties to use in combination with the
+  // actual aria attribute.
+  isCollapsed?: boolean
+  isExpanded?: boolean
+
   // Dynamic storage for the running document Event listeners.
   listeners: GlobalEvent[] = []
 
@@ -625,6 +630,10 @@ export class Enlightenment extends LitElement {
     type: Boolean
   })
   minimalShadowRoot?: boolean
+
+  // Ensures aria hidden attribute is also updated.
+  @property({ converter: Enlightenment.isBoolean, reflect: true, type: Boolean })
+  hidden?: boolean = false
 
   // Will call the process method if the defined selector names exists within
   // the current DOM.
@@ -704,8 +713,6 @@ export class Enlightenment extends LitElement {
    */
   protected firstUpdated(properties: PropertyValueMap<any> | Map<PropertyKey, unknown>) {
     super.firstUpdated(properties)
-
-    // this.useDefaultStyleSheet()
 
     Enlightenment.theme.assignDefaultStylesheet(this)
 
@@ -827,12 +834,30 @@ export class Enlightenment extends LitElement {
   }
 
   /**
+   * Updates the Component attributes from the defined context properties.
+   *
+   * @param property The property name that should exists within the component.
+   * @param name The optional Attribute name to use instead of the property.
+   */
+  updateAttribute(property: string, name?: string) {
+    if ((this as any)[property]) {
+      this.setAttribute(name || property, 'true')
+    } else {
+      this.removeAttribute(name || property)
+    }
+  }
+
+  /**
    * Callback handler to use after component.updated() is triggered.
    *
    * @param name Dispatch the optional hook
    */
   protected handleUpdate(name?: string) {
-    this.updatePending()
+    this.updateAttribute('pending', 'aria-busy')
+
+    this.updateAttribute('isExpanded', 'aria-expanded')
+    this.updateAttribute('isCollapsed', 'aria-collapsed')
+
     this.updatePreventEvent()
     this.assignSlots()
     this.dispatchUpdate(name)
@@ -1908,7 +1933,7 @@ export class Enlightenment extends LitElement {
 
     try {
       //@ts-ignore
-      const value = this[property as any]
+      const value = this[property]
 
       if (typeof handler === 'function') {
         const result = handler()
