@@ -2063,6 +2063,8 @@ export class Enlightenment extends LitElement {
     if (!Enlightenment.globals.hasProvider(Enlightenment.theme)) {
       Enlightenment.theme.assignDocumentStylesheet()
 
+      Enlightenment.theme.assignBoxModelStylesheet()
+
       const sheet = Enlightenment.theme.assignColorStylesheet(
         EnlightenmentTheme.colorChart.colors,
         {

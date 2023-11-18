@@ -190,6 +190,37 @@ export class EnlightenmentTheme {
    */
   computedDocument?: ReturnType<typeof getComputedStyle>
 
+  public assignBoxModelStylesheet(delta = 4) {
+    const base = Math.round(Math.max(screen.width, screen.height) * devicePixelRatio)
+    const size = parseInt(getComputedStyle(document.documentElement).fontSize)
+
+    const sheet: string[] = []
+
+    const spaces = Array.from({ length: base / delta }).forEach((_, index) => {
+      sheet.push(`--space-${index * delta}: ${(1 / size) * delta * index}rem;`)
+    })
+
+    // Also include the smaller space values from the defined delta value.
+    Array.from({ length: delta * 4 }).forEach((_, index) => {
+      const space = `--space-${index + 1}: ${(1 / size) * (index + 1)}rem;`
+
+      if (sheet.includes(space)) {
+        return
+      }
+
+      sheet.push(space)
+    })
+
+    const boxModelStylesheet = new CSSStyleSheet()
+    boxModelStylesheet.replaceSync(`
+      :root {
+        ${sheet.join('\n')}
+      }
+    `)
+
+    document.adoptedStyleSheets = [...document.adoptedStyleSheets, boxModelStylesheet]
+  }
+
   /**
    * Generates and assignes the default Color stylesheet that contains the
    * color, accents & neutral custom properties.
@@ -199,7 +230,7 @@ export class EnlightenmentTheme {
    * @param delta Applies opacity values from the defined delta value for each
    * color & accent.
    */
-  assignColorStylesheet(colors: ColorChart, options?: ColorOptions) {
+  public assignColorStylesheet(colors: ColorChart, options?: ColorOptions) {
     if (!colors) {
       return
     }
@@ -317,7 +348,7 @@ export class EnlightenmentTheme {
     return sheet
   }
 
-  assignDocumentStylesheet() {
+  public assignDocumentStylesheet() {
     const documentStylesheet = new CSSStyleSheet()
 
     documentStylesheet.replaceSync(EnlightenmentTheme.document)
@@ -333,7 +364,7 @@ export class EnlightenmentTheme {
    *
    * @param context Assigns the stylesheet to the defined context Element.
    */
-  assignDefaultStylesheet(context: Element) {
+  public assignDefaultStylesheet(context: Element) {
     if (!context || !context.shadowRoot) {
       return
     }
@@ -358,7 +389,7 @@ export class EnlightenmentTheme {
    * @param delta Updates the opacity channels for the defined accent when
    * defined.
    */
-  useAccent(context: HTMLElement, value?: string, delta?: number) {
+  public useAccent(context: HTMLElement, value?: string, delta?: number) {
     if (!context || !value || !this.useColor(value)) {
       return
     }
@@ -378,8 +409,6 @@ export class EnlightenmentTheme {
               `var(--${value}-${weight}-a${delta * index})`
             )
         })
-
-        console.log('channels', channels)
       }
     })
   }
