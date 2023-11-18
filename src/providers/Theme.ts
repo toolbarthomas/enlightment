@@ -190,19 +190,27 @@ export class EnlightenmentTheme {
    */
   computedDocument?: ReturnType<typeof getComputedStyle>
 
-  public assignBoxModelStylesheet(delta = 4) {
-    const base = Math.round(Math.max(screen.width, screen.height) * devicePixelRatio)
+  /**
+   * Generates semantic custom properties for the relative space values defined
+   * from  the initial document font size. Each sppace value is multiplied by
+   * the defined delta and maximum screen size.
+   *
+   * @param delta Defines the amount of space values to generate: (size / delta).
+   * @param unit Use the optional CSS unit instead of the default.
+   */
+  public assignBoxModelStylesheet(delta = 4, unit = 'rem') {
+    const base = Math.round(Math.max(screen.width, screen.height) * devicePixelRatio) * 2
     const size = parseInt(getComputedStyle(document.documentElement).fontSize)
 
     const sheet: string[] = []
 
     const spaces = Array.from({ length: base / delta }).forEach((_, index) => {
-      sheet.push(`--space-${index * delta}: ${(1 / size) * delta * index}rem;`)
+      sheet.push(`--space-${index * delta}: ${(1 / size) * delta * index}${unit};`)
     })
 
     // Also include the smaller space values from the defined delta value.
     Array.from({ length: delta * 4 }).forEach((_, index) => {
-      const space = `--space-${index + 1}: ${(1 / size) * (index + 1)}rem;`
+      const space = `--space-${index + 1}: ${(1 / size) * (index + 1)}${unit};`
 
       if (sheet.includes(space)) {
         return
@@ -348,6 +356,9 @@ export class EnlightenmentTheme {
     return sheet
   }
 
+  /**
+   * Assigns the static Document stylesheet to current page.
+   */
   public assignDocumentStylesheet() {
     const documentStylesheet = new CSSStyleSheet()
 
@@ -414,6 +425,19 @@ export class EnlightenmentTheme {
   }
 
   /**
+   * Ensures the defined color exists within the default color Chart.
+   *
+   * @param color Will use the given color when defined.
+   */
+  useColor(color: string | null) {
+    if (!color || !Object.keys(EnlightenmentTheme.colorChart.colors).includes(color)) {
+      return
+    }
+
+    return color
+  }
+
+  /**
    * Updates the current neutral color properties for the defined context.
    *
    * @param context Assigns the new neutral properties to the defined component.
@@ -427,13 +451,5 @@ export class EnlightenmentTheme {
     EnlightenmentTheme.colorWeights.forEach((weight) => {
       context.style.setProperty(`--neutral-${weight}`, `var(--${value}-${weight})`)
     })
-  }
-
-  useColor(color: string | null) {
-    if (!color || !Object.keys(EnlightenmentTheme.colorChart.colors).includes(color)) {
-      return
-    }
-
-    return color
   }
 }
