@@ -2027,7 +2027,7 @@ export class Enlightenment extends LitElement {
     // Fallback to ensure the parent component is updated when the initial
     // component is connected.
     const host = Enlightenment.useHost(this) as Enlightenment
-    if (typeof host.dispatchUpdate === 'function' && host !== this) {
+    if (host && typeof host.dispatchUpdate === 'function' && host !== this) {
       host.dispatchUpdate()
     }
   }
