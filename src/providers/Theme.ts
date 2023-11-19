@@ -1,4 +1,5 @@
 import { css } from 'lit'
+import { Enlightenment } from 'src/Enlightenment'
 
 export type Shade = string | [number, number, number]
 
@@ -349,21 +350,24 @@ export class EnlightenmentTheme {
 
     document.adoptedStyleSheets = [...document.adoptedStyleSheets, colorStylesheet]
 
-    if (document.documentElement) {
-      this.computedDocument = getComputedStyle(document.documentElement)
-    }
-
     return sheet
   }
 
   /**
    * Assigns the static Document stylesheet to current page.
    */
-  public assignDocumentStylesheet() {
+  public assignDefaultStylesheets() {
     const documentStylesheet = new CSSStyleSheet()
+    const keyframeStylesheet = new CSSStyleSheet()
 
     documentStylesheet.replaceSync(EnlightenmentTheme.document)
-    document.adoptedStyleSheets = [...document.adoptedStyleSheets, documentStylesheet]
+    keyframeStylesheet.replaceSync(EnlightenmentTheme.keyframes)
+
+    document.adoptedStyleSheets = [
+      ...document.adoptedStyleSheets,
+      documentStylesheet,
+      keyframeStylesheet
+    ]
 
     if (document.documentElement) {
       this.computedDocument = getComputedStyle(document.documentElement)
@@ -375,21 +379,22 @@ export class EnlightenmentTheme {
    *
    * @param context Assigns the stylesheet to the defined context Element.
    */
-  public assignDefaultStylesheet(context: Element) {
+  public assignComponentStylesheets(context: HTMLElement) {
     if (!context || !context.shadowRoot) {
-      return
+      return {}
     }
 
-    const defaultStylesheet = new CSSStyleSheet()
-    const keyframeStylesheet = new CSSStyleSheet()
-    defaultStylesheet.replaceSync(EnlightenmentTheme.component)
-    keyframeStylesheet.replaceSync(EnlightenmentTheme.keyframes)
+    const componentStylesheet = new CSSStyleSheet()
+    componentStylesheet.replaceSync(EnlightenmentTheme.component)
 
     context.shadowRoot.adoptedStyleSheets = [
       ...context.shadowRoot.adoptedStyleSheets,
-      defaultStylesheet,
-      keyframeStylesheet
+      componentStylesheet
     ]
+
+    return {
+      component: componentStylesheet
+    }
   }
 
   /**
@@ -405,8 +410,11 @@ export class EnlightenmentTheme {
       return
     }
 
+    const sheet: string[] = []
+
     EnlightenmentTheme.colorWeights.forEach((weight) => {
-      context.style.setProperty(`--accent-${weight}`, `var(--${value}-${weight})`)
+      // context.style.setProperty()e
+      sheet.push(`--accent-${weight}: var(--${value}-${weight});`)
 
       if (delta) {
         const channels = Array.from({
@@ -415,13 +423,14 @@ export class EnlightenmentTheme {
 
         channels.forEach((channel, index) => {
           index &&
-            context.style.setProperty(
-              `--accent-${weight}-a${delta * index}`,
-              `var(--${value}-${weight}-a${delta * index})`
+            sheet.push(
+              `--accent-${weight}-a${delta * index}: var(--${value}-${weight}-a${delta * index});`
             )
         })
       }
     })
+
+    return sheet
   }
 
   /**
@@ -448,8 +457,12 @@ export class EnlightenmentTheme {
       return
     }
 
+    const sheet: string[] = []
+
     EnlightenmentTheme.colorWeights.forEach((weight) => {
-      context.style.setProperty(`--neutral-${weight}`, `var(--${value}-${weight})`)
+      sheet.push(`--neutral-${weight}: var(--${value}-${weight});`)
     })
+
+    return sheet
   }
 }

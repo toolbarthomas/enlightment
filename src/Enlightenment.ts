@@ -543,6 +543,14 @@ export class Enlightenment extends LitElement {
   // if the current scope is within the defined Component.
   currentElement?: boolean
 
+  // Contains the references of the created custom CSSStyleSheet to enable
+  // StyleSheet updates for the rendered Components.
+  customStyleSheet?: CSSStyleSheet
+
+  // Keep track of the updated custom stylesheets to preventStyleSheet
+  // updates without any change.
+  customStyleSheetCache?: string
+
   // Enables the default document Events that is called within: handleGlobal...
   // methods when TRUE.
   enableDocumentEvents: boolean = false
@@ -595,6 +603,7 @@ export class Enlightenment extends LitElement {
   // Generates the optional accent color for the defined component.
   @property({
     converter: (value) => Enlightenment.theme.useColor(value),
+    reflect: true,
     type: String
   })
   accent?: string
@@ -643,6 +652,7 @@ export class Enlightenment extends LitElement {
 
   @property({
     converter: (value) => Enlightenment.theme.useColor(value),
+    reflect: true,
     type: String
   })
   neutral?: string
@@ -725,8 +735,6 @@ export class Enlightenment extends LitElement {
    */
   protected firstUpdated(properties: PropertyValueMap<any> | Map<PropertyKey, unknown>) {
     super.firstUpdated(properties)
-
-    Enlightenment.theme.assignDefaultStylesheet(this)
 
     this.useMode()
 
@@ -860,6 +868,50 @@ export class Enlightenment extends LitElement {
   }
 
   /**
+   * Update callback for the defined custom StyleSheet of the rendered Element
+   * that will update the currently defined Custom Stylesheet that has been
+   * assigned after the initial Component styles.
+   */
+  updateCustomStylesSheets() {
+    const accents = Enlightenment.theme.useAccent(
+      this,
+      this.accent,
+      EnlightenmentTheme.colorChart.delta
+    )
+
+    const neutrals = Enlightenment.theme.useNeutral(this, this.neutral)
+
+    // Only update if there are any accents or neutral values to use.
+    if (accents && neutrals && !accents.length && !neutrals.length) {
+      return
+    }
+
+    const sheet = this.customStyleSheet
+
+    if (!sheet || sheet instanceof CSSStyleSheet === false) {
+      return
+    }
+
+    const style = `
+        ${EnlightenmentTheme.component}
+
+
+        :host {
+          ${accents && accents.join('\n')}
+          ${neutrals && neutrals.join('\n')}
+        }
+      `
+
+    if (this.customStyleSheetCache && this.customStyleSheetCache === style) {
+      return
+    }
+
+    this.customStyleSheetCache = style
+
+    sheet.replaceSync(style)
+  }
+
+  /**
    * Callback handler to use after component.updated() is triggered.
    *
    * @param name Dispatch the optional hook
@@ -869,6 +921,7 @@ export class Enlightenment extends LitElement {
 
     this.updateAttribute('isExpanded', 'aria-expanded')
     this.updateAttribute('isCollapsed', 'aria-collapsed')
+    this.updateCustomStylesSheets()
 
     this.updatePreventEvent()
     this.assignSlots()
@@ -1197,6 +1250,21 @@ export class Enlightenment extends LitElement {
     })
   }
 
+  public assignCustomCSSStyleSheet(sheet: CSSStyleSheet) {
+    if (sheet instanceof CSSStyleSheet === false) {
+      this.log(
+        `Unable to assign custom stylesheet '${name}' without a valid CSSStyleSheet`,
+        'warning'
+      )
+
+      return
+    }
+
+    this.customStyleSheet = sheet
+
+    this.log(['Custom stylesheet assigned:', sheet.title], 'log')
+  }
+
   /**
    * Optimize the defined Component by removing the obsolete property values.
    * This method can only be called once since it is invoked within an unique
@@ -1453,9 +1521,6 @@ export class Enlightenment extends LitElement {
    */
   protected updated(properties: PropertyValues) {
     super.updated(properties)
-
-    Enlightenment.theme.useAccent(this, this.accent, EnlightenmentTheme.colorChart.delta)
-    Enlightenment.theme.useNeutral(this, this.neutral)
 
     this.throttle(this.handleUpdate, Enlightenment.FPS, 'updated')
   }
@@ -2061,22 +2126,33 @@ export class Enlightenment extends LitElement {
     // Invoke the defined Enlightenment providers once and include them
     // to the constructed Enlightenment Globals.
     if (!Enlightenment.globals.hasProvider(Enlightenment.theme)) {
-      Enlightenment.theme.assignDocumentStylesheet()
+      // Define the required styles in order to use the additional Enlightenment
+      // features.
+      Enlightenment.theme.assignDefaultStylesheets()
 
+      // Define the global Box Model related properties.
       Enlightenment.theme.assignBoxModelStylesheet()
 
-      const sheet = Enlightenment.theme.assignColorStylesheet(
-        EnlightenmentTheme.colorChart.colors,
-        {
-          accent: this.accent || EnlightenmentTheme.colorChart.accent,
-          neutral: this.neutral || EnlightenmentTheme.colorChart.neutral,
-          delta: EnlightenmentTheme.colorChart.delta,
-          type: EnlightenmentTheme.colorChart.type
-        }
-      )
+      // Define the global Color Chart custom properties.
+      Enlightenment.theme.assignColorStylesheet(EnlightenmentTheme.colorChart.colors, {
+        accent: EnlightenmentTheme.colorChart.accent,
+        neutral: EnlightenmentTheme.colorChart.neutral,
+        delta: EnlightenmentTheme.colorChart.delta,
+        type: EnlightenmentTheme.colorChart.type
+      })
 
+      // Ensure the assigned StyleSheets are only assigned once. We don't
+      // need to worry about removing them since they are bound to the
+      // Custom Element.
       Enlightenment.globals.assignProvider(Enlightenment.theme)
     }
+
+    // Create reference of the custom StyleSheets that will update from their
+    // component property values.
+    const customStyleSheets = Enlightenment.theme.assignComponentStylesheets(this)
+    Object.entries(customStyleSheets).forEach(([name, sheet]) =>
+      this.assignCustomCSSStyleSheet(sheet)
+    )
 
     if (this.enableDocumentEvents) {
       this.assignGlobalEvent('click', this.handleGlobalClick)
