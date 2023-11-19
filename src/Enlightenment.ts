@@ -2132,6 +2132,10 @@ export class Enlightenment extends LitElement {
       // Define the global Box Model related properties.
       Enlightenment.theme.assignBoxModelStylesheet()
 
+      // Includes the required viewport meta tags to ensure the responsive
+      // layout behaves correctly.
+      Enlightenment.theme.assignViewport()
+
       // Define the global Color Chart custom properties.
       Enlightenment.theme.assignColorStylesheet(EnlightenmentTheme.colorChart.colors, {
         accent: EnlightenmentTheme.colorChart.accent,

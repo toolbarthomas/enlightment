@@ -201,12 +201,29 @@ export class EnlightenmentTheme {
       white: [[212, 0, 100]]
     } as ThemeColorChart
   }
-
   /**
    * Defines the current computed Document styles that have been defined after
    * a Document Stylesheet is assigned.
    */
   computedDocument?: ReturnType<typeof getComputedStyle>
+
+  /**
+   * Assigns the required meta tags to ensure the components are displayed
+   * correctly.
+   */
+  public assignViewport() {
+    const viewport = this.useMeta({
+      content: 'width=device-width, initial-scale=1.0',
+      name: 'viewport'
+    })
+
+    viewport && document.head.insertAdjacentElement('afterbegin', viewport)
+
+    const charset = this.useMeta({
+      charset: 'utf-8'
+    })
+    charset && document.head.insertAdjacentElement('afterbegin', charset)
+  }
 
   /**
    * Generates semantic custom properties for the relative space values defined
@@ -227,10 +244,6 @@ export class EnlightenmentTheme {
 
     const sheet: string[] = []
 
-    const spaces = Array.from({ length: base / delta }).forEach((_, index) => {
-      sheet.push(`--space-${index * delta}: ${(1 / size) * delta * index}${unit};`)
-    })
-
     // Also include the smaller space values from the defined delta value.
     Array.from({ length: delta * 4 }).forEach((_, index) => {
       const space = `--space-${index + 1}: ${(1 / size) * (index + 1)}${unit};`
@@ -240,6 +253,10 @@ export class EnlightenmentTheme {
       }
 
       sheet.push(space)
+    })
+
+    const spaces = Array.from({ length: base / delta + 1 }).forEach((_, index) => {
+      sheet.push(`--space-${index * delta}: ${(1 / size) * delta * index}${unit};`)
     })
 
     const boxModelStylesheet = new CSSStyleSheet()
@@ -462,6 +479,33 @@ export class EnlightenmentTheme {
     }
 
     return color
+  }
+
+  /**
+   * Creates a new meta element if the initial element does not exists and
+   * assign any optional property to it.
+   *
+   * @param props Assignes any string value property to the initial meta
+   * element.
+   */
+  public useMeta(props: { [key: string]: string }) {
+    const { name } = props || {}
+
+    let meta: null | HTMLMetaElement = document.querySelector(`meta[name="${name}"]`)
+
+    if (meta) {
+      return
+    }
+
+    meta = document.createElement('meta')
+
+    Object.keys(props || {})
+      .reverse()
+      .forEach((key) => {
+        meta && meta.setAttribute(key, props[key])
+      })
+
+    return meta
   }
 
   /**
