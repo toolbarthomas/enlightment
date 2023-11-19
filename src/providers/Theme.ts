@@ -1,16 +1,31 @@
 import { css } from 'lit'
-import { Enlightenment } from 'src/Enlightenment'
 
-export type Shade = string | [number, number, number]
+// Type definition that defines a color value without any units.
+export type ThemeColorTint = string | [number, number, number]
 
-export type ColorChart = { [key: string]: Shade[] }
+// Contains the configuration to generate the actual color chart with the
+// required colors, shades and optional opacity variants.
+export type ThemeColorChart = { [key: string]: ThemeColorTint[] }
 
-export type ColorType = 'hex' | 'hsl' | 'hsla' | 'rgb' | 'rgba'
+// Use the correct css value from the defined type value within the generated
+// Color Chart.
+export type ThemeColorType = 'hex' | 'hsl' | 'rgb'
 
-export type ColorOptions = {
-  type?: ColorType
+/**
+ * The actual configuration used while generatenig a new Color Chart.
+ */
+export type ThemeColorOptions = {
+  // Use the defined CSS value type instead of the default.
+  type?: ThemeColorType
+
+  // Create the neutral tints without opacity variants.
   neutral?: string
+
+  // Create the accent tins with opacity variants if ThemeColorOptions['delta']
+  // is defined.
   accent?: string
+
+  // Generates the optional opacity values for the default and accent colors.
   delta?: number
 }
 
@@ -19,7 +34,9 @@ export type ColorOptions = {
  * Component without assigning it to the Component styles static.
  */
 export class EnlightenmentTheme {
-  // Global Keyframe definition that could be used within the component context.
+  /**
+   * Global Keyframe definition that could be used within the component context.
+   */
   static keyframes = css`
     @keyframes rotate {
       to {
@@ -120,7 +137,7 @@ export class EnlightenmentTheme {
    * Stylesheet.
    */
   static colorChart = {
-    type: 'hsl' as ColorType,
+    type: 'hsl' as ThemeColorType,
     delta: 5,
     accent: 'blue',
     neutral: 'grey',
@@ -182,7 +199,7 @@ export class EnlightenmentTheme {
         [1, 82, 7]
       ],
       white: [[212, 0, 100]]
-    } as ColorChart
+    } as ThemeColorChart
   }
 
   /**
@@ -201,7 +218,12 @@ export class EnlightenmentTheme {
    */
   public assignBoxModelStylesheet(delta = 4, unit = 'rem') {
     const base = Math.round(Math.max(screen.width, screen.height) * devicePixelRatio) * 2
-    const size = parseInt(getComputedStyle(document.documentElement).fontSize)
+
+    if (!this.computedDocument) {
+      this.computedDocument = getComputedStyle(document.documentElement)
+    }
+
+    const size = parseInt(this.computedDocument.fontSize)
 
     const sheet: string[] = []
 
@@ -234,12 +256,12 @@ export class EnlightenmentTheme {
    * Generates and assignes the default Color stylesheet that contains the
    * color, accents & neutral custom properties.
    *
-   * @param colors Generates the color values from the defined ColorChart
+   * @param colors Generates the color values from the defined ThemeColorChart
    * @param type Use the defined CSS color function
    * @param delta Applies opacity values from the defined delta value for each
    * color & accent.
    */
-  public assignColorStylesheet(colors: ColorChart, options?: ColorOptions) {
+  public assignColorStylesheet(colors: ThemeColorChart, options?: ThemeColorOptions) {
     if (!colors) {
       return
     }
@@ -368,10 +390,6 @@ export class EnlightenmentTheme {
       documentStylesheet,
       keyframeStylesheet
     ]
-
-    if (document.documentElement) {
-      this.computedDocument = getComputedStyle(document.documentElement)
-    }
   }
 
   /**

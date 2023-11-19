@@ -893,14 +893,13 @@ export class Enlightenment extends LitElement {
     }
 
     const style = `
-        ${EnlightenmentTheme.component}
+      ${EnlightenmentTheme.component}
 
-
-        :host {
-          ${accents && accents.join('\n')}
-          ${neutrals && neutrals.join('\n')}
-        }
-      `
+      :host {
+        ${accents && accents.join('\n')}
+        ${neutrals && neutrals.join('\n')}
+      }
+    `
 
     if (this.customStyleSheetCache && this.customStyleSheetCache === style) {
       return
