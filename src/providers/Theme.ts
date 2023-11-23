@@ -142,6 +142,17 @@ export class EnlightenmentTheme {
     accent: 'blue',
     neutral: 'grey',
     colors: {
+      amber: [
+        [43, 96, 84],
+        [42, 95, 75],
+        [42, 95, 67],
+        [43, 93, 56],
+        [44, 93, 48],
+        [45, 93, 40],
+        [28, 93, 31],
+        [21, 92, 26],
+        [18, 90, 19]
+      ],
       black: [[212, 0, 0]],
       blue: [
         [211, 96, 92],
@@ -153,6 +164,17 @@ export class EnlightenmentTheme {
         [214, 94, 44],
         [214, 94, 37],
         [215, 92, 2]
+      ],
+      cyan: [
+        [188, 84, 86],
+        [187, 86, 79],
+        [187, 86, 74],
+        [188, 86, 69],
+        [186, 93, 59],
+        [186, 93, 50],
+        [187, 94, 41],
+        [187, 94, 32],
+        [188, 95, 23]
       ],
       dawn: [
         [208, 42, 98],
@@ -176,6 +198,17 @@ export class EnlightenmentTheme {
         [214, 27, 22],
         [215, 25, 7]
       ],
+      grape: [
+        [3, 2q, 79],
+        [8, 81, 68],
+        [11, 81, 62],
+        [14, 80, 50],
+        [17, 78, 44],
+        [18, 74, 39],
+        [18, 69, 32],
+        [7, 60, 20],
+        [2, 54, 18]
+      ],
       grey: [
         [208, 2, 98],
         [209, 1, 96],
@@ -186,6 +219,72 @@ export class EnlightenmentTheme {
         [211, 0, 44],
         [212, 0, 27],
         [212, 0, 13]
+      ],
+      green: [
+        [119, 66, 92],
+        [119, 64, 81],
+        [119, 64, 71],
+        [120, 64, 60],
+        [121, 64, 49],
+        [121, 64, 39],
+        [122, 64, 28],
+        [122, 64, 18],
+        [123, 62, 7]
+      ],
+      indigo: [
+        [232, 91, 94],
+        [232, 90, 88],
+        [233, 90, 83],
+        [234, 89, 74],
+        [239, 84, 67],
+        [242, 79, 60],
+        [244, 72, 46],
+        [244, 67, 31],
+        [243, 49, 27]
+      ],
+      lime: [
+        [80, 93, 91],
+        [80, 89, 79],
+        [82, 85, 67],
+        [83, 84, 55],
+        [83, 83, 49],
+        [83, 81, 45],
+        [83, 78, 41],
+        [83, 77, 39],
+        [83, 76, 30]
+      ],
+      orange: [
+        [26, 98, 92],
+        [26, 96, 81],
+        [26, 96, 71],
+        [27, 96, 61],
+        [27, 96, 49],
+        [27, 96, 39],
+        [28, 96, 28],
+        [28, 92, 18],
+        [29, 94, 7]
+      ],
+      pink: [
+        [291, 97, 96],
+        [291, 96, 95],
+        [291, 95, 85],
+        [292, 95, 75],
+        [300, 95, 65],
+        [307, 94, 58],
+        [322, 94, 50],
+        [337, 91, 48],
+        [339, 94, 40]
+      ],
+      purple: [
+        [272, 93, 91],
+        [271, 92, 88],
+        [271, 91, 85],
+        [270, 88, 75],
+        [269, 80, 65],
+        [293, 82, 58],
+        [292, 85, 50],
+        [291, 88, 48],
+        [290, 91, 38]
       ],
       red: [
         [357, 86, 92],
@@ -198,7 +297,18 @@ export class EnlightenmentTheme {
         [359, 84, 18],
         [1, 82, 7]
       ],
-      white: [[212, 0, 100]]
+      white: [[212, 0, 100]],
+      yellow: [
+        [44, 98, 90],
+        [48, 97, 77],
+        [50, 98, 64],
+        [47, 97, 60],
+        [42, 95, 56],
+        [40, 94, 53],
+        [38, 92, 50],
+        [34, 88, 49],
+        [32, 84, 43]
+      ]
     } as ThemeColorChart
   }
   /**
@@ -321,22 +431,22 @@ export class EnlightenmentTheme {
 
           sheet.push(`--${color}${weight}: ${colorType}(${h}, ${s}%, ${l}%);`)
 
-          sheet.push(
-            ...channels.map((channel, index) =>
-              index
-                ? `--${color}${weight}-a${
-                    index * opacityDelta
-                  }: ${colorType}a(${h}, ${s}%, ${l}%, ${
-                    Math.round(
-                      (1 / EnlightenmentTheme.COLORBASE) *
-                        opacityDelta *
-                        index *
-                        EnlightenmentTheme.COLORBASE
-                    ) / EnlightenmentTheme.COLORBASE
-                  });`
-                : ''
-            )
-          )
+          // sheet.push(
+          //   ...channels.map((channel, index) =>
+          //     index
+          //       ? `--${color}${weight}-a${
+          //           index * opacityDelta
+          //         }: ${colorType}a(${h}, ${s}%, ${l}%, ${
+          //           Math.round(
+          //             (1 / EnlightenmentTheme.COLORBASE) *
+          //               opacityDelta *
+          //               index *
+          //               EnlightenmentTheme.COLORBASE
+          //           ) / EnlightenmentTheme.COLORBASE
+          //         });`
+          //       : ''
+          //   )
+          // )
         } else if (['rgb'].includes(colorType)) {
           const [r, g, b] = shade
 
@@ -396,16 +506,17 @@ export class EnlightenmentTheme {
    * Assigns the static Document stylesheet to current page.
    */
   public assignDefaultStylesheets() {
-    const documentStylesheet = new CSSStyleSheet()
-    const keyframeStylesheet = new CSSStyleSheet()
-
-    documentStylesheet.replaceSync(EnlightenmentTheme.document)
-    keyframeStylesheet.replaceSync(EnlightenmentTheme.keyframes)
+    const raw = [EnlightenmentTheme.document, EnlightenmentTheme.keyframes]
 
     document.adoptedStyleSheets = [
       ...document.adoptedStyleSheets,
-      documentStylesheet,
-      keyframeStylesheet
+      ...raw.map((value: string) => {
+        const sheet = new CSSStyleSheet()
+
+        sheet.replaceSync(sheet)
+
+        return sheet
+      })
     ]
   }
 
