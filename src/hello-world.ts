@@ -176,10 +176,24 @@ class HelloWorld extends Enlightenment {
             Default fragment text
           </div>
           <div fragment="optional"></div>
+          ${this.renderColors()}
         </div>
         <slot name="optional"></slot>
       </focus-trap>
     `
+  }
+
+  renderColors() {
+    console.log('fn', Enlightenment.theme.useColorChart)
+
+    const colors = Enlightenment.theme.useColorChart((color, value) => {
+      return html`<div
+        class="color"
+        style="background-color: hsl(${value[0]}, ${value[1]}%, ${value[2]}%);"
+      ></div>`
+    })
+
+    return html`<div class="colors">${colors}</div>`
   }
 
   start() {

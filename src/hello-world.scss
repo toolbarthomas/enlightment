@@ -27,6 +27,19 @@ h1 {
   }
 }
 
+.colors {
+  display: flex;
+  flex-wrap: wrap;
+  width: 600px;
+}
+
+.color {
+  border-radius: 50%;
+  border: solid 4px white;
+  width: calc(100% / 9);
+  aspect-ratio: 1;
+}
+
 div {
   padding: 1em;
 
