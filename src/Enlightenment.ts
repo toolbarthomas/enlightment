@@ -1249,7 +1249,11 @@ export class Enlightenment extends LitElement {
     })
   }
 
-  public assignCustomCSSStyleSheet(sheet: CSSStyleSheet) {
+  public assignCustomCSSStyleSheet(sheet?: CSSStyleSheet) {
+    if (!sheet) {
+      return
+    }
+
     if (sheet instanceof CSSStyleSheet === false) {
       this.log(
         `Unable to assign custom stylesheet '${name}' without a valid CSSStyleSheet`,
@@ -2122,19 +2126,28 @@ export class Enlightenment extends LitElement {
   public connectedCallback() {
     super.connectedCallback()
 
+    // Includes the required viewport meta tags to ensure the responsive
+    // layout behaves correctly.
+    Enlightenment.theme.assignViewport()
+
     // Invoke the defined Enlightenment providers once and include them
     // to the constructed Enlightenment Globals.
     if (!Enlightenment.globals.hasProvider(Enlightenment.theme)) {
       // Define the required styles in order to use the additional Enlightenment
       // features.
-      Enlightenment.theme.assignDefaultStylesheets()
+      Enlightenment.theme.assignDefaultStyleSheets()
 
-      // Define the global Box Model related properties.
-      Enlightenment.theme.assignBoxModelStylesheet()
+      // Expose default space properties.
+      Enlightenment.theme.assignSpaceProperties()
 
-      // Includes the required viewport meta tags to ensure the responsive
-      // layout behaves correctly.
-      Enlightenment.theme.assignViewport()
+      Enlightenment.theme.assignElevationProperties(EnlightenmentTheme.stackingContext)
+
+      // Expose default Device breakpoints.
+      Enlightenment.theme.assignDocumentProperties(
+        Object.entries(EnlightenmentTheme.breakpoints).map(
+          ([name, breakpoint]) => `--breakpoint-${name}: ${breakpoint}px;`
+        )
+      )
 
       // Define the global Color Chart custom properties.
       Enlightenment.theme.assignColorStylesheet(EnlightenmentTheme.colorChart.colors, {
@@ -2152,10 +2165,8 @@ export class Enlightenment extends LitElement {
 
     // Create reference of the custom StyleSheets that will update from their
     // component property values.
-    const customStyleSheets = Enlightenment.theme.assignComponentStylesheets(this)
-    Object.entries(customStyleSheets).forEach(([name, sheet]) =>
-      this.assignCustomCSSStyleSheet(sheet)
-    )
+    const customStylesheet = Enlightenment.theme.assignComponentStylesheets(this)
+    this.assignCustomCSSStyleSheet(customStylesheet)
 
     if (this.enableDocumentEvents) {
       this.assignGlobalEvent('click', this.handleGlobalClick)

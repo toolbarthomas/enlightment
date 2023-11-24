@@ -11,6 +11,13 @@ export type ThemeColorChart = { [key: string]: ThemeColorTint[] }
 // Color Chart.
 export type ThemeColorType = 'hex' | 'hsl' | 'rgb'
 
+export type ThemeStackingContext = {
+  depth: string | number
+  shadow: number
+}
+
+export type ThemStackingContexts = { [key: string]: ThemeStackingContext }
+
 /**
  * The actual configuration used while generatenig a new Color Chart.
  */
@@ -34,6 +41,40 @@ export type ThemeColorOptions = {
  * Component without assigning it to the Component styles static.
  */
 export class EnlightenmentTheme {
+  /**
+   * Default component styles that is included for each Component.
+   */
+  static component = css`
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    [fragment]:empty {
+      display: none;
+    }
+
+    [fragment] {
+      display: block;
+    }
+  ` as unknown as string
+
+  /**
+   * Defines the default document styles for the current application.
+   */
+  static document = css`
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+    }
+  ` as unknown as string
+
   /**
    * Global Keyframe definition that could be used within the component context.
    */
@@ -88,49 +129,39 @@ export class EnlightenmentTheme {
   ` as unknown as string
 
   /**
-   * Default component styles that is included for each Component.
+   * The delta between each increase of custom properties with matchin names.
    */
-  static component = css`
-    *,
-    *::before,
-    *::after {
-      box-sizing: border-box;
-    }
-
-    [fragment]:empty {
-      display: none;
-    }
-
-    [fragment] {
-      display: block;
-    }
-  ` as unknown as string
-
-  /**
-   * Defines the default document styles for the current application.
-   */
-  static document = css`
-    html,
-    body {
-      height: 100%;
-    }
-
-    body {
-      margin: 0;
-      padding: 0;
-    }
-  ` as unknown as string
+  static BASE_DELTA = 4
 
   /**
    * Fixes value that is used to define the amount of channels.
    */
-  static COLORBASE = 100
+  static BASE_PERCENTAGE = 100
+
+  /**
+   * Defines the default CSS unit to use.
+   */
+  static BASE_UNIT = 'rem'
 
   /**
    * Semantic color values that is used for a single tint. The defined weights
    * will be used in the generated color chart.
    */
-  static colorWeights = [100, 200, 300, 400, 500, 600, 700, 800, 900]
+  static COLOR_WEIGHTS = [100, 200, 300, 400, 500, 600, 700, 800, 900]
+
+  /**
+   * Defines the default Device widths in pixels that are used within the
+   * optional CSS Media query. Pixel value is expected to ensure full browser
+   * support.
+   */
+  static breakpoints = {
+    handheld: 320,
+    smartphone: 480,
+    tablet: 768,
+    desktop: 1024,
+    widescreen: 1280,
+    ultrawide: 1600
+  }
 
   /**
    * Defines the default Color Chart Object that is used within the color
@@ -333,72 +364,34 @@ export class EnlightenmentTheme {
       white: [[212, 0, 100]]
     } as ThemeColorChart
   }
+
   /**
    * Defines the current computed Document styles that have been defined after
    * a Document Stylesheet is assigned.
    */
-  computedDocument?: ReturnType<typeof getComputedStyle>
+  computedDocument: ReturnType<typeof getComputedStyle> = getComputedStyle(document.documentElement)
 
   /**
-   * Assigns the required meta tags to ensure the components are displayed
-   * correctly.
+   * Defines the depth related properties like z-index, shadows & lightning.
+   * These will be defined as custom properties within the Component context.
    */
-  public assignViewport() {
-    const viewport = this.useMeta({
-      content: 'width=device-width, initial-scale=1.0',
-      name: 'viewport'
-    })
-
-    viewport && document.head.insertAdjacentElement('afterbegin', viewport)
-
-    const charset = this.useMeta({
-      charset: 'utf-8'
-    })
-    charset && document.head.insertAdjacentElement('afterbegin', charset)
-  }
-
-  /**
-   * Generates semantic custom properties for the relative space values defined
-   * from  the initial document font size. Each sppace value is multiplied by
-   * the defined delta and maximum screen size.
-   *
-   * @param delta Defines the amount of space values to generate: (size / delta).
-   * @param unit Use the optional CSS unit instead of the default.
-   */
-  public assignBoxModelStylesheet(delta = 4, unit = 'rem') {
-    const base = Math.round(Math.max(screen.width, screen.height) * devicePixelRatio) * 2
-
-    if (!this.computedDocument) {
-      this.computedDocument = getComputedStyle(document.documentElement)
+  static stackingContext: ThemStackingContexts = {
+    surface: {
+      depth: 'auto',
+      shadow: 0.25
+    },
+    foreground: {
+      depth: 100,
+      shadow: 0.625
+    },
+    overlay: {
+      depth: 300,
+      shadow: 1.375
+    },
+    fixed: {
+      depth: 700,
+      shadow: 0.875
     }
-
-    const size = parseInt(this.computedDocument.fontSize)
-
-    const sheet: string[] = []
-
-    // Also include the smaller space values from the defined delta value.
-    Array.from({ length: delta * 4 }).forEach((_, index) => {
-      const space = `--space-${index + 1}: ${(1 / size) * (index + 1)}${unit};`
-
-      if (sheet.includes(space)) {
-        return
-      }
-
-      sheet.push(space)
-    })
-
-    const spaces = Array.from({ length: base / delta + 1 }).forEach((_, index) => {
-      sheet.push(`--space-${index * delta}: ${(1 / size) * delta * index}${unit};`)
-    })
-
-    const boxModelStylesheet = new CSSStyleSheet()
-    boxModelStylesheet.replaceSync(`
-      :root {
-        ${sheet.join('\n')}
-      }
-    `)
-
-    document.adoptedStyleSheets = [...document.adoptedStyleSheets, boxModelStylesheet]
   }
 
   /**
@@ -422,7 +415,7 @@ export class EnlightenmentTheme {
     const sheet: string[] = []
 
     const channels = Array.from({
-      length: opacityDelta ? EnlightenmentTheme.COLORBASE / opacityDelta : 0
+      length: opacityDelta ? EnlightenmentTheme.BASE_PERCENTAGE / opacityDelta : 0
     })
 
     const chart = Object.keys(colors).map((color) => {
@@ -435,8 +428,8 @@ export class EnlightenmentTheme {
       return shades.forEach((shade, index) => {
         let weight = ''
 
-        if (EnlightenmentTheme.colorWeights[index] && shades.length > 1) {
-          weight = `-${EnlightenmentTheme.colorWeights[index]}`
+        if (EnlightenmentTheme.COLOR_WEIGHTS[index] && shades.length > 1) {
+          weight = `-${EnlightenmentTheme.COLOR_WEIGHTS[index]}`
         }
 
         if (typeof shade === 'string' || Object.values(shade).length === 1) {
@@ -460,11 +453,11 @@ export class EnlightenmentTheme {
                     index * opacityDelta
                   }: ${colorType}a(${h}, ${s}%, ${l}%, ${
                     Math.round(
-                      (1 / EnlightenmentTheme.COLORBASE) *
+                      (1 / EnlightenmentTheme.BASE_PERCENTAGE) *
                         opacityDelta *
                         index *
-                        EnlightenmentTheme.COLORBASE
-                    ) / EnlightenmentTheme.COLORBASE
+                        EnlightenmentTheme.BASE_PERCENTAGE
+                    ) / EnlightenmentTheme.BASE_PERCENTAGE
                   });`
                 : ''
             )
@@ -479,11 +472,11 @@ export class EnlightenmentTheme {
               index
                 ? `--${color}${weight}-a${index * opacityDelta}: ${colorType}a(${r}, ${g}, ${b}, ${
                     Math.round(
-                      (1 / EnlightenmentTheme.COLORBASE) *
+                      (1 / EnlightenmentTheme.BASE_PERCENTAGE) *
                         opacityDelta *
                         index *
-                        EnlightenmentTheme.COLORBASE
-                    ) / EnlightenmentTheme.COLORBASE
+                        EnlightenmentTheme.BASE_PERCENTAGE
+                    ) / EnlightenmentTheme.BASE_PERCENTAGE
                   });`
                 : ''
             )
@@ -508,26 +501,67 @@ export class EnlightenmentTheme {
       })
     })
 
-    if (!sheet.length) {
-      return sheet
-    }
+    return this.assignDocumentProperties(sheet)
+  }
 
-    const colorStylesheet = new CSSStyleSheet()
-    colorStylesheet.replaceSync(`
-      :root {
-        ${sheet.join('\n')}
+  public assignDocumentProperties(rules?: string | string[]) {
+    const data = Array.isArray(rules) ? rules : [rules]
+
+    const stylesheet = new CSSStyleSheet()
+    stylesheet.replaceSync(`:root {
+      ${[...new Set(rules)].join('\n')}
+    }`)
+
+    document.adoptedStyleSheets = [...document.adoptedStyleSheets, stylesheet]
+
+    return stylesheet
+  }
+
+  public assignElevationProperties(context: ThemStackingContexts) {
+    const rules: string[] = []
+
+    Object.entries(context).forEach(([name, entry]) => {
+      const { depth, shadow } = entry
+
+      if (depth !== undefined) {
+        rules.push(`--depth-${name}: ${depth};`)
       }
-    `)
 
-    document.adoptedStyleSheets = [...document.adoptedStyleSheets, colorStylesheet]
+      if (shadow !== undefined) {
+        rules.push(`--shadow-${name}: 0 ${shadow}rem ${shadow * 2}rem;`)
+        rules.push(`--edge-${name}: 0 ${shadow}rem ${shadow / 2}rem -${shadow / 2}rem;`)
+      }
+    })
 
-    return sheet
+    this.assignDocumentProperties(rules)
+  }
+
+  public assignSpaceProperties(
+    delta = EnlightenmentTheme.BASE_DELTA,
+    unit = EnlightenmentTheme.BASE_UNIT
+  ) {
+    const rules: string[] = []
+    const size = Math.round(Math.max(screen.width, screen.height) * devicePixelRatio)
+    const length = size / delta + 1
+    const fontSize = parseInt(this.computedDocument.fontSize)
+
+    Array.from({ length: 16 }).forEach((_, index) => {
+      rules.push(`--space-${index + 1}: ${(1 / fontSize) * (index + 1)}${unit};`)
+    })
+
+    Array.from({
+      length
+    }).forEach((_, index) => {
+      rules.push(`--space-${index * delta}: ${(1 / fontSize) * delta * index}${unit};`)
+    })
+
+    this.assignDocumentProperties(rules)
   }
 
   /**
    * Assigns the static Document stylesheet to current page.
    */
-  public assignDefaultStylesheets() {
+  public assignDefaultStyleSheets() {
     const raw = [EnlightenmentTheme.document, EnlightenmentTheme.keyframes]
 
     document.adoptedStyleSheets = [
@@ -535,7 +569,7 @@ export class EnlightenmentTheme {
       ...raw.map((value: string) => {
         const sheet = new CSSStyleSheet()
 
-        sheet.replaceSync(sheet)
+        sheet.replaceSync(value)
 
         return sheet
       })
@@ -549,7 +583,7 @@ export class EnlightenmentTheme {
    */
   public assignComponentStylesheets(context: HTMLElement) {
     if (!context || !context.shadowRoot) {
-      return {}
+      return
     }
 
     const componentStylesheet = new CSSStyleSheet()
@@ -560,9 +594,25 @@ export class EnlightenmentTheme {
       componentStylesheet
     ]
 
-    return {
-      component: componentStylesheet
-    }
+    return componentStylesheet
+  }
+
+  /**
+   * Assigns the required meta tags to ensure the components are displayed
+   * correctly.
+   */
+  public assignViewport() {
+    const viewport = this.useMeta({
+      content: 'width=device-width, initial-scale=1.0',
+      name: 'viewport'
+    })
+
+    viewport && document.head.insertAdjacentElement('afterbegin', viewport)
+
+    const charset = this.useMeta({
+      charset: 'utf-8'
+    })
+    charset && document.head.insertAdjacentElement('afterbegin', charset)
   }
 
   /**
@@ -580,13 +630,13 @@ export class EnlightenmentTheme {
 
     const sheet: string[] = []
 
-    EnlightenmentTheme.colorWeights.forEach((weight) => {
+    EnlightenmentTheme.COLOR_WEIGHTS.forEach((weight) => {
       // context.style.setProperty()e
       sheet.push(`--accent-${weight}: var(--${value}-${weight});`)
 
       if (delta) {
         const channels = Array.from({
-          length: delta ? EnlightenmentTheme.COLORBASE / delta : 0
+          length: delta ? EnlightenmentTheme.BASE_PERCENTAGE / delta : 0
         })
 
         channels.forEach((channel, index) => {
@@ -618,7 +668,7 @@ export class EnlightenmentTheme {
     return color
   }
 
-  useColorChart(handler?: (color: string, value: ThemeColorTint[]) => any) {
+  useColorChart(handler?: (color: string, value: ThemeColorTint) => any) {
     if (typeof handler !== 'function') {
       return
     }
@@ -670,7 +720,7 @@ export class EnlightenmentTheme {
 
     const sheet: string[] = []
 
-    EnlightenmentTheme.colorWeights.forEach((weight) => {
+    EnlightenmentTheme.COLOR_WEIGHTS.forEach((weight) => {
       sheet.push(`--neutral-${weight}: var(--${value}-${weight});`)
     })
 

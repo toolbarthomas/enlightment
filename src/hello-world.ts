@@ -184,9 +184,7 @@ class HelloWorld extends Enlightenment {
   }
 
   renderColors() {
-    console.log('fn', Enlightenment.theme.useColorChart)
-
-    const colors = Enlightenment.theme.useColorChart((color, value) => {
+    const colors = Enlightenment.theme.useColorChart((color: string, value: any[]) => {
       return html`<div
         class="color"
         style="background-color: hsl(${value[0]}, ${value[1]}%, ${value[2]}%);"

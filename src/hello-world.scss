@@ -31,13 +31,51 @@ h1 {
   display: flex;
   flex-wrap: wrap;
   width: 600px;
+  gap: 10px;
 }
 
 .color {
+  // --var
   border-radius: 50%;
+
+  box-shadow:
+    0 0.25rem 0.5rem var(--dawn-900-a15),
+    0 0.25rem 0.125rem -0.125rem var(--dawn-900-a30);
+
+  // 0 0.1rem 0.05rem hsla(0, 0, 0, 0.14);
   border: solid 4px white;
   width: calc(100% / 9);
   aspect-ratio: 1;
+
+  &:nth-child(1) {
+    box-shadow:
+      var(--shadow-surface) var(--dawn-900-a15),
+      var(--edge-surface) var(--dawn-900-a30);
+  }
+
+  &:nth-child(5) {
+    box-shadow:
+      var(--shadow-surface) var(--dusk-900-a15),
+      var(--edge-surface) var(--dusk-900-a30);
+  }
+
+  &:nth-child(2) {
+    box-shadow:
+      var(--shadow-foreground) var(--dawn-900-a15),
+      var(--edge-foreground) var(--dawn-900-a30);
+  }
+
+  &:nth-child(3) {
+    box-shadow:
+      var(--shadow-overlay) var(--dawn-900-a15),
+      var(--edge-overlay) var(--dawn-900-a30);
+  }
+
+  &:nth-child(4) {
+    box-shadow:
+      var(--shadow-fixed) var(--dawn-900-a15),
+      var(--edge-fixed) var(--dawn-900-a30);
+  }
 }
 
 div {
