@@ -470,7 +470,7 @@ export class Enlightenment extends LitElement {
       let current: any = context
 
       while (current.parentNode && !target) {
-        if (current.host || current instanceof Enlightenment) {
+        if (current.host || !Object.values(current).length) {
           if (current !== context) {
             target = current.host || current
             break
@@ -2014,24 +2014,43 @@ export class Enlightenment extends LitElement {
    * Defines the mode attribute for the defined element that inherits the
    * specified mode value from the global state as default value otherwise.
    */
-  private useMode() {
+  private useMode(context?: Element) {
     const { mode } = Enlightenment.globals
-    const host = Enlightenment.useHost(this)
+    const target = (context || this) as Enlightenment
+    const host = Enlightenment.useHost(target) as Enlightenment
 
     if (!this.hasAttribute('mode') && host) {
       const inheritMode = Enlightenment.isMode(host.getAttribute('mode'))
 
+      if (!inheritMode) {
+        // Ensure the unconstructed parent element is ready before we traverse
+        // upwards.
+        this.throttle(() => {
+          host.useMode && host.useMode(this)
+        })
+
+        return
+      }
+
       if (inheritMode && this.mode !== inheritMode) {
-        this.mode = inheritMode
+        target.mode = inheritMode
 
         // Update the inherited mode value as actual HTML attribute in order to
         // apply the actual CSS styles.
-        this.mode && this.setAttribute('mode', this.mode)
+        target.mode && target.setAttribute('mode', target.mode)
       } else if (this.mode === undefined) {
         this.mode = mode
       }
     } else if (!this.mode && mode && this.mode !== mode) {
       this.mode = mode
+    } else if (
+      context &&
+      context !== this &&
+      this.hasAttribute('mode') &&
+      !context.hasAttribute('mode')
+    ) {
+      target.mode = this.mode
+      this.mode && target.setAttribute('mode', this.mode)
     }
   }
 

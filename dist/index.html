@@ -83,9 +83,28 @@
       <button handle="click:start()">Start</button>
     </hello-world>
   </hello-world> -->
+  <!--
+  <hello-world data="['bar', 'Somebody in the world', {'some': 'body'}]">
+    <p slot="optional">Can you '%3Cbar%3E' <a href="example.com">Some linke</a></p>
+  </hello-world> -->
+  <!-- <hello-world id="foo">
+    <hello-world slot="optional" accent="dusk">
+      <p slot="optional">Rotate</p>
+    </hello-world>
+  </hello-world> -->
 
-  <hello-world data="['bar', 'Somebody in the world']"></hello-world>
-  <hello-world data="{'entries': true, 'silent': false}"></hello-world>
+  <hello-world accent="dusk" neutral="dawn" svg-sprite-source="/sprite.svg">
+    <button handle="click:start()">Start</button>
+  </hello-world>
+  <hello-world></hello-world>
+
+  <h1 style="color: var(--accent-400);">Simple header</h1>
+  <!--
+  <hello-world accent="red" data="{'entries': true, 'silent': false}" observe="#foo">
+    <button slot="optional">Button</button>
+    <h1 slot="optional">Header</h1>
+
+  </hello-world> -->
 
 </body>
 

@@ -317,15 +317,15 @@ export class EnlightenmentTheme {
         [331, 83.34, 28]
       ],
       dawn: [
-        [208, 42, 98],
-        [209, 40, 96],
-        [210, 40, 94],
-        [210, 40, 93],
-        [210, 40, 90],
-        [211, 40, 88],
-        [227, 40, 78],
-        [224, 32, 68],
-        [222, 20, 49]
+        [208, 22, 98],
+        [209, 20, 96],
+        [210, 20, 94],
+        [210, 20, 93],
+        [210, 20, 90],
+        [211, 20, 88],
+        [227, 20, 78],
+        [224, 12, 68],
+        [222, 2, 49]
       ],
       dusk: [
         [211, 29, 93],
@@ -369,7 +369,7 @@ export class EnlightenmentTheme {
    * Defines the current computed Document styles that have been defined after
    * a Document Stylesheet is assigned.
    */
-  computedDocument: ReturnType<typeof getComputedStyle> = getComputedStyle(document.documentElement)
+  computedDocument?: ReturnType<typeof getComputedStyle>
 
   /**
    * Defines the depth related properties like z-index, shadows & lightning.
@@ -540,10 +540,14 @@ export class EnlightenmentTheme {
     delta = EnlightenmentTheme.BASE_DELTA,
     unit = EnlightenmentTheme.BASE_UNIT
   ) {
+    if (!this.computedDocument) {
+      this.computedDocument = getComputedStyle(document.documentElement)
+    }
+
     const rules: string[] = []
     const size = Math.round(Math.max(screen.width, screen.height) * devicePixelRatio)
     const length = size / delta + 1
-    const fontSize = parseInt(this.computedDocument.fontSize)
+    const fontSize = parseInt(this.computedDocument && this.computedDocument.fontSize)
 
     Array.from({ length: 16 }).forEach((_, index) => {
       rules.push(`--space-${index + 1}: ${(1 / fontSize) * (index + 1)}${unit};`)
