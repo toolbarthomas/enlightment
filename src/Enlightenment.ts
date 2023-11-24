@@ -299,6 +299,8 @@ export class Enlightenment extends LitElement {
 
   /**
    * Ensures the given value is a valid mode value.
+   *
+   * @param value The initial value to validate.
    */
   static isMode(value: any) {
     return Enlightenment.filterProperty(value, ['light', 'dark'])
@@ -306,6 +308,8 @@ export class Enlightenment extends LitElement {
 
   /**
    * Ensures the given value is a valid target attribute value.
+   *
+   * @param value The initial value to validate.
    */
   static isTarget(value: any) {
     return Enlightenment.filterProperty(value, ['_self', '_blank', '_parent', '_top'])
@@ -396,6 +400,8 @@ export class Enlightenment extends LitElement {
   /**
    * Simple helper function to ensure the given value does not contain any
    * XML/HTML based syntax.
+   *
+   * @param value The initial value to sanitize.
    */
   static sanitizeHTML(value: string) {
     const raw = document.createElement('div')
@@ -406,6 +412,8 @@ export class Enlightenment extends LitElement {
 
   /**
    * Ensures any whitespace is removed from the given string.
+   *
+   * @param value The initial value to strip.
    */
   static strip(value: string) {
     return typeof value === 'string'
@@ -446,13 +454,17 @@ export class Enlightenment extends LitElement {
     return id
   }
 
-  // Traverse from the defined context and return the host Component
-  static useHost(context: HTMLElement) {
+  /**
+   * Traverse from the defined context and return the host Component
+   *
+   * @param context The existing context Element to traverse from.
+   */
+  static useHost(context: Element) {
     if (!context) {
       return
     }
 
-    let target: HTMLElement | undefined = undefined
+    let target: Element | undefined = undefined
 
     if (!target) {
       let current: any = context
@@ -467,7 +479,7 @@ export class Enlightenment extends LitElement {
           break
         }
 
-        current = current.parentNode as HTMLElement
+        current = current.parentNode as Element
       }
 
       if (!target && current.host !== context) {
@@ -481,6 +493,12 @@ export class Enlightenment extends LitElement {
   /**
    * Helper function to ensure the requested property is returned from a
    * dynamic string or object value.
+   *
+   * @param property The existing property name that exists within the
+   * constructed instance.
+   * @param value Assigns the defined value.
+   * @param optional Return an empty value when TRUE the initial property is
+   * undefined.
    */
   static useOption(property: string, value?: any, optional?: boolean) {
     return Enlightenment.sanitizeHTML(
@@ -491,6 +509,8 @@ export class Enlightenment extends LitElement {
   /**
    * Verifies the defined URL and resolve any external url to prevent insecure
    * requests.
+   *
+   * @param url Resolve the initial url value.
    */
   static resolveURL(url: string) {
     if (typeof url !== 'string') {
@@ -732,6 +752,8 @@ export class Enlightenment extends LitElement {
 
   /**
    * Setup the actual featuers for the constructed Enlightenment component.
+   *
+   * @param properties Defines the previous state of the updated properties.
    */
   protected firstUpdated(properties: PropertyValueMap<any> | Map<PropertyKey, unknown>) {
     super.firstUpdated(properties)
@@ -747,6 +769,8 @@ export class Enlightenment extends LitElement {
    * The expected attributes are updated directly without triggering a
    * requestUpdate within the Document handler. The actual update should be
    * called from the Component context that interacts with the property state.
+   *
+   * @param target Validates from the defined context element.
    */
   protected handleCurrentElement(target: Event['target']) {
     if (this.preventEvent) {
@@ -765,6 +789,8 @@ export class Enlightenment extends LitElement {
    *
    * Marks the constructed Enlightenment element as currentElement when the
    * click Event was triggered inside the element context.
+   *
+   * @param event The initial Mouse Event interface.
    */
   protected handleGlobalClick(event: MouseEvent) {
     if (this.preventEvent) {
@@ -781,6 +807,8 @@ export class Enlightenment extends LitElement {
    *
    * Marks the constructed Enlightenment element as currentElement when a
    * keyboard Event was triggered inside the element context.
+   *
+   * @param event THe initial Focus Event interface.
    */
   protected handleGlobalFocus(event: FocusEvent) {
     if (this.preventEvent) {
@@ -797,6 +825,8 @@ export class Enlightenment extends LitElement {
    *
    * Unmark the currentElement property from the constructed Enlightenment
    * element during a keyboard event within the element context.
+   *
+   * @param event The initial Keyboard Event interface.
    */
   protected handleGlobalKeydown(event: KeyboardEvent) {
     if (this.preventEvent) {
@@ -826,6 +856,8 @@ export class Enlightenment extends LitElement {
   /**
    * Defines the global slotchange Event handler that will trigger a slotchange
    * event on the main element context.
+   *
+   * @param event The initial common Event interface.
    */
   protected handleSlotChange(event: Event) {
     if (this.preventEvent) {
@@ -930,6 +962,8 @@ export class Enlightenment extends LitElement {
   /**
    * Returns the matching parent element by default or use the optional
    * selector value otherwise.
+   *
+   * @param selector Find the parent context from the defined selector value.
    */
   protected parent(selector?: string) {
     if (!selector) {
@@ -942,8 +976,13 @@ export class Enlightenment extends LitElement {
   }
 
   /**
-   * Returns all matching parent elements by default or use the optional
-   * selector value otherwise.
+   * Returns all matching parent elements from the defined Component.
+   *
+   * @param selector Find the defined parent elements with the optional selector
+   * instead.
+   * @param instance Context reference to defined the current parent.
+   * @param list Contains the parent element that exists from the initial
+   * instance context.
    */
   protected parents(
     selector: string,
@@ -968,6 +1007,8 @@ export class Enlightenment extends LitElement {
   /**
    * Validates if the defined element exists within the created Enlightenment
    * context.
+   *
+   * @param element Compares the defined context with the initial Component.
    */
   protected isComponentContext(element: HTMLElement | SVGElement) {
     const { value } = this.context || {}
@@ -985,6 +1026,8 @@ export class Enlightenment extends LitElement {
    * Mark the wrapping element as hidden for each empty slot.
    * This should trigger during a slotchange event within the created element
    * context.
+   *
+   * @param event Use the defined target value from the initial Event interface.
    */
   protected isEmptySlot(event: Event) {
     const { parentElement } = event.target as Element
@@ -1008,6 +1051,9 @@ export class Enlightenment extends LitElement {
 
   /**
    * Alias for the default console to use during development.
+   *
+   * @param message The actual message values.
+   * @param type Use the defined Console method instead of the default log.
    */
   protected log(message: any | any[], type?: string) {
     //@ts-ignore
@@ -1029,7 +1075,8 @@ export class Enlightenment extends LitElement {
 
   /**
    * Optional callback to use when existing Elements are attached from the
-   * listen property: listen=".foo,#bar,custom-component"
+   * listen property: listen=".foo,#bar,custom-component".
+   *
    * @param event The actual Event Object that was created from an existing
    * listen element.
    */
@@ -1072,6 +1119,10 @@ export class Enlightenment extends LitElement {
   /**
    * Assigns a new global event for the rendered component context.
    * The actual event is stored within the instance to prevent Event stacking.
+   *
+   * @param type The Event type to assign.
+   * @param handler The Event handler to assign.
+   * @param options The optional Event options to assign.
    */
   protected assignGlobalEvent(
     type: GlobalEventType,
@@ -1136,6 +1187,9 @@ export class Enlightenment extends LitElement {
   /**
    * Assigns the rendered slots within the current element instance to
    * instance.slots Object.
+   *
+   * @param name Use the defined name instead of the default slot. This is
+   * required when multiple slots exists within the Component.
    */
   private assignSlots(name?: string) {
     if (!this.shadowRoot) {
@@ -1293,6 +1347,10 @@ export class Enlightenment extends LitElement {
   /**
    * Removes the assigned global Events from the selected context or this
    * Component.
+   *
+   * @param type Remove the Event handler from the defined Event type.
+   * @param context Removes the actual Event handler from the defined context
+   * instead of the global context.
    */
   protected clearGlobalEvent(type: GlobalEventType, context?: any | any[]) {
     const queue = Array.isArray(context) ? context : [context]
@@ -1401,23 +1459,16 @@ export class Enlightenment extends LitElement {
   /**
    * Validates if the given image source should be renderd as inline image when
    * TRUE or static image as default.
+   *
+   * @param source Expected source URL or Symbol reference to test.
+   *
    */
-  protected testImage(initial: boolean, source: string) {
+  protected testImage(source: string) {
     if (
       !this.svgSpriteSource ||
       !this.testImageSource(this.svgSpriteSource) ||
       this.testImageSource(source)
     ) {
-      return false
-    }
-
-    if (initial && this.svgSpriteSource) {
-      if (source && this.testImageSource(this.svgSpriteSource) && this.testImageSource(source)) {
-        return false
-      }
-
-      return true
-    } else if (initial) {
       return false
     }
 
@@ -1436,7 +1487,9 @@ export class Enlightenment extends LitElement {
   }
 
   /**
-   * Validates if the defined source is a valid image path.
+   * Validates if the defined source URL is a valid image path.
+   *
+   * @param source Expected URL source to test.
    */
   protected testImageSource(source: string) {
     if (typeof source !== 'string') {
@@ -1456,7 +1509,12 @@ export class Enlightenment extends LitElement {
 
   /**
    * Helper function that ensures the given handler is only called once within
-   * the defined delay.
+   * the defined delay and Component context.
+   *
+   * @param handler The actual handler to throttle.
+   * @param delay Use the defined delay value in MS or the time of a single
+   * frame (1000 / 60).
+   * @param args Optional arguments to use within the defined handler.
    */
   protected throttle(handler: EnlightenmentThrottle[0], delay?: number, ...args: any[]) {
     if (!this.throttler || !this.throttler.handlers) {
@@ -1521,6 +1579,8 @@ export class Enlightenment extends LitElement {
 
   /**
    * Callback to use after a component update.
+   *
+   * @param properties Defines the previous state of the updated properties.
    */
   protected updated(properties: PropertyValues) {
     super.updated(properties)
@@ -1563,6 +1623,11 @@ export class Enlightenment extends LitElement {
     return this.context && this.context.value ? this.context.value : this
   }
 
+  /**
+   * Returns the initial created slot Element.
+   *
+   * @param name Returns the initial Slot with the defined name Attribute.
+   */
   protected useInitialSlot(name: string) {
     if (!this.shadowRoot) {
       return
@@ -1579,6 +1644,8 @@ export class Enlightenment extends LitElement {
 
   /**
    * Shorthand to use the existing Lit Element reference.
+   *
+   * @param ref The initial created Ref Object.
    */
   protected useRef = (ref?: Ref): EnligtenmentTarget => {
     if (!ref || !ref.value) {
@@ -1745,6 +1812,8 @@ export class Enlightenment extends LitElement {
 
   /**
    * Default hook that should be called during a component render update.
+   *
+   * @param name Dispatch the optional Event type instead.
    */
   private dispatchUpdate(name?: string) {
     return this.throttle(this.hook, Enlightenment.FPS, typeof name === 'string' ? name : 'update')
@@ -1753,6 +1822,10 @@ export class Enlightenment extends LitElement {
   /**
    * Validates if the defined Event handler has already been defined as
    * global Event.
+   *
+   * @param type Filters within the matching Event types.
+   * @param handler Compares the defined handler name with the existing Global
+   * Event handler.
    */
   private filterGlobalEvent(type: GlobalEventType, handler: GlobalEventHandler) {
     if (!this.listeners.length) {
@@ -1820,6 +1893,10 @@ export class Enlightenment extends LitElement {
 
   /**
    * Removes the assigned global Event handler.
+   *
+   * @param type Omit from the matching Event type.
+   * @param handler Omit the defined handler that was assigned as Global Event
+   * handler.
    */
   private omitGlobalEvent(type: GlobalEventType, handler: GlobalEventHandler) {
     if (!type) {
@@ -1883,6 +1960,9 @@ export class Enlightenment extends LitElement {
   /**
    * Call the requestUpdate handler for the direct child components within the
    * direct body.
+   *
+   * @param exclude Ignores the update request within the initial Component
+   * context.
    */
   private requestGlobalUpdate(exclude: boolean) {
     const { body } = document || this
@@ -2009,6 +2089,9 @@ export class Enlightenment extends LitElement {
   /**
    * Helper function that updates the defined property from the constructed
    * Enlightenment instance.
+   *
+   * @param propety The existing property name to update.
+   * @param handler Defines or returns the mutated value.
    */
   public commit(property: string, handler: any) {
     if (!property) {
@@ -2258,6 +2341,9 @@ export class Enlightenment extends LitElement {
 
   /**
    * Renders the defined image source as static image or inline SVG.
+   *
+   * @param source Renders the image from the defined source.
+   * @param options Set the image Attributes from the optional options.
    */
   public renderImage(source: string, options?: EnlightenmentImageOptions) {
     if (!source) {
@@ -2275,7 +2361,7 @@ export class Enlightenment extends LitElement {
       Enlightenment.sanitizeHTML(`${this.svgSpriteSource}#${source}`)
     )
 
-    return this.testImage(false, source)
+    return this.testImage(source)
       ? html`<svg
           class="${classname}"
           ${height && `height="${height}"`}
