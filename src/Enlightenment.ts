@@ -459,7 +459,7 @@ export class Enlightenment extends LitElement {
    *
    * @param context The existing context Element to traverse from.
    */
-  static useHost(context: Element) {
+  static useHost(context: any) {
     if (!context) {
       return
     }
@@ -1116,7 +1116,7 @@ export class Enlightenment extends LitElement {
 
     try {
       process &&
-        this.throttle(process, this.slotReady ? Enlightenment.FPS : Enlightenment.MAX_THREADS, {
+        this.throttle(process, this.slotReady ? this.delay : Enlightenment.MAX_THREADS, {
           target
         })
     } catch (exception) {
@@ -1237,7 +1237,7 @@ export class Enlightenment extends LitElement {
 
           if (!Object.values(this.slots).includes(slot)) {
             if (!this.slots[name]) {
-              this.throttle(this.handleSlotChange, Enlightenment.FPS, { ...event, target: slot })
+              this.throttle(this.handleSlotChange, this.delay, { ...event, target: slot })
             }
 
             this.slots[name] = isEmptyComponentSlot(slot) ? undefined : slot
@@ -1359,7 +1359,7 @@ export class Enlightenment extends LitElement {
       () => {
         this.throttler.handlers = this.throttler.handlers.filter((h) => h != null)
       },
-      this.throttler.handlers.length + Enlightenment.FPS * Enlightenment.MAX_THREADS
+      this.throttler.handlers.length + this.delay * Enlightenment.MAX_THREADS
     )
   }
 
@@ -1439,7 +1439,7 @@ export class Enlightenment extends LitElement {
       return
     }
 
-    this.throttle(this.cloneSlotCallback, Enlightenment.FPS, slot)
+    this.throttle(this.cloneSlotCallback, this.delay, slot)
   }
 
   /**
@@ -1604,7 +1604,7 @@ export class Enlightenment extends LitElement {
   protected updated(properties: PropertyValues) {
     super.updated(properties)
 
-    this.throttle(this.handleUpdate, Enlightenment.FPS, 'updated')
+    this.throttle(this.handleUpdate, this.delay, 'updated')
   }
 
   /**
@@ -1835,7 +1835,7 @@ export class Enlightenment extends LitElement {
    * @param name Dispatch the optional Event type instead.
    */
   private dispatchUpdate(name?: string) {
-    return this.throttle(this.hook, Enlightenment.FPS, typeof name === 'string' ? name : 'update')
+    return this.throttle(this.hook, this.delay, typeof name === 'string' ? name : 'update')
   }
 
   /**
@@ -2296,10 +2296,6 @@ export class Enlightenment extends LitElement {
       this.assignGlobalEvent('focusin', this.handleGlobalFocus)
     }
 
-    // Mark the Component as ready, this will make the component visible, if
-    // an accent or neutral Attribute was initially defined.
-    this.throttle(this.setAttribute, Enlightenment.FPS, 'ready', '')
-
     this.throttle(this.assignListeners)
     this.dispatchUpdate('connected')
 
@@ -2309,6 +2305,10 @@ export class Enlightenment extends LitElement {
     if (host && typeof host.dispatchUpdate === 'function' && host !== this) {
       host.dispatchUpdate()
     }
+
+    // Mark the Component as ready, this will make the component visible, if
+    // an accent or neutral Attribute was initially defined.
+    this.throttle(this.setAttribute, 100, 'ready', '')
   }
 
   /**
