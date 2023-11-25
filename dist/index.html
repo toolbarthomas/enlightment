@@ -94,11 +94,13 @@
   </hello-world> -->
 
   <hello-world accent="dusk" neutral="dawn" svg-sprite-source="/sprite.svg">
-    <button handle="click:start()">Start</button>
+    <hello-world handle="ready:start(),updated:hello()">
+    </hello-world>
+    <!-- <button handle="click:start()">Start</button> -->
   </hello-world>
-  <hello-world></hello-world>
+  <!-- <hello-world></hello-world> -->
 
-  <h1 style="color: var(--accent-400);">Simple header</h1>
+  <!-- <h1 style="color: var(--accent-400);">Simple header</h1> -->
   <!--
   <hello-world accent="red" data="{'entries': true, 'silent': false}" observe="#foo">
     <button slot="optional">Button</button>

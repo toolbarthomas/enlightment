@@ -470,19 +470,30 @@ export class Enlightenment extends LitElement {
       let current: any = context
 
       while (current.parentNode && !target) {
-        if (current.host || !Object.values(current).length) {
-          if (current !== context) {
-            target = current.host || current
-            break
-          }
-        } else if (target) {
+        if (context.parentNode instanceof Enlightenment) {
+          target = context.parentNode
+        }
+
+        if (context.host && context.host instanceof Enlightenment) {
+          target = context.host
+        }
+
+        if (current && current.host && !Object.values(current).length) {
+          target = current.host || current
+        }
+
+        if (!target && current && current.host !== context) {
+          target = current.host
+        }
+
+        if (target) {
           break
         }
 
         current = current.parentNode as Element
       }
 
-      if (!target && current.host !== context) {
+      if (!target && current && current.host !== context) {
         target = current.host
       }
     }
@@ -655,6 +666,10 @@ export class Enlightenment extends LitElement {
   // component context.
   @property()
   error = ''
+
+  // Expose the handle attribute that could be used for every Element.
+  @property({ type: String })
+  handle?: string
 
   // Defines the Color Mode to use: Dark/Light
   @property({
@@ -882,6 +897,8 @@ export class Enlightenment extends LitElement {
       })
 
       this.throttle(this.requestUpdate)
+
+      this.dispatchUpdate('ready')
     }
   }
 
@@ -1273,33 +1290,35 @@ export class Enlightenment extends LitElement {
         return
       }
 
-      let [type, name] = value.split(':')
+      const events = value.split(',').forEach((str) => {
+        let [type, name] = str.split(':')
 
-      if (!name) {
-        name = type
-        type = 'click'
-      }
+        if (!name) {
+          name = type
+          type = 'click'
+        }
 
-      //@ts-ignore
-      const fn: Function = this[name.split('(')[0]]
+        //@ts-ignore
+        const fn: Function = this[name.split('(')[0]]
 
-      if (typeof fn === 'function' && Enlightenment.useHost(element) === this) {
-        this.assignGlobalEvent(
-          type,
-          () => {
-            try {
-              this.throttle(fn)
-            } catch (exception) {
-              if (exception) {
-                this.log(exception, 'error')
+        if (typeof fn === 'function' && Enlightenment.useHost(element) === this) {
+          this.assignGlobalEvent(
+            type,
+            () => {
+              try {
+                this.throttle(fn)
+              } catch (exception) {
+                if (exception) {
+                  this.log(exception, 'error')
+                }
               }
+            },
+            {
+              context: element
             }
-          },
-          {
-            context: element
-          }
-        )
-      }
+          )
+        }
+      })
     })
   }
 
