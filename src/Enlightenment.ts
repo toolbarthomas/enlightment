@@ -303,7 +303,7 @@ export class Enlightenment extends LitElement {
    * @param value The initial value to validate.
    */
   static isMode(value: any) {
-    return Enlightenment.filterProperty(value, ['light', 'dark'])
+    return Enlightenment.filterProperty(value, EnlightenmentTheme.COLOR_MODES)
   }
 
   /**
@@ -2276,6 +2276,10 @@ export class Enlightenment extends LitElement {
       this.assignGlobalEvent('focus', this.handleGlobalFocus)
       this.assignGlobalEvent('focusin', this.handleGlobalFocus)
     }
+
+    // Mark the Component as ready, this will make the component visible, if
+    // an accent or neutral Attribute was initially defined.
+    this.throttle(this.setAttribute, Enlightenment.FPS, 'ready', '')
 
     this.throttle(this.assignListeners)
     this.dispatchUpdate('connected')

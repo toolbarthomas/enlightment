@@ -73,6 +73,11 @@ export class EnlightenmentTheme {
       margin: 0;
       padding: 0;
     }
+
+    *[neutral]:not([ready]),
+    *[accent]:not([ready]) {
+      visibility: hidden;
+    }
   ` as unknown as string
 
   /**
@@ -148,6 +153,11 @@ export class EnlightenmentTheme {
    * will be used in the generated color chart.
    */
   static COLOR_WEIGHTS = [100, 200, 300, 400, 500, 600, 700, 800, 900]
+
+  /**
+   * Defines the available color mode for the Component.
+   */
+  static COLOR_MODES = ['light', 'dark']
 
   /**
    * Defines the default Device widths in pixels that are used within the
