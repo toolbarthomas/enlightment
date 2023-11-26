@@ -1,22 +1,34 @@
 import { css } from 'lit'
 
-// Type definition that defines a color value without any units.
+/**
+ * Type definition that defines a color value without any units.
+ */
 export type ThemeColorTint = string | [number, number, number]
 
-// Contains the configuration to generate the actual color chart with the
-// required colors, shades and optional opacity variants.
+/**
+ * Contains the configuration to generate the actual color chart with the
+ * required colors, shades and optional opacity variants.
+ */
 export type ThemeColorChart = { [key: string]: ThemeColorTint[] }
 
-// Use the correct css value from the defined type value within the generated
-// Color Chart.
-export type ThemeColorType = 'hex' | 'hsl' | 'rgb'
-
-export type ThemeStackingContext = {
-  depth: string | number
-  shadow: number
+/**
+ * Expected Interface of an existing Color Chart value that is compared
+ * from a hue, saturation and lightness values.
+ */
+export type ThemeColorMatch = {
+  color: string
+  hueDelta: number
+  lightnessDelta: number
+  weight: number
+  saturationDelta: number
+  value: ThemeColorTint
 }
 
-export type ThemStackingContexts = { [key: string]: ThemeStackingContext }
+/**
+ * Use the correct css value from the defined type value within the generated
+ * Color Chart.
+ */
+export type ThemeColorType = 'hex' | 'hsl' | 'rgb'
 
 /**
  * The actual configuration used while generatenig a new Color Chart.
@@ -35,6 +47,21 @@ export type ThemeColorOptions = {
   // Generates the optional opacity values for the default and accent colors.
   delta?: number
 }
+
+/**
+ * Expected structure of a stacking context subscription that used for
+ * generating the stacking context custom properties like z-index & shadow
+ * distances.
+ */
+export type ThemeStackingContext = {
+  depth: string | number
+  shadow: number
+}
+
+/**
+ * Contains the subscriptions of all Stacking Context entries.
+ */
+export type ThemStackingContexts = { [key: string]: ThemeStackingContext }
 
 /**
  * Exposes the default Component & Document styles for each Enlightenment
@@ -682,16 +709,120 @@ export class EnlightenmentTheme {
     return color
   }
 
-  useColorChart(handler?: (color: string, value: ThemeColorTint) => any) {
+  useColorChart(handler?: (color: string, value: ThemeColorTint, index: number) => any) {
     if (typeof handler !== 'function') {
       return
     }
 
     return Object.keys(EnlightenmentTheme.colorChart.colors).map((color) => {
-      return EnlightenmentTheme.colorChart.colors[color].map((value) => handler(color, value))
+      return EnlightenmentTheme.colorChart.colors[color].map((value, index) =>
+        handler(color, value, index)
+      )
     })
 
     return EnlightenmentTheme.colorChart.colors || []
+  }
+
+  /**
+   * Returns the closest matching color Chart value from the defined hue,
+   * saturation or lightness values.
+   *
+   * The function returns the nearest values by default or the actual selection
+   * with the mentioned values, color name and weight.
+   *
+   * @param hue Compares the defined hue value from the current color Chart.
+   * @param saturation Sort the nearest values by saturation defined.
+   * @param lightness Sort the nearest values by lightness when defined.
+   * @param useSelection Returns the color name, weight and actual value when
+   * TRUE
+   */
+  useColorFrom(hue: number, saturation?: number, lightness?: number, useSelection?: boolean) {
+    // Only accept colors that are within the color radius treshhold.
+    const treshhold =
+      Math.round((360 / Object.keys(EnlightenmentTheme.colorChart.colors).length) * 100) / 100
+
+    // Should contain any color within the defined treshhold.
+    const colors: ThemeColorMatch[] = []
+
+    // Should contain any color within the double defined treshhold value.
+    const fallback: ThemeColorMatch[] = []
+
+    this.useColorChart((color, value, index) => {
+      if (typeof value === 'string') {
+        return
+      }
+
+      const [h, s, l] = value
+
+      if (h === undefined || s === undefined || l === undefined) {
+        return
+      }
+
+      const hueDelta = Math.abs(hue - h)
+      const saturationDelta = Math.abs((saturation || 0) - s) || 0
+      const lightnessDelta = Math.abs((lightness || 0) - l) || 0
+
+      if (saturation) {
+        if (saturationDelta >= 50) {
+          return
+        }
+      }
+
+      const candidate: ThemeColorMatch = {
+        color,
+        hueDelta,
+        lightnessDelta,
+        value,
+        saturationDelta,
+        weight: index * 100 + 100
+      }
+
+      if (hueDelta <= treshhold) {
+        colors.push(candidate)
+      } else if (hueDelta <= treshhold * 2) {
+        fallback.push(candidate)
+      }
+    })
+
+    if (!colors.length) {
+      colors.push(...fallback)
+
+      if (!colors.length) {
+        return
+      }
+    }
+
+    let entry = colors.sort((a, b) => (a.hueDelta >= b.hueDelta ? 1 : -1))
+
+    if (lightness !== undefined) {
+      entry = entry.sort((a, b) => (a.lightnessDelta >= b.lightnessDelta ? 1 : -1))
+    } else if (saturation !== undefined) {
+      entry = entry.sort((a, b) => (a.saturationDelta >= b.saturationDelta ? 1 : -1))
+    }
+
+    if (useSelection || !entry[0].value.length) {
+      return entry[0]
+    }
+
+    return [entry[0].value[0], entry[0].value[1], entry[0].value[2]]
+  }
+
+  /**
+   * Compares the defined HSL color value and returns the Theme color property
+   * name.
+   *
+   * @param hue Compares the defined hue value from the current color Chart.
+   * @param saturation Sort the nearest values by saturation defined.
+   * @param lightness Sort the nearest values by lightness when defined.
+   */
+  useColorPropertyFrom(hue: number, saturation?: number, lightness?: number) {
+    const color = this.useColorFrom(hue, saturation, lightness, true) as ThemeColorMatch
+
+    if (!color) {
+      return
+    }
+
+    return `--${color.color}-${color.weight}`
   }
 
   /**
