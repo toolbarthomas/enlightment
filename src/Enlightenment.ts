@@ -390,6 +390,31 @@ export class Enlightenment extends LitElement {
     return [json] as EnlightenmentJSONResponseObject
   }
 
+  /**
+   * Parse the defined Matrix value as array with string or number values.
+   *
+   * @param value The Matrix value to parse.
+   */
+  static parseMatrix(value: string) {
+    if (!value) {
+      return []
+    }
+
+    const matrix = value
+      .split(/\w*(...)[(]/gim)
+      .filter((e) => e.includes(')'))
+      .map((e) =>
+        e
+          .split(')')[0]
+          .split(',')
+          .map(Enlightenment.strip)
+          .map((e) => (isNaN(parseFloat(e)) ? String(e) : parseFloat(e)))
+      )
+      .flat()
+
+    return matrix
+  }
+
   // The keycodes that could be validated within a class method.
   static keyCodes = {
     confirm: [13, 32],
@@ -903,12 +928,35 @@ export class Enlightenment extends LitElement {
   }
 
   /**
-   * Updates the Component attributes from the defined context properties.
+   * Ensures the given Attribute is updated according to the current property
+   * value. This should be used if the the reflected property does not trigger
+   * a render.
+   *
+   * @param name Updates the defined Attribute to it's current property value.
+   */
+  updateAttribute(name: string) {
+    if (!name) {
+      return
+    }
+
+    const value: string = (this as any)[name]
+
+    if (String(value) === this.getAttribute(name)) {
+      return
+    }
+
+    this.setAttribute(name, String(value))
+
+    return value
+  }
+
+  /**
+   * Updates the Component boolean Attribute from the defined context property.
    *
    * @param property The property name that should exists within the component.
    * @param name The optional Attribute name to use instead of the property.
    */
-  updateAttribute(property: string, name?: string) {
+  updateBooleanAttribute(property: string, name?: string) {
     if ((this as any)[property]) {
       this.setAttribute(name || property, 'true')
     } else {
@@ -965,10 +1013,10 @@ export class Enlightenment extends LitElement {
    * @param name Dispatch the optional hook
    */
   protected handleUpdate(name?: string) {
-    this.updateAttribute('pending', 'aria-busy')
+    this.updateBooleanAttribute('pending', 'aria-busy')
 
-    this.updateAttribute('isExpanded', 'aria-expanded')
-    this.updateAttribute('isCollapsed', 'aria-collapsed')
+    this.updateBooleanAttribute('isExpanded', 'aria-expanded')
+    this.updateBooleanAttribute('isCollapsed', 'aria-collapsed')
     this.updateCustomStylesSheets()
 
     this.updatePreventEvent()
