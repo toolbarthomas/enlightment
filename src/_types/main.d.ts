@@ -58,7 +58,7 @@ export type EnligtenmentTarget = Element | HTMLElement | Node | SVGElement | und
  * Definition of a single throttled handler that will not stack if called
  * multiple times within the defined throttle delay.
  */
-export type EnlightenmentThrottle = [Function, ReturnType<typeof setTimeout>]
+export type EnlightenmentThrottle = [Function, ReturnType<typeof setTimeout>, any[] | undefined]
 
 /**
  * Contains the active document Event listeners that are created from the

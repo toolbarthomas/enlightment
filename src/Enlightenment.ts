@@ -1595,8 +1595,8 @@ export class Enlightenment extends LitElement {
     }
 
     let index = -1
-    const [exists] = this.throttler.handlers.filter(([h], i) => {
-      if (h === handler) {
+    const [exists] = this.throttler.handlers.filter(([h, _, ah], i) => {
+      if (h === handler && this.compareValue(args, ah)) {
         if (index < 0) {
           index = i
         }
@@ -1630,7 +1630,7 @@ export class Enlightenment extends LitElement {
 
     this.log([`${this.constructor.name} throttle defined:`, this], 'info')
 
-    this.throttler.handlers.push([handler, timeout])
+    this.throttler.handlers.push([handler, timeout, args])
 
     setTimeout(() => {
       this.throttler.handlers.forEach(([h], i) => {
