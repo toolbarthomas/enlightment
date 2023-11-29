@@ -1617,17 +1617,16 @@ export class Enlightenment extends LitElement {
       delete this.throttler.handlers[index]
     }
 
-    const timeout = setTimeout(
-      () => {
-        // try {
-        handler.call(this, ...args)
+    const ms = parseInt(String(delay)) || this.throttler.delay
 
-        // } catch (exception) {
-        // exception && this.log(exception, 'error')
-        // }
-      },
-      parseInt(String(delay)) || this.throttler.delay
-    )
+    const timeout = setTimeout(() => {
+      // try {
+      handler.call(this, ...args)
+
+      // } catch (exception) {
+      // exception && this.log(exception, 'error')
+      // }
+    }, ms)
 
     this.log([`${this.constructor.name} throttle defined:`, this], 'info')
 
@@ -1641,7 +1640,7 @@ export class Enlightenment extends LitElement {
       })
 
       this.cleanup()
-    }, timeout + 1)
+    }, ms + 1)
   }
 
   /**
