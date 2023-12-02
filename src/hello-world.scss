@@ -80,6 +80,7 @@ h1 {
 
 div {
   padding: 1em;
+  position: absolute;
 
   &[aria-hidden='true'] {
     background-color: grey;

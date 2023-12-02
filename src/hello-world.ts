@@ -48,6 +48,8 @@ class HelloWorld extends Enlightenment {
   @property({ type: String })
   helloWorld = 'new'
 
+  foo = false
+
   @property({
     converter: (value: string) =>
       Enlightenment.parseJSON(value, (r: any) => {
@@ -151,11 +153,24 @@ class HelloWorld extends Enlightenment {
     // }, 5000)
   }
 
+  handleUpdate(name?: string) {
+    super.handleUpdate(name)
+
+    this.updateAttributeAlias('foo')
+  }
+
+  updated(properties: any) {
+    super.updated(properties)
+
+    console.log('update')
+  }
+
   render() {
     return html`
       <focus-trap ?active=${this.hasActiveFocusTrap}>
         <div>
           <h1>Hello ${this.name}</h1>
+          <button @click=${this.start}>Start</button>
           <div>
             <slot></slot>
           </div>
@@ -195,6 +210,26 @@ class HelloWorld extends Enlightenment {
   }
 
   start() {
-    console.log('Hello World Start', this)
+    console.log('Start', this)
+
+    Enlightenment.parseMatrix(
+      'transform(10px, 20px) scale(1deg) linear-gradient(1deg, red, green) bar(11px)'
+    )
+
+    console.log(
+      'The color',
+      Enlightenment.theme.useColorFrom(171, 44, 37)
+      // Enlightenment.theme.useColorFrom(180, 56)
+    )
+
+    this.useBreakpoints((name: string, value: number, delta?: number[]) => {
+      console.log('Breakpoint', name, value, delta)
+    })
+
+    this.commit('foo', !this.foo)
+  }
+
+  hello() {
+    console.log('HELLO', this)
   }
 }

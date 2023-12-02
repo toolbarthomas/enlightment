@@ -707,7 +707,23 @@ export class EnlightenmentTheme {
       return
     }
 
-    if (!Object.keys(EnlightenmentTheme.colorChart.colors).includes(color)) {
+    const hsl = color.split(',')
+    const colors = Object.keys(EnlightenmentTheme.colorChart.colors)
+
+    // Accepts HSL compatible color values.
+    if (hsl.length > 1 || parseInt(color)) {
+      const h = parseInt(hsl[0])
+      const s = parseFloat(hsl[1]) || undefined
+      const l = parseFloat(hsl[2]) || undefined
+
+      const theme = (this.useColorFrom(h, s, l, true) || {}) as ThemeColorMatch
+
+      if (theme.color && colors.includes(theme.color)) {
+        return theme.color
+      }
+    }
+
+    if (!colors.includes(color)) {
       return
     }
 

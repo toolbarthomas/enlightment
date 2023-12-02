@@ -105,6 +105,9 @@ export class Enlightenment extends LitElement {
   // Expected interval value of 60HZ refresh rate.
   static FPS = 1000 / 60
 
+  // Excepted timeout value to use for Repaint based updates.
+  static RPS = 200
+
   /**
    * Defines the 8 available corner directions as box number values:
    * North-West, North, North-East, West, East, South-West, South & South-East.
@@ -833,6 +836,59 @@ export class Enlightenment extends LitElement {
     }
   }
 
+  handleCurrentViewport() {
+    if (!this.shadowRoot) {
+      return
+    }
+
+    let maxWidth = 0
+    let device = ''
+
+    const elements = this.shadowRoot.children
+    const widths: number[] = []
+
+    const each = (elements: HTMLElement[]) => {
+      const children: HTMLElement[] = []
+
+      Object.values(elements).forEach((element) => {
+        if (element instanceof HTMLElement === false) {
+          return
+        }
+
+        children.push(...(Array.from(element.children) as HTMLElement[]))
+
+        if (element.scrollWidth || element.offsetWidth) {
+          widths.push(element.scrollWidth || element.offsetWidth)
+        }
+      })
+
+      if (!widths.length && children.length) {
+        each(children)
+
+        return
+      }
+    }
+
+    each(Array.from(this.shadowRoot.children) as HTMLElement[])
+
+    if (!widths.filter((width) => width).length) {
+      return
+    }
+
+    const width = Math.max(...widths)
+
+    this.useBreakpoints((name, breakpoint) => {
+      if (breakpoint >= width) {
+        if (!maxWidth || breakpoint <= maxWidth) {
+          maxWidth = breakpoint
+          device = name
+        }
+      }
+    })
+
+    device && this.updateAttribute('viewport', device)
+  }
+
   /**
    * Defines the global click Event listener for the element context.
    *
@@ -903,6 +959,13 @@ export class Enlightenment extends LitElement {
   }
 
   /**
+   * Default resize handler while the document is resized.
+   */
+  handleGlobalResize(event: Event) {
+    this.throttle(this.handleCurrentViewport)
+  }
+
+  /**
    * Defines the global slotchange Event handler that will trigger a slotchange
    * event on the main element context.
    *
@@ -922,6 +985,8 @@ export class Enlightenment extends LitElement {
     this.assignSlottedEvent(event)
 
     this.updateFragments()
+
+    this.handleCurrentViewport()
 
     if (!this.slotReady) {
       Object.defineProperty(this, 'slotReady', {
@@ -954,7 +1019,7 @@ export class Enlightenment extends LitElement {
       return
     }
 
-    this.setAttribute(name, String(value))
+    this.setAttribute(name, String(value || v || ''))
 
     return value
   }
@@ -2384,6 +2449,7 @@ export class Enlightenment extends LitElement {
       this.assignGlobalEvent('keydown', this.handleGlobalKeydown)
       this.assignGlobalEvent('focus', this.handleGlobalFocus)
       this.assignGlobalEvent('focusin', this.handleGlobalFocus)
+      this.assignGlobalEvent('resize', this.handleGlobalResize, { context: window })
     }
 
     this.throttle(this.assignListeners)
@@ -2398,7 +2464,7 @@ export class Enlightenment extends LitElement {
 
     // Mark the Component as ready, this will make the component visible, if
     // an accent or neutral Attribute was initially defined.
-    this.throttle(this.setAttribute, 200, 'ready', '')
+    this.throttle(this.updateAttribute, Enlightenment.RPS, 'ready', '')
   }
 
   /**
@@ -2413,6 +2479,7 @@ export class Enlightenment extends LitElement {
       this.omitGlobalEvent('focusin', this.handleGlobalFocus)
       this.omitGlobalEvent('keydown', this.handleGlobalKeydown)
       this.omitGlobalEvent('updated', this._process)
+      this.omitGlobalEvent('resize', this.handleGlobalResize)
 
       this.clearListeners()
 
