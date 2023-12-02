@@ -1060,8 +1060,18 @@ export class Enlightenment extends LitElement {
    * @param name The optional Attribute name to use instead of the property.
    */
   updateAttributeAlias(property: string, name?: string) {
-    if ((this as any)[property] && !this.hasAttribute(name || property)) {
-      this.setAttribute(name || property, 'true')
+    if (!Object.keys(this).includes(property)) {
+      return
+    }
+
+    const value = (this as any)[property]
+
+    if (value === undefined) {
+      return
+    }
+
+    if (value) {
+      this.setAttribute(name || property, String(value))
     } else {
       this.removeAttribute(name || property)
     }
