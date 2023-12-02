@@ -105,6 +105,15 @@ export class Enlightenment extends LitElement {
   // Expected interval value of 60HZ refresh rate.
   static FPS = 1000 / 60
 
+  /**
+   * Defines the 8 available corner directions as box number values:
+   * North-West, North, North-East, West, East, South-West, South & South-East.
+   */
+  static pivots = {
+    x: [1, 3, 4, 6, 7, 9],
+    y: [1, 2, 3, 7, 8, 9]
+  }
+
   // Shared globals for the running component instances.
   static globals = new EnlightenmentGlobals(NAMESPACE)
 
@@ -934,7 +943,7 @@ export class Enlightenment extends LitElement {
    *
    * @param name Updates the defined Attribute to it's current property value.
    */
-  updateAttribute(name: string) {
+  updateAttribute(name: string, v?: any) {
     if (!name) {
       return
     }
@@ -956,8 +965,8 @@ export class Enlightenment extends LitElement {
    * @param property The property name that should exists within the component.
    * @param name The optional Attribute name to use instead of the property.
    */
-  updateBooleanAttribute(property: string, name?: string) {
-    if ((this as any)[property]) {
+  updateAttributeAlias(property: string, name?: string) {
+    if ((this as any)[property] && !this.hasAttribute(name || property)) {
       this.setAttribute(name || property, 'true')
     } else {
       this.removeAttribute(name || property)
@@ -1013,10 +1022,10 @@ export class Enlightenment extends LitElement {
    * @param name Dispatch the optional hook
    */
   protected handleUpdate(name?: string) {
-    this.updateBooleanAttribute('pending', 'aria-busy')
+    this.updateAttributeAlias('pending', 'aria-busy')
 
-    this.updateBooleanAttribute('isExpanded', 'aria-expanded')
-    this.updateBooleanAttribute('isCollapsed', 'aria-collapsed')
+    this.updateAttributeAlias('isExpanded', 'aria-expanded')
+    this.updateAttributeAlias('isCollapsed', 'aria-collapsed')
     this.updateCustomStylesSheets()
 
     this.updatePreventEvent()
@@ -1095,7 +1104,7 @@ export class Enlightenment extends LitElement {
    * @param event Use the defined target value from the initial Event interface.
    */
   protected isEmptySlot(event: Event) {
-    const { parentElement } = event.target as Element
+    const { parentElement } = (event.target as Element) || {}
 
     if (parentElement) {
       if (!isEmptyComponentSlot(event.target as HTMLSlotElement)) {
@@ -1709,6 +1718,39 @@ export class Enlightenment extends LitElement {
   }
 
   /**
+   * Iterates through the defined Theme Breakpoints.
+   *
+   * @param handler The handler to use for each Theme breakpoint.
+   */
+  protected useBreakpoints(handler?: (name: string, value: number, delta?: number[]) => void) {
+    const breakpoints = EnlightenmentTheme.breakpoints
+
+    if (typeof handler !== 'function') {
+      return breakpoints
+    }
+
+    const devices = Object.keys(EnlightenmentTheme.breakpoints)
+
+    if (!devices.length) {
+      return breakpoints
+    }
+
+    const values = Object.values(EnlightenmentTheme.breakpoints)
+
+    devices.forEach((name, index) => {
+      const minWidth = values[index - 1] + 1
+      const maxWidth = values[index + 1] - 1
+
+      handler(name, breakpoints[name] as typeof minWidth, [
+        minWidth || 0,
+        maxWidth || screen.availWidth || screen.width
+      ])
+    })
+
+    return breakpoints
+  }
+
+  /**
    * Shorthand to use the existing Lit Element reference.
    *
    * @param ref The initial created Ref Object.
@@ -2304,6 +2346,7 @@ export class Enlightenment extends LitElement {
       // Define the required styles in order to use the additional Enlightenment
       // features.
       Enlightenment.theme.assignDefaultStyleSheets()
+      console.log('BAR')
 
       // Expose default space properties.
       Enlightenment.theme.assignSpaceProperties()
@@ -2355,7 +2398,7 @@ export class Enlightenment extends LitElement {
 
     // Mark the Component as ready, this will make the component visible, if
     // an accent or neutral Attribute was initially defined.
-    this.throttle(this.setAttribute, 100, 'ready', '')
+    this.throttle(this.setAttribute, 200, 'ready', '')
   }
 
   /**

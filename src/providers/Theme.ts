@@ -1,6 +1,11 @@
 import { css } from 'lit'
 
 /**
+ * Type definition for the Breakpoint schematic.
+ */
+export type ThemeBreakpoints = { [key: string]: number }
+
+/**
  * Type definition that defines a color value without any units.
  */
 export type ThemeColorTint = string | [number, number, number]
@@ -101,8 +106,8 @@ export class EnlightenmentTheme {
       padding: 0;
     }
 
-    *[neutral]:not([ready]),
-    *[accent]:not([ready]) {
+    *[accent]:not([ready]),
+    *[neutral]:not([ready]) {
       visibility: hidden;
     }
   ` as unknown as string
@@ -191,7 +196,7 @@ export class EnlightenmentTheme {
    * optional CSS Media query. Pixel value is expected to ensure full browser
    * support.
    */
-  static breakpoints = {
+  static breakpoints: ThemeBreakpoints = {
     handheld: 320,
     smartphone: 480,
     tablet: 768,
@@ -709,6 +714,11 @@ export class EnlightenmentTheme {
     return color
   }
 
+  /**
+   * Iterator to process through the defined Colors.
+   *
+   * @param handler The handler to use within the iterator.
+   */
   useColorChart(handler?: (color: string, value: ThemeColorTint, index: number) => any) {
     if (typeof handler !== 'function') {
       return
