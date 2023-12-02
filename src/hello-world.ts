@@ -162,7 +162,7 @@ class HelloWorld extends Enlightenment {
   updated(properties: any) {
     super.updated(properties)
 
-    console.log('update')
+    console.log('update hello world')
   }
 
   render() {

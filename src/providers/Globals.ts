@@ -58,7 +58,9 @@ export class EnlightenmentGlobals {
     if (!this.currentElements.filter((currentElement) => currentElement === context).length) {
       this.currentElements.push(context)
 
-      context.setAttribute(this.currentAttribute, 'true')
+      if (!context.hasAttribute(this.currentAttribute)) {
+        context.setAttribute(this.currentAttribute, 'true')
+      }
     }
   }
 
@@ -108,7 +110,9 @@ export class EnlightenmentGlobals {
 
       this.currentElements = commit
 
-      context.setAttribute(this.currentAttribute, 'false')
+      if (context.getAttribute(this.currentAttribute) !== 'false') {
+        context.setAttribute(this.currentAttribute, 'false')
+      }
     }
   }
 }

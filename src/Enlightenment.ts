@@ -609,7 +609,7 @@ export class Enlightenment extends LitElement {
 
   // Optional flag that can be used within the Document Event handlers to check
   // if the current scope is within the defined Component.
-  currentElement?: boolean
+  currentElement = false
 
   // Contains the references of the created custom CSSStyleSheet to enable
   // StyleSheet updates for the rendered Components.
@@ -621,11 +621,11 @@ export class Enlightenment extends LitElement {
 
   // Enables the default document Events that is called within: handleGlobal...
   // methods when TRUE.
-  enableDocumentEvents: boolean = false
+  enableDocumentEvents = false
 
   // Enables fragment usage within the defined component to repeat any HTML
   // within the named Slot.
-  enableFragments: boolean = false
+  enableFragments = false
 
   // Will be TRUE if the optional Focus Trap Element exists within the Component
   // and is currently active.
@@ -657,7 +657,7 @@ export class Enlightenment extends LitElement {
 
   // Boolean flag that should mutate only once when the actual slot elements
   // are initiated.
-  slotReady?: boolean
+  slotReady: boolean = false
 
   // Contains the assigned handlers that will be called once.
   throttler: {
@@ -841,8 +841,16 @@ export class Enlightenment extends LitElement {
     }
   }
 
+  /**
+   * Returns the suggested viewport that should have the minimal width to
+   * display the actual component correctly.
+   */
   handleCurrentViewport() {
     if (!this.shadowRoot) {
+      return
+    }
+
+    if (!this.enableDocumentEvents) {
       return
     }
 
@@ -899,7 +907,9 @@ export class Enlightenment extends LitElement {
       }
     })
 
-    device && this.updateAttribute('viewport', device)
+    if (this.viewport !== device) {
+      this.commit('viewport', device)
+    }
   }
 
   /**
@@ -975,7 +985,7 @@ export class Enlightenment extends LitElement {
    * Default resize handler while the document is resized.
    */
   handleGlobalResize(event: Event) {
-    this.throttle(this.handleCurrentViewport)
+    this.throttle(this.handleCurrentViewport, Enlightenment.RPS)
   }
 
   /**
@@ -1002,6 +1012,7 @@ export class Enlightenment extends LitElement {
     this.handleCurrentViewport()
 
     if (!this.slotReady) {
+      console.log('DOO')
       Object.defineProperty(this, 'slotReady', {
         configurable: false,
         writable: false,
@@ -1058,8 +1069,9 @@ export class Enlightenment extends LitElement {
    *
    * @param property The property name that should exists within the component.
    * @param name The optional Attribute name to use instead of the property.
+   * @param flag Assign the actual property as boolean Attribute.
    */
-  updateAttributeAlias(property: string, name?: string) {
+  updateAttributeAlias(property: string, name?: string, flag?: boolean) {
     if (!Object.keys(this).includes(property)) {
       return
     }
@@ -1071,7 +1083,11 @@ export class Enlightenment extends LitElement {
     }
 
     if (value) {
-      this.setAttribute(name || property, String(value))
+      if (flag && !value) {
+        this.removeAttribute(name || property)
+      } else {
+        this.setAttribute(name || property, flag ? '' : String(value))
+      }
     } else {
       this.removeAttribute(name || property)
     }
@@ -1130,6 +1146,9 @@ export class Enlightenment extends LitElement {
 
     this.updateAttributeAlias('isExpanded', 'aria-expanded')
     this.updateAttributeAlias('isCollapsed', 'aria-collapsed')
+    this.updateAttributeAlias('currentElement', 'aria-current')
+    this.updateAttribute('viewport', this.viewport)
+
     this.updateCustomStylesSheets()
 
     this.updatePreventEvent()
@@ -1289,7 +1308,11 @@ export class Enlightenment extends LitElement {
    * Attaches the defined component to the currentElement global.
    */
   private attachCurrentElement() {
-    this.currentElement = true
+    this.commit('currentElement', () => {
+      this.updateAttributeAlias('currentElement', 'aria-current')
+
+      return true
+    })
 
     Enlightenment.globals.assignCurrentElement(this)
   }
@@ -2074,8 +2097,13 @@ export class Enlightenment extends LitElement {
    * and notify any related Enlightenment components.
    */
   private detachCurrentElement() {
-    this.currentElement = false
+    this.commit('currentElement', () => {
+      this.updateAttributeAlias('currentElement', 'aria-current')
+      return false
+    })
+
     Enlightenment.globals.omitCurrentElement(this)
+
     this.dispatchUpdate('omit')
   }
 
@@ -2515,9 +2543,20 @@ export class Enlightenment extends LitElement {
       host.dispatchUpdate()
     }
 
-    // Mark the Component as ready, this will make the component visible, if
-    // an accent or neutral Attribute was initially defined.
-    this.throttle(this.updateAttribute, Enlightenment.RPS, 'ready', '')
+    // Final callback to indicate the component is ready and rendered.
+    this.assignGlobalEvent(
+      'ready',
+      () => {
+        if (this.slotReady) {
+          this.throttle(() => {
+            this.updateAttributeAlias('slotReady', 'ready', true)
+
+            this.clearGlobalEvent('ready', this)
+          })
+        }
+      },
+      { context: this }
+    )
   }
 
   /**
@@ -2533,6 +2572,7 @@ export class Enlightenment extends LitElement {
       this.omitGlobalEvent('keydown', this.handleGlobalKeydown)
       this.omitGlobalEvent('updated', this._process)
       this.omitGlobalEvent('resize', this.handleGlobalResize)
+      this.clearGlobalEvent('ready', this)
 
       this.clearListeners()
 
