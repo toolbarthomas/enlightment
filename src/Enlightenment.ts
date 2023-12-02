@@ -668,6 +668,11 @@ export class Enlightenment extends LitElement {
   // Alias to the constructor name.
   uuid: string
 
+  /**
+   * Defines the smallest compatible device width for the current Component.
+   */
+  viewport?: string
+
   // Generates the optional accent color for the defined component.
   @property({
     converter: (value) => Enlightenment.theme.useColor(value),
@@ -875,6 +880,14 @@ export class Enlightenment extends LitElement {
       return
     }
 
+    Object.values(this.slots).forEach((slot) => {
+      if (!slot) {
+        return
+      }
+
+      each(slot.assignedElements() as HTMLElement[])
+    })
+
     const width = Math.max(...widths)
 
     this.useBreakpoints((name, breakpoint) => {
@@ -1013,15 +1026,31 @@ export class Enlightenment extends LitElement {
       return
     }
 
-    const value: string = (this as any)[name]
-
-    if (String(value) === this.getAttribute(name)) {
+    if (!Object.keys(this).includes(name)) {
       return
     }
 
-    this.setAttribute(name, String(value || v || ''))
+    const value: any = (this as any)[name]
 
-    return value
+    const commit = v !== undefined ? v : value !== undefined ? v : ''
+
+    if (String(commit) === this.getAttribute(name)) {
+      return
+    }
+
+    if (commit !== undefined) {
+      this.commit(name, () => {
+        if (commit) {
+          this.setAttribute(name, String(commit))
+        } else {
+          this.removeAttribute(name)
+        }
+
+        return commit
+      })
+    }
+
+    return commit
   }
 
   /**
@@ -1783,6 +1812,21 @@ export class Enlightenment extends LitElement {
   }
 
   /**
+   * Returns the actual breakpoint Width value from the defined breakpoint name.
+   *
+   * @param name Returns the breakpoint value from the defined name.
+   */
+  protected useBreakpoint(name: string) {
+    const value = EnlightenmentTheme.breakpoints[name]
+    const fallback =
+      EnlightenmentTheme.breakpoints[0] >= window.innerWidth
+        ? EnlightenmentTheme.breakpoints[0]
+        : window.innerWidth
+
+    return value || fallback
+  }
+
+  /**
    * Iterates through the defined Theme Breakpoints.
    *
    * @param handler The handler to use for each Theme breakpoint.
@@ -2411,7 +2455,6 @@ export class Enlightenment extends LitElement {
       // Define the required styles in order to use the additional Enlightenment
       // features.
       Enlightenment.theme.assignDefaultStyleSheets()
-      console.log('BAR')
 
       // Expose default space properties.
       Enlightenment.theme.assignSpaceProperties()
