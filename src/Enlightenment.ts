@@ -609,7 +609,7 @@ export class Enlightenment extends LitElement {
 
   // Optional flag that can be used within the Document Event handlers to check
   // if the current scope is within the defined Component.
-  currentElement = false
+  currentElement?: boolean = false
 
   // Contains the references of the created custom CSSStyleSheet to enable
   // StyleSheet updates for the rendered Components.
@@ -621,11 +621,11 @@ export class Enlightenment extends LitElement {
 
   // Enables the default document Events that is called within: handleGlobal...
   // methods when TRUE.
-  enableDocumentEvents = false
+  enableDocumentEvents?: boolean = false
 
   // Enables fragment usage within the defined component to repeat any HTML
   // within the named Slot.
-  enableFragments = false
+  enableFragments?: boolean = false
 
   // Will be TRUE if the optional Focus Trap Element exists within the Component
   // and is currently active.
@@ -643,7 +643,7 @@ export class Enlightenment extends LitElement {
   namespace: string = NAMESPACE
 
   // Blocks the default handle methods when TRUE.
-  preventEvent: boolean = false
+  preventEvent?: boolean = false
 
   pid?: number
 
