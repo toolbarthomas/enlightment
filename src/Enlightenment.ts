@@ -590,8 +590,6 @@ export class Enlightenment extends LitElement {
       handlers: []
     }
 
-    this.useMode()
-
     if (this.enableFragments) {
       this.log(`Fragments enabled for ${this.uuid}`, 'log')
     }
@@ -824,7 +822,7 @@ export class Enlightenment extends LitElement {
    */
   private attachCurrentElement() {
     this.commit('currentElement', () => {
-      this.updateAttributeAlias('currentElement', 'aria-current')
+      console.log('CURRENT ELEMENT')
 
       return true
     })
@@ -976,8 +974,6 @@ export class Enlightenment extends LitElement {
       this.updateAttributeAlias('currentElement', 'aria-current')
       return false
     })
-
-    console.log('Detach?', Enlightenment.globals)
 
     Enlightenment.globals.omitCurrentElement(this)
 
@@ -1160,6 +1156,14 @@ export class Enlightenment extends LitElement {
     const target = (context || this) as Enlightenment
     const host = Enlightenment.useHost(target) as Enlightenment
 
+    // Ensure a valid mode is always active since it can be mutated outside
+    // the component context.
+    if (!this.mode) {
+      this.mode = Enlightenment.globals.mode
+
+      this.log(`Use fallback mode: ${this.mode}`, 'log')
+    }
+
     if (!this.hasAttribute('mode') && host) {
       const inheritMode = Enlightenment.isMode(host.getAttribute('mode'))
 
@@ -1180,7 +1184,7 @@ export class Enlightenment extends LitElement {
         // apply the actual CSS styles.
         target.mode && target.setAttribute('mode', target.mode)
       } else if (this.mode === undefined) {
-        this.mode = mode
+        this.mode = mode || Enlightenment.globals.mode
       }
     } else if (!this.mode && mode && this.mode !== mode) {
       this.mode = mode
@@ -1330,9 +1334,15 @@ export class Enlightenment extends LitElement {
   protected firstUpdated(properties: PropertyValueMap<any> | Map<PropertyKey, unknown>) {
     super.firstUpdated(properties)
 
-    this.useMode()
+    this.throttle(this.useMode)
 
-    this.dispatchUpdate('ready')
+    // this.assignGlobalEvent('ready', this.useMode, { context: this })
+
+    // // this.addEventListener('ready', this.useMode, {})
+
+    // // console.log('in', this.slots, this.useInitialSlot())
+
+    this.dispatchUpdate('updated')
   }
 
   /**
@@ -1497,6 +1507,24 @@ export class Enlightenment extends LitElement {
   }
 
   /**
+   * Callback handler that should be called only after the Component has been
+   * rendered everything.
+   *
+   * @param event Event context of the dispatched ready hook.
+   */
+  protected handleReady(event: Event) {
+    if (this.slotReady) {
+      this.throttle(() => {
+        this.updateAttributeAlias('slotReady', 'ready', true)
+
+        this.throttle(this.useMode)
+
+        this.clearGlobalEvent('ready', this)
+      })
+    }
+  }
+
+  /**
    * Default resize handler while the document is resized.
    */
   protected handleGlobalResize(event: Event) {
@@ -1547,7 +1575,7 @@ export class Enlightenment extends LitElement {
    *
    * @param name Updates the defined Attribute to it's current property value.
    */
-  protected updateAttribute(name: string, v?: any) {
+  protected updateAttribute(name: string, v?: any, strict?: boolean) {
     if (!name) {
       return
     }
@@ -1557,6 +1585,10 @@ export class Enlightenment extends LitElement {
     }
 
     const value: any = (this as any)[name]
+
+    if (strict && !this.hasAttribute(name)) {
+      return
+    }
 
     const commit = v !== undefined ? v : value !== undefined ? v : ''
 
@@ -1597,10 +1629,16 @@ export class Enlightenment extends LitElement {
       return
     }
 
+    if (
+      String(value) === this.getAttribute(name || property) ||
+      (value === true && this.getAttribute(name || property) === '')
+    ) {
+      return
+    }
+
     if (value) {
       if (flag && !value && this.hasAttribute(name || property)) {
         this.removeAttribute(name || property)
-        console.log('REMOVE', property)
       } else {
         this.setAttribute(name || property, flag ? '' : String(value))
       }
@@ -1615,18 +1653,24 @@ export class Enlightenment extends LitElement {
    * @param name Dispatch the optional hook
    */
   protected handleUpdate(name?: string) {
-    this.updateAttributeAlias('pending', 'aria-busy')
+    // Defines the current Color mode from the Component context or it's host.
+    this.useMode()
 
-    this.updateAttributeAlias('isExpanded', 'aria-expanded')
-    this.updateAttributeAlias('isCollapsed', 'aria-collapsed')
-    this.updateAttributeAlias('currentElement', 'aria-current')
-    this.updateAttribute('viewport', this.viewport)
+    // Reflect the updated properties or attributes vice versa only once.
     this.updateAttribute('accent', this.accent)
+    this.updateAttribute('mode', this.mode, true)
     this.updateAttribute('neutral', this.neutral)
+    this.updateAttribute('viewport', this.viewport)
+    this.updateAttributeAlias('currentElement', 'aria-current')
+    this.updateAttributeAlias('isCollapsed', 'aria-collapsed')
+    this.updateAttributeAlias('isExpanded', 'aria-expanded')
+    this.updateAttributeAlias('pending', 'aria-busy')
 
     this.updateCustomStylesSheets()
 
     this.updatePreventEvent()
+    this.updateAttributeAlias('preventEvent', 'disabled', true)
+
     this.assignSlots()
     this.dispatchUpdate(name)
   }
@@ -2102,6 +2146,11 @@ export class Enlightenment extends LitElement {
       preventEvent = true
     }
 
+    if (this.preventEvent && !this.hasAttribute('disabled')) {
+      preventEvent = false
+      this.ariaDisabled = String(preventEvent)
+    }
+
     if (this.preventEvent !== preventEvent) {
       this.preventEvent = preventEvent
     }
@@ -2364,7 +2413,7 @@ export class Enlightenment extends LitElement {
       super.attributeChangedCallback(name, _old || null, value || null)
     } else {
       super.attributeChangedCallback(name, _old || null, value || null)
-      this.throttle(this.requestUpdate, Enlightenment.RPS, name)
+      this.requestUpdate()
     }
   }
 
@@ -2552,19 +2601,7 @@ export class Enlightenment extends LitElement {
     }
 
     // Final callback to indicate the component is ready and rendered.
-    this.assignGlobalEvent(
-      'ready',
-      () => {
-        if (this.slotReady) {
-          this.throttle(() => {
-            this.updateAttributeAlias('slotReady', 'ready', true)
-
-            this.clearGlobalEvent('ready', this)
-          })
-        }
-      },
-      { context: this }
-    )
+    this.assignGlobalEvent('ready', this.handleReady, { context: this })
   }
 
   /**
