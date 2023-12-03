@@ -764,6 +764,525 @@ export class Enlightenment extends LitElement {
   svgSpriteSource = ''
 
   /**
+   * Optional callback to use when existing Elements are attached from the
+   * listen property: listen=".foo,#bar,custom-component".
+   *
+   * @param event The actual Event Object that was created from an existing
+   * listen element.
+   */
+  private _process(event: Event) {
+    if (!this.observe) {
+      this.log(`Unable to process from undefined listeners...`, 'warning')
+
+      return
+    }
+
+    if (!event) {
+      this.log(`Unable to run process with undefined Event...`, 'warning')
+
+      return
+    }
+
+    const { target } = event || {}
+    // @ts-ignore
+    const process: undefined | EnlightenmentProcessHandler = this.process
+
+    try {
+      process &&
+        this.throttle(process, this.slotReady ? this.delay : Enlightenment.MAX_THREADS, {
+          target
+        })
+    } catch (exception) {
+      exception && this.log(exception, 'error')
+    }
+  }
+
+  /**
+   * Expose the constructed Component stylesheet in order to update it within
+   * a lifecycle Event.
+   *
+   * @param sheet The stylesheet that was defined for the defined component.
+   */
+  private assignCustomCSSStyleSheet(sheet?: CSSStyleSheet) {
+    if (!sheet) {
+      return
+    }
+
+    if (sheet instanceof CSSStyleSheet === false) {
+      this.log(
+        `Unable to assign custom stylesheet '${name}' without a valid CSSStyleSheet`,
+        'warning'
+      )
+
+      return
+    }
+
+    this.customStyleSheet = sheet
+
+    this.log(['Custom stylesheet assigned:', sheet.title], 'log')
+  }
+
+  /**
+   * Attaches the defined component to the currentElement global.
+   */
+  private attachCurrentElement() {
+    this.commit('currentElement', () => {
+      this.updateAttributeAlias('currentElement', 'aria-current')
+
+      return true
+    })
+
+    Enlightenment.globals.assignCurrentElement(this)
+    console.log('Ell', Enlightenment.globals.currentElements)
+  }
+
+  /**
+   * Assign a new Global Event for each existing component context that is
+   * defined the listen property.
+   */
+  private assignListeners() {
+    if (!this.observe || !this.observe.length) {
+      return
+    }
+
+    // Don't assign the actual Event Listener to the initial Component to
+    // prevent an update loop.
+    const queue = Array.from(this.observe).filter((l) => l !== this && document.contains(l))
+
+    if (!queue.length) {
+      return
+    }
+
+    for (let i = queue.length; i--; ) {
+      this.assignGlobalEvent('updated', this._process, { context: queue[i] })
+    }
+  }
+
+  /**
+   * Assigns the rendered slots within the current element instance to
+   * instance.slots Object.
+   *
+   * @param name Use the defined name instead of the default slot. This is
+   * required when multiple slots exists within the Component.
+   */
+  private assignSlots(name?: string) {
+    if (!this.shadowRoot) {
+      this.log(`Unable to detect shadowRoot from ${this.namespace}`, 'error')
+
+      return
+    }
+
+    const slots = this.shadowRoot.querySelectorAll('slot')
+
+    if (slots && !slots.length && !Object.keys(this.slots).length) {
+      return
+    } else if (!slots && !Object.keys(this.slots).length) {
+      return
+    }
+
+    this.clearGlobalEvent('slotchange', slots)
+
+    this.commit('slots', () => {
+      if (!slots || !slots.length) {
+        this.slots = {}
+      } else {
+        for (let i = 0; i < slots.length; i += 1) {
+          const slot = slots[i]
+          const name = slot.name || Enlightenment.defaults.slot
+
+          this.clearSlottedEvents(slot)
+
+          if (!Object.values(this.slots).includes(slot)) {
+            if (!this.slots[name]) {
+              this.throttle(this.handleSlotChange, this.delay, { ...event, target: slot })
+            }
+
+            this.slots[name] = isEmptyComponentSlot(slot) ? undefined : slot
+
+            this.assignGlobalEvent('slotchange', this.handleSlotChange, { context: slot })
+          }
+        }
+
+        if (this.slots && Object.values(this.slots).filter((s) => s).length) {
+          this.log([`Found ${this.constructor.name} ${slots.length} slot(s) from:`, this.slots])
+        }
+      }
+    })
+  }
+
+  /**
+   * Removes the additional Event listeners from the direct child elements
+   * that have the [handle] attribute defined. This should be called after a
+   * slot is changed or removed to cleanup obsolete Event handlers.
+   *
+   * @param slot Look for additional [handler] elements within the selected slot
+   * and remove the assigned Global Events.
+   */
+  private clearSlottedEvents(slot?: HTMLSlotElement) {
+    const actions: HTMLElement[] = []
+
+    actions.push(...(Object.values(this.querySelectorAll(`[handle]`)) as HTMLElement[]))
+
+    if (slot) {
+      actions.push(...(Object.values(slot.querySelectorAll('[handle]')) as HTMLElement[]))
+    }
+
+    actions.forEach((element) => {
+      const value = element.getAttribute('handle')
+
+      if (!value) {
+        return
+      }
+
+      let [type, name] = value.split(':')
+
+      if (Enlightenment.useHost(element) !== this) {
+        return
+      }
+
+      if (!name) {
+        name = type
+        type = 'click'
+      }
+
+      this.clearGlobalEvent(type, element)
+    })
+  }
+
+  /**
+   * Cleanup the defined throttler handlers and stop any defined throttle
+   * timeout.
+   */
+  private clearThrottler() {
+    const { handlers } = this.throttler
+
+    if (!handlers || !handlers.length) {
+      return
+    }
+
+    handlers.forEach(([fn, timeout], index) => {
+      if (timeout) {
+        clearTimeout(timeout)
+
+        this.log(['Throttle cleared:', fn])
+      }
+    })
+
+    this.throttler.handlers = []
+  }
+
+  /**
+   * Removes the defined Enlightenment element from the currentElements global
+   * and notify any related Enlightenment components.
+   */
+  private detachCurrentElement() {
+    this.commit('currentElement', () => {
+      this.updateAttributeAlias('currentElement', 'aria-current')
+      return false
+    })
+
+    console.log('Detach?', Enlightenment.globals)
+
+    Enlightenment.globals.omitCurrentElement(this)
+
+    this.dispatchUpdate('omit')
+  }
+
+  /**
+   * Default hook that should be called during a component render update.
+   *
+   * @param name Dispatch the optional Event type instead.
+   */
+  private dispatchUpdate(name?: string) {
+    return this.throttle(this.hook, this.delay, typeof name === 'string' ? name : 'update')
+  }
+
+  /**
+   * Validates if the defined Event handler has already been defined as
+   * global Event.
+   *
+   * @param type Filters within the matching Event types.
+   * @param handler Compares the defined handler name with the existing Global
+   * Event handler.
+   */
+  private filterGlobalEvent(type: GlobalEventType, handler: GlobalEventHandler) {
+    if (!this.listeners.length) {
+      return []
+    }
+
+    const entry: GlobalEvent[] = []
+    this.listeners.forEach(([t, fn, ctx, h]) => {
+      if (t === type && fn.name.endsWith(handler.name)) {
+        entry.push([t, fn, ctx, h])
+      }
+    })
+
+    return entry.length ? entry[0] : []
+  }
+
+  /**
+   * Removes the assigned global Event handler.
+   *
+   * @param type Omit from the matching Event type.
+   * @param handler Omit the defined handler that was assigned as Global Event
+   * handler.
+   */
+  private omitGlobalEvent(type: GlobalEventType, handler: GlobalEventHandler) {
+    if (!type) {
+      this.log('Unable to omit undefined global Event', 'warning')
+
+      return
+    }
+
+    if (typeof handler !== 'function') {
+      this.log(`Unable to omit global ${type} Event, no valid function was defined.`, 'warning')
+    }
+
+    const [t, fn, ctx] = this.filterGlobalEvent(type, handler)
+
+    if (!t || !fn || !ctx) {
+      this.log(`Unable to omit undefined global ${type} Event`, 'warning')
+
+      return
+    }
+
+    ctx.removeEventListener(t, fn as any)
+
+    const index: number[] = []
+    this.listeners.forEach(([t2, fn2], i) => {
+      if (fn2 === fn) {
+        index.push(i)
+      }
+    })
+
+    //@ts-ignore
+    this.listeners = this.listeners
+      .map((l, i) => (index.includes(i) ? undefined : l))
+      .filter((l) => l)
+
+    this.log(`Global ${type} event removed:`)
+
+    this.dispatchUpdate('omit')
+  }
+
+  /**
+   * Calls the defined function handler for the existing Observer HTMl elements
+   * that wass defined from observe attribute.
+   *
+   * @param handler The function handler to call for the observed elements
+   */
+  private processObserved(handler?: EnlightenmentProcessHandler) {
+    if (!this.observe || typeof handler !== 'function') {
+      return
+    }
+
+    try {
+      for (let i = Object.keys(this.observe).length; i--; ) {
+        // this.throttle(handler, Enlightenment.FPS, )
+        handler(this.observe[i] as HTMLElement)
+      }
+    } catch (exception) {
+      exception && this.log(exception, 'error')
+    }
+  }
+
+  /**
+   * Call the requestUpdate handler for the direct child components within the
+   * direct body.
+   *
+   * @param exclude Ignores the update request within the initial Component
+   * context.
+   */
+  private requestGlobalUpdate(exclude: boolean) {
+    const { body } = document || this
+    const elements = Array.from(body.children || []).filter(
+      (f: any) =>
+        f.requestUpdate &&
+        f instanceof Enlightenment &&
+        f.namespace === this.namespace &&
+        // Excludes the context that calls this method.
+        (exclude ? f != this : true)
+    )
+
+    for (let i = 0; i < elements.length; i += 1) {
+      const component = elements[i] as Enlightenment
+      if (component.throttle && component.requestUpdate) {
+        component.throttle(component.requestUpdate.bind(component))
+      }
+    }
+  }
+
+  /**
+   * Update callback for the defined custom StyleSheet of the rendered Element
+   * that will update the currently defined Custom Stylesheet that has been
+   * assigned after the initial Component styles.
+   */
+  private updateCustomStylesSheets() {
+    const accents = Enlightenment.theme.useAccent(
+      this,
+      this.accent,
+      EnlightenmentTheme.colorChart.delta
+    )
+
+    const neutrals = Enlightenment.theme.useNeutral(this, this.neutral)
+
+    // Only update if there are any accents or neutral values to use.
+    if (accents && neutrals && !accents.length && !neutrals.length) {
+      return
+    }
+
+    const sheet = this.customStyleSheet
+
+    if (!sheet || sheet instanceof CSSStyleSheet === false) {
+      return
+    }
+
+    const style = `
+      ${EnlightenmentTheme.component}
+
+      :host {
+        ${accents && accents.join('\n')}
+        ${neutrals && neutrals.join('\n')}
+      }
+    `
+
+    if (this.customStyleSheetCache && this.customStyleSheetCache === style) {
+      return
+    }
+
+    this.customStyleSheetCache = style
+
+    sheet.replaceSync(style)
+  }
+
+  /**
+   * Defines the mode attribute for the defined element that inherits the
+   * specified mode value from the global state as default value otherwise.
+   */
+  private useMode(context?: Element) {
+    const { mode } = Enlightenment.globals
+    const target = (context || this) as Enlightenment
+    const host = Enlightenment.useHost(target) as Enlightenment
+
+    if (!this.hasAttribute('mode') && host) {
+      const inheritMode = Enlightenment.isMode(host.getAttribute('mode'))
+
+      if (!inheritMode) {
+        // Ensure the unconstructed parent element is ready before we traverse
+        // upwards.
+        this.throttle(() => {
+          host.useMode && host.useMode(this)
+        })
+
+        return
+      }
+
+      if (inheritMode && this.mode !== inheritMode) {
+        target.mode = inheritMode
+
+        // Update the inherited mode value as actual HTML attribute in order to
+        // apply the actual CSS styles.
+        target.mode && target.setAttribute('mode', target.mode)
+      } else if (this.mode === undefined) {
+        this.mode = mode
+      }
+    } else if (!this.mode && mode && this.mode !== mode) {
+      this.mode = mode
+    } else if (
+      context &&
+      context !== this &&
+      this.hasAttribute('mode') &&
+      !context.hasAttribute('mode')
+    ) {
+      target.mode = this.mode
+      this.mode && target.setAttribute('mode', this.mode)
+    }
+  }
+
+  /**
+   * Returns the existing Component if the defined context exists within the
+   * observed Elements from the instance method.
+   *
+   * @param context Traverse from the actual element to get the host Component
+   * that will be checked with `this`.
+   */
+  private useObserved(context: HTMLElement) {
+    if (!context) {
+      return
+    }
+
+    if (!this.observe) {
+      return
+    }
+
+    // let { observe } = context as Enlightenment
+    let target: HTMLElement | undefined = undefined
+
+    if (!target && !this.isComponentContext(context)) {
+      let current = context
+
+      while (current.parentNode && !target) {
+        if (Object.values(this.observe).includes(current) && current !== this) {
+          target = current
+          break
+        } else if (current.tagName === this.tagName) {
+          break
+        }
+
+        current = current.parentNode as HTMLElement
+      }
+    }
+
+    return target
+  }
+
+  /**
+   * Assigns a new global event for the rendered component context.
+   * The actual event is stored within the instance to prevent Event stacking.
+   *
+   * @param type The Event type to assign.
+   * @param handler The Event handler to assign.
+   * @param options The optional Event options to assign.
+   */
+  protected assignGlobalEvent(
+    type: GlobalEventType,
+    handler: GlobalEventHandler,
+    options?: GlobalEventOptions
+  ) {
+    if (!type) {
+      this.log('Unable to assign global event.', 'error')
+
+      return
+    }
+
+    if (typeof handler !== 'function') {
+      this.log(`Unable to subscribe existing Document Event for ${type}`, 'error')
+
+      return
+    }
+
+    const { context, once } = options || {}
+
+    const ctx = context || document
+
+    const exists = this.listeners.filter(([t, _, c, h]) => t === type && h === handler && c === ctx)
+
+    if (exists.length) {
+      this.log(`Unable to overwrite existing global event for ${ctx}`, 'warning')
+
+      return
+    }
+
+    const fn = handler.bind(this)
+
+    this.listeners.push([type, fn, ctx, handler])
+
+    ctx && ctx.addEventListener(type, fn, { once })
+
+    this.log([`Global event assigned: ${ctx.constructor.name}@${type}`, ctx])
+  }
+
+  /**
    * Find the closest Element from the defined selector that should exists
    * within the initial or any parent ShadowDOM.
    *
@@ -845,7 +1364,7 @@ export class Enlightenment extends LitElement {
    * Returns the suggested viewport that should have the minimal width to
    * display the actual component correctly.
    */
-  handleCurrentViewport() {
+  protected handleCurrentViewport() {
     if (!this.shadowRoot) {
       return
     }
@@ -984,7 +1503,7 @@ export class Enlightenment extends LitElement {
   /**
    * Default resize handler while the document is resized.
    */
-  handleGlobalResize(event: Event) {
+  protected handleGlobalResize(event: Event) {
     this.throttle(this.handleCurrentViewport, Enlightenment.RPS)
   }
 
@@ -1012,16 +1531,16 @@ export class Enlightenment extends LitElement {
     this.handleCurrentViewport()
 
     if (!this.slotReady) {
-      console.log('DOO')
       Object.defineProperty(this, 'slotReady', {
         configurable: false,
         writable: false,
         value: true
       })
 
-      this.throttle(this.requestUpdate)
-
-      this.dispatchUpdate('ready')
+      this.throttle(() => {
+        this.requestUpdate()
+        this.dispatchUpdate('ready')
+      })
     }
   }
 
@@ -1032,7 +1551,7 @@ export class Enlightenment extends LitElement {
    *
    * @param name Updates the defined Attribute to it's current property value.
    */
-  updateAttribute(name: string, v?: any) {
+  protected updateAttribute(name: string, v?: any) {
     if (!name) {
       return
     }
@@ -1071,7 +1590,7 @@ export class Enlightenment extends LitElement {
    * @param name The optional Attribute name to use instead of the property.
    * @param flag Assign the actual property as boolean Attribute.
    */
-  updateAttributeAlias(property: string, name?: string, flag?: boolean) {
+  protected updateAttributeAlias(property: string, name?: string, flag?: boolean) {
     if (!Object.keys(this).includes(property)) {
       return
     }
@@ -1091,49 +1610,6 @@ export class Enlightenment extends LitElement {
     } else {
       this.removeAttribute(name || property)
     }
-  }
-
-  /**
-   * Update callback for the defined custom StyleSheet of the rendered Element
-   * that will update the currently defined Custom Stylesheet that has been
-   * assigned after the initial Component styles.
-   */
-  updateCustomStylesSheets() {
-    const accents = Enlightenment.theme.useAccent(
-      this,
-      this.accent,
-      EnlightenmentTheme.colorChart.delta
-    )
-
-    const neutrals = Enlightenment.theme.useNeutral(this, this.neutral)
-
-    // Only update if there are any accents or neutral values to use.
-    if (accents && neutrals && !accents.length && !neutrals.length) {
-      return
-    }
-
-    const sheet = this.customStyleSheet
-
-    if (!sheet || sheet instanceof CSSStyleSheet === false) {
-      return
-    }
-
-    const style = `
-      ${EnlightenmentTheme.component}
-
-      :host {
-        ${accents && accents.join('\n')}
-        ${neutrals && neutrals.join('\n')}
-      }
-    `
-
-    if (this.customStyleSheetCache && this.customStyleSheetCache === style) {
-      return
-    }
-
-    this.customStyleSheetCache = style
-
-    sheet.replaceSync(style)
   }
 
   /**
@@ -1271,173 +1747,6 @@ export class Enlightenment extends LitElement {
   }
 
   /**
-   * Optional callback to use when existing Elements are attached from the
-   * listen property: listen=".foo,#bar,custom-component".
-   *
-   * @param event The actual Event Object that was created from an existing
-   * listen element.
-   */
-  private _process(event: Event) {
-    if (!this.observe) {
-      this.log(`Unable to process from undefined listeners...`, 'warning')
-
-      return
-    }
-
-    if (!event) {
-      this.log(`Unable to run process with undefined Event...`, 'warning')
-
-      return
-    }
-
-    const { target } = event || {}
-    // @ts-ignore
-    const process: undefined | EnlightenmentProcessHandler = this.process
-
-    try {
-      process &&
-        this.throttle(process, this.slotReady ? this.delay : Enlightenment.MAX_THREADS, {
-          target
-        })
-    } catch (exception) {
-      exception && this.log(exception, 'error')
-    }
-  }
-
-  /**
-   * Attaches the defined component to the currentElement global.
-   */
-  private attachCurrentElement() {
-    this.commit('currentElement', () => {
-      this.updateAttributeAlias('currentElement', 'aria-current')
-
-      return true
-    })
-
-    Enlightenment.globals.assignCurrentElement(this)
-  }
-
-  /**
-   * Assigns a new global event for the rendered component context.
-   * The actual event is stored within the instance to prevent Event stacking.
-   *
-   * @param type The Event type to assign.
-   * @param handler The Event handler to assign.
-   * @param options The optional Event options to assign.
-   */
-  protected assignGlobalEvent(
-    type: GlobalEventType,
-    handler: GlobalEventHandler,
-    options?: GlobalEventOptions
-  ) {
-    if (!type) {
-      this.log('Unable to assign global event.', 'error')
-
-      return
-    }
-
-    if (typeof handler !== 'function') {
-      this.log(`Unable to subscribe existing Document Event for ${type}`, 'error')
-
-      return
-    }
-
-    const { context, once } = options || {}
-
-    const ctx = context || document
-
-    const exists = this.listeners.filter(([t, _, c, h]) => t === type && h === handler && c === ctx)
-
-    if (exists.length) {
-      this.log(`Unable to overwrite existing global event for ${ctx}`, 'warning')
-
-      return
-    }
-
-    const fn = handler.bind(this)
-
-    this.listeners.push([type, fn, ctx, handler])
-
-    ctx && ctx.addEventListener(type, fn, { once })
-
-    this.log([`Global event assigned: ${ctx.constructor.name}@${type}`, ctx])
-  }
-
-  /**
-   * Assign a new Global Event for each existing component context that is
-   * defined the listen property.
-   */
-  private assignListeners() {
-    if (!this.observe || !this.observe.length) {
-      return
-    }
-
-    // Don't assign the actual Event Listener to the initial Component to
-    // prevent an update loop.
-    const queue = Array.from(this.observe).filter((l) => l !== this && document.contains(l))
-
-    if (!queue.length) {
-      return
-    }
-
-    for (let i = queue.length; i--; ) {
-      this.assignGlobalEvent('updated', this._process, { context: queue[i] })
-    }
-  }
-
-  /**
-   * Assigns the rendered slots within the current element instance to
-   * instance.slots Object.
-   *
-   * @param name Use the defined name instead of the default slot. This is
-   * required when multiple slots exists within the Component.
-   */
-  private assignSlots(name?: string) {
-    if (!this.shadowRoot) {
-      this.log(`Unable to detect shadowRoot from ${this.namespace}`, 'error')
-
-      return
-    }
-
-    const slots = this.shadowRoot.querySelectorAll('slot')
-
-    if (slots && !slots.length && !Object.keys(this.slots).length) {
-      return
-    } else if (!slots && !Object.keys(this.slots).length) {
-      return
-    }
-
-    this.clearGlobalEvent('slotchange', slots)
-
-    this.commit('slots', () => {
-      if (!slots || !slots.length) {
-        this.slots = {}
-      } else {
-        for (let i = 0; i < slots.length; i += 1) {
-          const slot = slots[i]
-          const name = slot.name || Enlightenment.defaults.slot
-
-          this.clearSlottedEvents(slot)
-
-          if (!Object.values(this.slots).includes(slot)) {
-            if (!this.slots[name]) {
-              this.throttle(this.handleSlotChange, this.delay, { ...event, target: slot })
-            }
-
-            this.slots[name] = isEmptyComponentSlot(slot) ? undefined : slot
-
-            this.assignGlobalEvent('slotchange', this.handleSlotChange, { context: slot })
-          }
-        }
-
-        if (this.slots && Object.values(this.slots).filter((s) => s).length) {
-          this.log([`Found ${this.constructor.name} ${slots.length} slot(s) from:`, this.slots])
-        }
-      }
-    })
-  }
-
-  /**
    * Assign additional global Event listeners for the direct child elements with
    * the [handle] attribute from the defined Component. The [handle] attribute
    * requires an existing method name of the component:
@@ -1504,25 +1813,6 @@ export class Enlightenment extends LitElement {
         }
       })
     })
-  }
-
-  public assignCustomCSSStyleSheet(sheet?: CSSStyleSheet) {
-    if (!sheet) {
-      return
-    }
-
-    if (sheet instanceof CSSStyleSheet === false) {
-      this.log(
-        `Unable to assign custom stylesheet '${name}' without a valid CSSStyleSheet`,
-        'warning'
-      )
-
-      return
-    }
-
-    this.customStyleSheet = sheet
-
-    this.log(['Custom stylesheet assigned:', sheet.title], 'log')
   }
 
   /**
@@ -1632,7 +1922,7 @@ export class Enlightenment extends LitElement {
    * @param slot The expected slot Element to clone.
    * @param name Clones the selected slots with the matchin name value.
    */
-  cloneSlotCallback(slot: HTMLSlotElement, name?: string) {
+  protected cloneSlotCallback(slot: HTMLSlotElement, name?: string) {
     if (!slot) {
       return
     }
@@ -2000,114 +2290,6 @@ export class Enlightenment extends LitElement {
   }
 
   /**
-   * Removes the additional Event listeners from the direct child elements
-   * that have the [handle] attribute defined. This should be called after a
-   * slot is changed or removed to cleanup obsolete Event handlers.
-   *
-   * @param slot Look for additional [handler] elements within the selected slot
-   * and remove the assigned Global Events.
-   */
-  private clearSlottedEvents(slot?: HTMLSlotElement) {
-    const actions: HTMLElement[] = []
-
-    actions.push(...(Object.values(this.querySelectorAll(`[handle]`)) as HTMLElement[]))
-
-    if (slot) {
-      actions.push(...(Object.values(slot.querySelectorAll('[handle]')) as HTMLElement[]))
-    }
-
-    actions.forEach((element) => {
-      const value = element.getAttribute('handle')
-
-      if (!value) {
-        return
-      }
-
-      let [type, name] = value.split(':')
-
-      if (Enlightenment.useHost(element) !== this) {
-        return
-      }
-
-      if (!name) {
-        name = type
-        type = 'click'
-      }
-
-      this.clearGlobalEvent(type, element)
-    })
-  }
-
-  /**
-   * Cleanup the defined throttler handlers and stop any defined throttle
-   * timeout.
-   */
-  private clearThrottler() {
-    const { handlers } = this.throttler
-
-    if (!handlers || !handlers.length) {
-      return
-    }
-
-    handlers.forEach(([fn, timeout], index) => {
-      if (timeout) {
-        clearTimeout(timeout)
-
-        this.log(['Throttle cleared:', fn])
-      }
-    })
-
-    this.throttler.handlers = []
-  }
-
-  /**
-   * Default hook that should be called during a component render update.
-   *
-   * @param name Dispatch the optional Event type instead.
-   */
-  private dispatchUpdate(name?: string) {
-    return this.throttle(this.hook, this.delay, typeof name === 'string' ? name : 'update')
-  }
-
-  /**
-   * Validates if the defined Event handler has already been defined as
-   * global Event.
-   *
-   * @param type Filters within the matching Event types.
-   * @param handler Compares the defined handler name with the existing Global
-   * Event handler.
-   */
-  private filterGlobalEvent(type: GlobalEventType, handler: GlobalEventHandler) {
-    if (!this.listeners.length) {
-      return []
-    }
-
-    const entry: GlobalEvent[] = []
-    this.listeners.forEach(([t, fn, ctx, h]) => {
-      if (t === type && fn.name.endsWith(handler.name)) {
-        entry.push([t, fn, ctx, h])
-      }
-    })
-
-    return entry.length ? entry[0] : []
-  }
-
-  /**
-   * Removes the defined Enlightenment element from the currentElements global
-   * and notify any related Enlightenment components.
-   */
-  private detachCurrentElement() {
-    this.commit('currentElement', () => {
-      this.updateAttributeAlias('currentElement', 'aria-current')
-      return false
-    })
-
-    Enlightenment.globals.omitCurrentElement(this)
-
-    this.dispatchUpdate('omit')
-  }
-
-  /**
    * Clears the named fragment Elements from the defined Component and remove
    * any fragment related properties to the connected slot.
    *
@@ -2147,98 +2329,6 @@ export class Enlightenment extends LitElement {
   }
 
   /**
-   * Removes the assigned global Event handler.
-   *
-   * @param type Omit from the matching Event type.
-   * @param handler Omit the defined handler that was assigned as Global Event
-   * handler.
-   */
-  private omitGlobalEvent(type: GlobalEventType, handler: GlobalEventHandler) {
-    if (!type) {
-      this.log('Unable to omit undefined global Event', 'warning')
-
-      return
-    }
-
-    if (typeof handler !== 'function') {
-      this.log(`Unable to omit global ${type} Event, no valid function was defined.`, 'warning')
-    }
-
-    const [t, fn, ctx] = this.filterGlobalEvent(type, handler)
-
-    if (!t || !fn || !ctx) {
-      this.log(`Unable to omit undefined global ${type} Event`, 'warning')
-
-      return
-    }
-
-    ctx.removeEventListener(t, fn as any)
-
-    const index: number[] = []
-    this.listeners.forEach(([t2, fn2], i) => {
-      if (fn2 === fn) {
-        index.push(i)
-      }
-    })
-
-    //@ts-ignore
-    this.listeners = this.listeners
-      .map((l, i) => (index.includes(i) ? undefined : l))
-      .filter((l) => l)
-
-    this.log(`Global ${type} event removed:`)
-
-    this.dispatchUpdate('omit')
-  }
-
-  /**
-   * Calls the defined function handler for the existing Observer HTMl elements
-   * that wass defined from observe attribute.
-   *
-   * @param handler The function handler to call for the observed elements
-   */
-  private processObserved(handler?: EnlightenmentProcessHandler) {
-    if (!this.observe || typeof handler !== 'function') {
-      return
-    }
-
-    try {
-      for (let i = Object.keys(this.observe).length; i--; ) {
-        // this.throttle(handler, Enlightenment.FPS, )
-        handler(this.observe[i] as HTMLElement)
-      }
-    } catch (exception) {
-      exception && this.log(exception, 'error')
-    }
-  }
-
-  /**
-   * Call the requestUpdate handler for the direct child components within the
-   * direct body.
-   *
-   * @param exclude Ignores the update request within the initial Component
-   * context.
-   */
-  private requestGlobalUpdate(exclude: boolean) {
-    const { body } = document || this
-    const elements = Array.from(body.children || []).filter(
-      (f: any) =>
-        f.requestUpdate &&
-        f instanceof Enlightenment &&
-        f.namespace === this.namespace &&
-        // Excludes the context that calls this method.
-        (exclude ? f != this : true)
-    )
-
-    for (let i = 0; i < elements.length; i += 1) {
-      const component = elements[i] as Enlightenment
-      if (component.throttle && component.requestUpdate) {
-        component.throttle(component.requestUpdate.bind(component))
-      }
-    }
-  }
-
-  /**
    * Callback handler that checks the changed slot Elements and clears the
    * filled fragments.
    */
@@ -2263,87 +2353,6 @@ export class Enlightenment extends LitElement {
       const name = slot.getAttribute('name')
       this.omitFragments(name)
     })
-  }
-
-  /**
-   * Defines the mode attribute for the defined element that inherits the
-   * specified mode value from the global state as default value otherwise.
-   */
-  private useMode(context?: Element) {
-    const { mode } = Enlightenment.globals
-    const target = (context || this) as Enlightenment
-    const host = Enlightenment.useHost(target) as Enlightenment
-
-    if (!this.hasAttribute('mode') && host) {
-      const inheritMode = Enlightenment.isMode(host.getAttribute('mode'))
-
-      if (!inheritMode) {
-        // Ensure the unconstructed parent element is ready before we traverse
-        // upwards.
-        this.throttle(() => {
-          host.useMode && host.useMode(this)
-        })
-
-        return
-      }
-
-      if (inheritMode && this.mode !== inheritMode) {
-        target.mode = inheritMode
-
-        // Update the inherited mode value as actual HTML attribute in order to
-        // apply the actual CSS styles.
-        target.mode && target.setAttribute('mode', target.mode)
-      } else if (this.mode === undefined) {
-        this.mode = mode
-      }
-    } else if (!this.mode && mode && this.mode !== mode) {
-      this.mode = mode
-    } else if (
-      context &&
-      context !== this &&
-      this.hasAttribute('mode') &&
-      !context.hasAttribute('mode')
-    ) {
-      target.mode = this.mode
-      this.mode && target.setAttribute('mode', this.mode)
-    }
-  }
-
-  /**
-   * Returns the existing Component if the defined context exists within the
-   * observed Elements from the instance method.
-   *
-   * @param context Traverse from the actual element to get the host Component
-   * that will be checked with `this`.
-   */
-  private useObserved(context: HTMLElement) {
-    if (!context) {
-      return
-    }
-
-    if (!this.observe) {
-      return
-    }
-
-    // let { observe } = context as Enlightenment
-    let target: HTMLElement | undefined = undefined
-
-    if (!target && !this.isComponentContext(context)) {
-      let current = context
-
-      while (current.parentNode && !target) {
-        if (Object.values(this.observe).includes(current) && current !== this) {
-          target = current
-          break
-        } else if (current.tagName === this.tagName) {
-          break
-        }
-
-        current = current.parentNode as HTMLElement
-      }
-    }
-
-    return target
   }
 
   /**
