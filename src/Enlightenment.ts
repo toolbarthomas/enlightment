@@ -821,11 +821,7 @@ export class Enlightenment extends LitElement {
    * Attaches the defined component to the currentElement global.
    */
   private attachCurrentElement() {
-    this.commit('currentElement', () => {
-      console.log('CURRENT ELEMENT')
-
-      return true
-    })
+    this.commit('currentElement', true)
 
     Enlightenment.globals.assignCurrentElement(this)
   }
