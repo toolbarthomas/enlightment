@@ -415,13 +415,7 @@ export class Enlightenment extends LitElement {
     const matrix = value
       .split(/\w*(...)[(]/gim)
       .filter((e) => e.includes(')'))
-      .map((e) =>
-        e
-          .split(')')[0]
-          .split(',')
-          .map(Enlightenment.strip)
-          .map((e) => (isNaN(parseFloat(e)) ? String(e) : parseFloat(e)))
-      )
+      .map((e) => e.split(')')[0].split(',').map(Enlightenment.strip).map(parseFloat))
       .flat()
 
     return matrix
@@ -631,8 +625,9 @@ export class Enlightenment extends LitElement {
 
   // Defines the optional state properties to use in combination with the
   // actual aria attribute.
-  isCollapsed?: boolean
-  isExpanded?: boolean
+  isCollapsed?: boolean = false
+  isExpanded?: boolean = false
+  isFullscreen?: boolean = false
 
   // Dynamic storage for the running document Event listeners.
   listeners: GlobalEvent[] = []
@@ -1609,6 +1604,10 @@ export class Enlightenment extends LitElement {
 
   /**
    * Updates the Component boolean Attribute from the defined context property.
+   * The attribute can also be toggled as Boolean attribute with the defined
+   * flag parameter, but should be reflected for 2 unique properties.
+   *
+   * Calling this method with duplicate property names will result in 2 calls.
    *
    * @param property The property name that should exists within the component.
    * @param name The optional Attribute name to use instead of the property.
@@ -1640,6 +1639,10 @@ export class Enlightenment extends LitElement {
       }
     } else if (this.hasAttribute(name || property)) {
       this.removeAttribute(name || property)
+    } else if (flag) {
+      if (name && Object.keys(this).includes(name) && (this as any)[name] !== value) {
+        this.commit(name, value)
+      }
     }
   }
 
