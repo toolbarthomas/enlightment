@@ -676,14 +676,12 @@ export class Enlightenment extends LitElement {
   // Generates the optional accent color for the defined component.
   @property({
     converter: (value) => Enlightenment.theme.useColor(value),
-    reflect: true,
     type: String
   })
   accent?: string
 
   @property({
     attribute: 'aria-disabled',
-    reflect: true,
     type: String
   })
   ariaDisabled: string | null = null
@@ -729,7 +727,6 @@ export class Enlightenment extends LitElement {
 
   @property({
     converter: (value) => Enlightenment.theme.useColor(value),
-    reflect: true,
     type: String
   })
   neutral?: string
@@ -833,7 +830,6 @@ export class Enlightenment extends LitElement {
     })
 
     Enlightenment.globals.assignCurrentElement(this)
-    console.log('Ell', Enlightenment.globals.currentElements)
   }
 
   /**
@@ -1602,12 +1598,13 @@ export class Enlightenment extends LitElement {
     }
 
     if (value) {
-      if (flag && !value) {
+      if (flag && !value && this.hasAttribute(name || property)) {
         this.removeAttribute(name || property)
+        console.log('REMOVE', property)
       } else {
         this.setAttribute(name || property, flag ? '' : String(value))
       }
-    } else {
+    } else if (this.hasAttribute(name || property)) {
       this.removeAttribute(name || property)
     }
   }
@@ -1624,6 +1621,8 @@ export class Enlightenment extends LitElement {
     this.updateAttributeAlias('isCollapsed', 'aria-collapsed')
     this.updateAttributeAlias('currentElement', 'aria-current')
     this.updateAttribute('viewport', this.viewport)
+    this.updateAttribute('accent', this.accent)
+    this.updateAttribute('neutral', this.neutral)
 
     this.updateCustomStylesSheets()
 
@@ -2365,7 +2364,7 @@ export class Enlightenment extends LitElement {
       super.attributeChangedCallback(name, _old || null, value || null)
     } else {
       super.attributeChangedCallback(name, _old || null, value || null)
-      this.throttle(this.requestUpdate)
+      this.throttle(this.requestUpdate, Enlightenment.RPS, name)
     }
   }
 
