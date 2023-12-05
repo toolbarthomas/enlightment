@@ -153,24 +153,16 @@ class HelloWorld extends Enlightenment {
     // }, 5000)
   }
 
-  handleUpdate(name?: string) {
-    super.handleUpdate(name)
-
-    this.updateAttributeAlias('foo')
-  }
-
-  updated(properties: any) {
-    super.updated(properties)
-
-    console.log('update hello world')
-  }
-
   render() {
     return html`
       <focus-trap ?active=${this.hasActiveFocusTrap}>
-        <div>
+        <div ref="${ref(this.context)}">
           <h1>Hello ${this.name}</h1>
           <button @click=${this.start}>Start</button>
+          <button @mousedown=${this.handleDragStart} @touchstart=${this.handleDragStart}>
+            Drag
+          </button>
+
           <div>
             <slot></slot>
           </div>
@@ -210,23 +202,19 @@ class HelloWorld extends Enlightenment {
   }
 
   start() {
-    console.log('Start', this)
-
-    Enlightenment.parseMatrix(
-      'transform(10px, 20px) scale(1deg) linear-gradient(1deg, red, green) bar(11px)'
-    )
-
-    console.log(
-      'The color',
-      Enlightenment.theme.useColorFrom(171, 44, 37)
-      // Enlightenment.theme.useColorFrom(180, 56)
-    )
-
-    this.useBreakpoints((name: string, value: number, delta?: number[]) => {
-      console.log('Breakpoint', name, value, delta)
-    })
-
-    this.commit('foo', !this.foo)
+    // console.log('Start', this)
+    // Enlightenment.parseMatrix(
+    //   'transform(10px, 20px) scale(1deg) linear-gradient(1deg, red, green) bar(11px)'
+    // )
+    // console.log(
+    //   'The color',
+    //   Enlightenment.theme.useColorFrom(171, 44, 37)
+    //   // Enlightenment.theme.useColorFrom(180, 56)
+    // )
+    // this.useBreakpoints((name: string, value: number, delta?: number[]) => {
+    //   console.log('Breakpoint', name, value, delta)
+    // })
+    // this.commit('foo', !this.foo)
   }
 
   hello() {

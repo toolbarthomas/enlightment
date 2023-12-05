@@ -100,6 +100,7 @@ export class Enlightenment extends LitElement {
   // Defines any fallback to use for optional properties.
   static defaults = {
     slot: '_content'
+    attrGrabbed: 'aria-grabbed',
   }
 
   // Expected interval value of 60HZ refresh rate.
@@ -599,9 +600,33 @@ export class Enlightenment extends LitElement {
   // Should insert the defined classnames within the root context.
   classes: string[] = []
 
+  // Should hold the current edge value while isGrabbed equals TRUE.
+  currentEdgeX?: 'left' | 'right'
+  currentEdgeY?: 'top' | 'bottom'
+
   // Optional flag that can be used within the Document Event handlers to check
   // if the current scope is within the defined Component.
   currentElement?: boolean = false
+
+  // Keep track of the interaction amount within the selected duration.
+  currentInteractions = 0
+  currentInteractionRequest?: number
+  currentInteractionResponse?: number
+  currentInteractionVelocityX?: number
+  currentInteractionVelocityY?: number
+
+  // Should hold the current integer X & Y values of the defined Pointer.
+  currentPointerX?: number
+  currentPointerY?: number
+
+  // Defines the current selected pivot from 1 to 9 that should use the defined
+  // Drag action.
+  currentPivot?: number
+
+  // Should hold the current integer value of the X & Y positions for the
+  // defined context element.
+  currentContextX?: number
+  currentContextY?: number
 
   // Contains the references of the created custom CSSStyleSheet to enable
   // StyleSheet updates for the rendered Components.
@@ -628,6 +653,7 @@ export class Enlightenment extends LitElement {
   isCollapsed?: boolean = false
   isExpanded?: boolean = false
   isFullscreen?: boolean = false
+  isGrabbed?: boolean = false
 
   // Dynamic storage for the running document Event listeners.
   listeners: GlobalEvent[] = []
@@ -637,6 +663,11 @@ export class Enlightenment extends LitElement {
 
   // Blocks the default handle methods when TRUE.
   preventEvent?: boolean = false
+
+  // Should hold the previous defined currentPointerX & currentPointerY
+  // position values.
+  previousPointerX?: number
+  previousPointerY?: number
 
   pid?: number
 
@@ -1190,6 +1221,25 @@ export class Enlightenment extends LitElement {
     }
   }
 
+  protected usePointerPosition(event: MouseEvent | TouchEvent) {
+    if (!event || !this.isGrabbed) {
+      return []
+    }
+
+    let clientX = 0
+    let clientY = 0
+
+    if (event instanceof MouseEvent) {
+      clientX = event.clientX
+      clientY = event.clientY
+    } else if (event instanceof TouchEvent) {
+      clientX = event.touches[0].clientX
+      clientY = event.touches[0].clientY
+    }
+
+    return [clientX, clientY]
+  }
+
   /**
    * Returns the existing Component if the defined context exists within the
    * observed Elements from the instance method.
@@ -1358,8 +1408,8 @@ export class Enlightenment extends LitElement {
   }
 
   /**
-   * Returns the suggested viewport that should have the minimal width to
-   * display the actual component correctly.
+   * Defines the viewport Attribute from the rendered shadowRoot width to
+   * enable container like queries instead of Media queries.
    */
   protected handleCurrentViewport() {
     if (!this.shadowRoot) {
@@ -1370,10 +1420,10 @@ export class Enlightenment extends LitElement {
       return
     }
 
-    let maxWidth = 0
+    let selectedWidth = 0
     let device = ''
 
-    const elements = this.shadowRoot.children
+    const children = this.shadowRoot.children as unknown as HTMLElement[]
     const widths: number[] = []
 
     const each = (elements: HTMLElement[]) => {
@@ -1386,8 +1436,8 @@ export class Enlightenment extends LitElement {
 
         children.push(...(Array.from(element.children) as HTMLElement[]))
 
-        if (element.scrollWidth || element.offsetWidth) {
-          widths.push(element.scrollWidth || element.offsetWidth)
+        if (element.offsetWidth || element.scrollWidth) {
+          widths.push(element.offsetWidth || element.scrollWidth)
         }
       })
 
@@ -1398,34 +1448,212 @@ export class Enlightenment extends LitElement {
       }
     }
 
-    each(Array.from(this.shadowRoot.children) as HTMLElement[])
-
-    if (!widths.filter((width) => width).length) {
-      return
-    }
-
-    Object.values(this.slots).forEach((slot) => {
-      if (!slot) {
-        return
-      }
-
-      each(slot.assignedElements() as HTMLElement[])
-    })
+    each(children)
 
     const width = Math.max(...widths)
 
-    this.useBreakpoints((name, breakpoint) => {
-      if (breakpoint >= width) {
-        if (!maxWidth || breakpoint <= maxWidth) {
-          maxWidth = breakpoint
-          device = name
-        }
+    this.useBreakpoints((name, breakpoint, delta) => {
+      const [minWidth, maxWidth] = delta
+
+      if (width <= maxWidth && (!selectedWidth || breakpoint <= selectedWidth)) {
+        device = name
+        selectedWidth = breakpoint
       }
     })
 
     if (this.viewport !== device) {
       this.commit('viewport', device)
     }
+  }
+
+  /**
+   * Callback handler that should cleanup the current Drag interaction.
+   *
+   * @param event Inherit the optional Mouse or Touch event interface.
+   */
+  protected handleDragEnd(event?: MouseEvent | TouchEvent) {
+    if (this.isGrabbed) {
+      const context = this.useContext() as HTMLElement
+
+      if (context) {
+        this.currentInteractionRequest && cancelAnimationFrame(this.currentInteractionRequest)
+
+        const [translateX, translateY] = Enlightenment.parseMatrix(context.style.transform)
+
+        this.currentContextX = translateX || 0
+        this.currentContextY = translateY || 0
+      }
+    }
+
+    this.isGrabbed = false
+    this.currentPivot = undefined
+    this.currentInteractionResponse = undefined
+
+    this.removeAttribute(Enlightenment.defaults.attrGrabbed)
+
+    this.omitGlobalEvent('mousemove', this.handleDragUpdate)
+    this.omitGlobalEvent('mouseup', this.handleDragEnd)
+    this.omitGlobalEvent('touchmove', this.handleDragUpdate)
+    this.omitGlobalEvent('touchend', this.handleDragEnd)
+  }
+
+  /**
+   * Updates the required Drag position values while isGrabbed equals TRUE.
+   *
+   * @param event Expected Mouse or Touch event.
+   */
+  protected handleDragUpdate(event: MouseEvent | TouchEvent) {
+    const [clientX, clientY] = this.usePointerPosition(event)
+
+    if (this.preventEvent) {
+      this.handleDragEnd(event)
+      return
+    }
+
+    // Only accept movement changes
+    if (this.previousPointerX === clientX && this.previousPointerY === clientY) {
+      return
+    }
+
+    this.currentInteractionVelocityX = clientX > (this.previousPointerX || 0) ? 1 : -1
+    this.currentInteractionVelocityY = clientY > (this.previousPointerY || 0) ? 1 : -1
+
+    if (this.previousPointerX === clientX) {
+      this.currentInteractionVelocityX = 0
+    }
+
+    if (this.previousPointerY === clientY) {
+      this.currentInteractionVelocityY = 0
+    }
+
+    // if (this.inter)
+    if (!this.currentPivot || this.currentPivot === 5) {
+      !this.hasAttribute(Enlightenment.defaults.attrGrabbed) && this.setAttribute(Enlightenment.defaults.attrGrabbed, 'true')
+    }
+
+    if (clientX !== undefined) {
+      this.previousPointerX = clientX
+    }
+
+    if (clientY !== undefined) {
+      this.previousPointerY = clientY
+    }
+
+    // @TODO Should use dynamic viewport context.
+    const viewportWidth = window.innerWidth
+    const viewportHeight = window.innerHeight
+    const top = 0
+    const bottom = viewportHeight
+    const left = 0
+    const right = viewportWidth
+
+    // Increase the drag precision instead of the a single pixel.
+    const treshhold = Math.ceil(devicePixelRatio * 2)
+
+    // Limit the Pointer boundary within the viewport only
+    if (clientY <= top + treshhold) {
+      this.currentEdgeY = 'top'
+    } else if (clientY >= bottom - treshhold) {
+      this.currentEdgeY = 'bottom'
+    } else {
+      this.currentEdgeY = undefined
+    }
+
+    if (clientX <= left + treshhold) {
+      this.currentEdgeX = 'left'
+    } else if (clientX >= bottom - treshhold) {
+      this.currentEdgeX = 'right'
+    } else {
+      this.currentEdgeX = undefined
+    }
+
+    // Failsafe that should exit the current Drag interaction while the current
+    // pointer position is outisde the area for a certain duration.
+    if (!this.currentPivot || this.currentPivot === 5) {
+      if (clientX < 0 || clientX > viewportWidth || clientY < 0 || clientY > viewportHeight) {
+        if (this.currentInteractionResponse === undefined) {
+          this.currentInteractionResponse && clearTimeout(this.currentInteractionResponse)
+          this.currentInteractionResponse = setTimeout(() => this.handleDragEnd(event), 1000)
+        }
+      }
+    }
+  }
+
+  /**
+   * Defines the default Event handler to initiate the Drag interaction for
+   * Mouse & Touch devices.
+   *
+   * @param event The expected Mouse or Touch Event.
+   */
+  protected handleDragStart(event: MouseEvent | TouchEvent) {
+    if (!event || this.isGrabbed || this.preventEvent) {
+      return
+    }
+
+    event.preventDefault()
+
+    // Only listen for the main Mouse button.
+    if (event instanceof MouseEvent) {
+      if (event.button !== 0) {
+        return
+      }
+    }
+
+    const target = event.target as HTMLElement
+
+    if (target && target.hasAttribute('data-pivot')) {
+      this.currentPivot = Enlightenment.isInteger(target.getAttribute('data-pivot'))
+    }
+
+    // Apply the Drag behavior on the main Component context, since it should
+    // contain all visible elements.
+    const context = this.useContext() as HTMLElement
+
+    if (!context) {
+      return
+    }
+
+    this.currentInteractions += 1
+
+    // Enable single & double click interactions
+    if (this.currentInteractions === 1) {
+      this.throttle(() => {
+        this.currentInteractions = 0
+      }, this.delay * 12)
+    }
+
+    if (this.currentInteractions > 1) {
+      console.log('DOUBLE')
+      return
+    }
+
+    this.isGrabbed = true
+
+    this.currentContextX = context.offsetLeft
+    this.currentContextY = context.offsetTop
+
+    const [clientX, clientY] = this.usePointerPosition(event)
+
+    this.currentPointerX = Math.round(clientX)
+    this.currentPointerY = Math.round(clientY)
+
+    this.handleCurrentElement(this)
+
+    console.log('DRAG START')
+
+    this.assignGlobalEvent('mousemove', this.handleDragUpdate, {
+      context: document.documentElement
+    })
+
+    this.assignGlobalEvent('touchmove', this.handleDragUpdate, {
+      context: document.documentElement
+    })
+
+    this.assignGlobalEvent('touchend', this.handleDragEnd, {
+      once: true
+    })
+
+    this.assignGlobalEvent('mouseup', this.handleDragEnd, { once: true })
   }
 
   /**
@@ -1664,10 +1892,11 @@ export class Enlightenment extends LitElement {
     this.updateAttributeAlias('isCollapsed', 'aria-collapsed')
     this.updateAttributeAlias('isExpanded', 'aria-expanded')
     this.updateAttributeAlias('pending', 'aria-busy')
+    !this.currentElement && this.handleDragEnd()
 
     this.updateCustomStylesSheets()
-
     this.updatePreventEvent()
+
     this.updateAttributeAlias('preventEvent', 'disabled', true)
 
     this.assignSlots()
@@ -2201,7 +2430,7 @@ export class Enlightenment extends LitElement {
    *
    * @param handler The handler to use for each Theme breakpoint.
    */
-  protected useBreakpoints(handler?: (name: string, value: number, delta?: number[]) => void) {
+  protected useBreakpoints(handler?: (name: string, value: number, delta: number[]) => void) {
     const breakpoints = EnlightenmentTheme.breakpoints
 
     if (typeof handler !== 'function') {

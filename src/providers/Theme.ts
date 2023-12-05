@@ -199,7 +199,7 @@ export class EnlightenmentTheme {
   static breakpoints: ThemeBreakpoints = {
     handheld: 320,
     smartphone: 480,
-    tablet: 768,
+    tablet: 640,
     desktop: 1024,
     widescreen: 1280,
     ultrawide: 1600
