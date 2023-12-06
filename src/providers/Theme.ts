@@ -648,16 +648,23 @@ export class EnlightenmentTheme {
    * correctly.
    */
   public assignViewport() {
-    const viewport = this.useMeta({
+    const meta = {
       content: 'width=device-width, initial-scale=1.0',
       name: 'viewport'
-    })
+    }
+
+    const viewport = this.useMeta(meta)
 
     viewport && document.head.insertAdjacentElement('afterbegin', viewport)
 
     const charset = this.useMeta({
       charset: 'utf-8'
     })
+
+    if (document.querySelector(`meta[name="${meta.name}"][content="${meta.content}"]`)) {
+      return
+    }
+
     charset && document.head.insertAdjacentElement('afterbegin', charset)
   }
 

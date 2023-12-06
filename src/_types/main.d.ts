@@ -52,7 +52,7 @@ export type EnlightenmentProviders = EnlightenmentProvider[]
 /**
  * Defines the expected Element types to use during any DOM logic.
  */
-export type EnligtenmentTarget = Element | HTMLElement | Node | SVGElement | undefined
+export type EnlightenmentTarget = Element | HTMLElement | Node | SVGElement | undefined
 
 /**
  * Definition of a single throttled handler that will not stack if called
