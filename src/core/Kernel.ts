@@ -1,4 +1,5 @@
 import {
+  EnlightenmentProcessHandler,
   EnlightenmentThrottle,
   GlobalEvent,
   GlobalEventHandler,
@@ -46,6 +47,13 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
    */
   @property({ converter: EnlightenmentMixins.isInteger, type: Number })
   delay = EnlightenmentKernel.FPS
+
+  /**
+   * Readable error to display during an exception/error within the defined
+   * component context.
+   */
+  @property({ type: String })
+  error = ''
 
   /**
    * Enable the usage for the [handle] Attribute for the defined Element.
@@ -273,6 +281,50 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
   }
 
   /**
+   * Removes the optional process callback from the Component context, this will
+   * disabl the optional process usage when sibling Components dispatch the
+   * 'updated' event.
+   */
+  protected clearListeners() {
+    if (!this.observe || !this.observe.length) {
+      return
+    }
+
+    const queue = Array.from(this.observe).filter((l) => l !== this)
+
+    if (!queue.length) {
+      return
+    }
+
+    for (let i = queue.length; i--; ) {
+      this.clearGlobalEvent('updated', queue[i])
+    }
+  }
+
+  /**
+   * Cleanup the defined throttler handlers and stop any defined throttle
+   * timeout.
+   */
+  protected clearThrottler() {
+    const { handlers } = this.throttler
+
+    if (!handlers || !handlers.length) {
+      return
+    }
+
+    handlers.forEach(([fn, timeout], index) => {
+      if (timeout) {
+        clearTimeout(timeout)
+
+        //@log
+        // this.log(['Throttle cleared:', fn])
+      }
+    })
+
+    this.throttler.handlers = []
+  }
+
+  /**
    * Default hook that should be called to enforce a Component (re)render.
    *
    * @param name Dispatch the optional Event type instead.
@@ -302,6 +354,30 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
     })
 
     return entry.length ? entry[0] : []
+  }
+
+  /**
+   * Alias for the default console to use during development.
+   *
+   * @param message The actual message values.
+   * @param type Use the defined Console method instead of the default log.
+   */
+  protected log(message: any | any[], type?: string) {
+    //@ts-ignore
+    if (typeof console[type || 'log'] !== 'function') {
+      return
+    }
+
+    let output = Array.isArray(message) ? message : [message]
+
+    const { verbose } = EnlightenmentKernel.globals
+
+    if (verbose || type === 'error') {
+      let t = type === 'warning' ? 'warn' : type
+
+      //@ts-ignore
+      output.forEach((m) => console[t || 'log'](m))
+    }
   }
 
   /**
@@ -354,23 +430,48 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
   }
 
   /**
-   * Updates the preventEvent flag that should disable other handlers to be
-   * used when TRUE.
+   * Calls the defined function handler for the existing Observer HTMl elements
+   * that wass defined from observe attribute.
+   *
+   * @param handler The function handler to call for the observed elements
    */
-  protected updatePreventEvent() {
-    let preventEvent = false
-
-    if (this.ariaDisabled === 'true' || this.hasAttribute('disabled') || this.pending) {
-      preventEvent = true
+  private processObserved(handler?: EnlightenmentProcessHandler) {
+    if (!this.observe || typeof handler !== 'function') {
+      return
     }
 
-    if (this.preventEvent && !this.hasAttribute('disabled')) {
-      preventEvent = false
-      this.ariaDisabled = String(preventEvent)
+    try {
+      for (let i = Object.keys(this.observe).length; i--; ) {
+        // this.throttle(handler, Enlightenment.FPS, )
+        handler(this.observe[i] as HTMLElement)
+      }
+    } catch (exception) {
+      exception && this.log(exception, 'error')
     }
+  }
 
-    if (this.preventEvent !== preventEvent) {
-      this.preventEvent = preventEvent
+  /**
+   * Call the requestUpdate handler for the direct child components within the
+   * direct body.
+   *
+   * @param exclude Ignores the update request within the initial Component
+   * context.
+   */
+  protected requestGlobalUpdate(exclude: boolean) {
+    const { body } = document || this
+    const elements = Array.from(body.children || []).filter(
+      (f: any) =>
+        f.requestUpdate &&
+        f.namespace === this.namespace &&
+        // Excludes the context that calls this method.
+        (exclude ? f != this : true)
+    )
+
+    for (let i = 0; i < elements.length; i += 1) {
+      const component = elements[i] as EnlightenmentKernel
+      if (component.throttle && component.requestUpdate) {
+        component.throttle(component.requestUpdate.bind(component))
+      }
     }
   }
 
@@ -445,6 +546,40 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
 
       this.cleanup()
     }, ms + 1)
+  }
+
+  /**
+   * Updates the preventEvent flag that should disable other handlers to be
+   * used when TRUE.
+   */
+  protected updatePreventEvent() {
+    let preventEvent = false
+
+    if (this.ariaDisabled === 'true' || this.hasAttribute('disabled') || this.pending) {
+      preventEvent = true
+    }
+
+    if (this.preventEvent && !this.hasAttribute('disabled')) {
+      preventEvent = false
+      this.ariaDisabled = String(preventEvent)
+    }
+
+    if (this.preventEvent !== preventEvent) {
+      this.preventEvent = preventEvent
+    }
+  }
+
+  /**
+   * Ensures the a requestUpdate is used when attribtues are added or removed.
+   * on the defined element.
+   */
+  public attributeChangedCallback(name: string, _old: string | null, value: string | null): void {
+    if (this.once) {
+      super.attributeChangedCallback(name, _old || null, value || null)
+    } else {
+      super.attributeChangedCallback(name, _old || null, value || null)
+      this.requestUpdate()
+    }
   }
 
   /**
@@ -539,7 +674,7 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
    * Event Dispatcher Interface to call Event handlers, defined outside the
    * current instance context.
    */
-  public hook(name: string, options: HookOptions) {
+  public hook(name: string, options?: HookOptions) {
     const { context, data } = options || {}
 
     if (!name) {

@@ -171,6 +171,47 @@ export class Enlightenment extends EnlightenmentInputController {
   }
 
   /**
+   * Run the defined cleanup handlers before disconnecting the Component.
+   */
+  public disconnectedCallback(): void {
+    try {
+      this.clearThrottler()
+
+      this.omitGlobalEvent('click', this.handleGlobalClick)
+      this.omitGlobalEvent('focus', this.handleGlobalFocus)
+      this.omitGlobalEvent('focusin', this.handleGlobalFocus)
+      this.omitGlobalEvent('keydown', this.handleGlobalKeydown)
+      this.omitGlobalEvent('updated', this._process)
+      this.omitGlobalEvent('resize', this.handleGlobalResize)
+      this.clearGlobalEvent('ready', this)
+
+      this.clearListeners()
+
+      const slots = this.shadowRoot && this.shadowRoot.querySelectorAll('slot')
+
+      if (slots && slots.length) {
+        // Clear the assigned Slotchange event manually since the slotchange
+        // Event can be ignored at this point.
+        this.clearGlobalEvent('slotchange', slots)
+
+        // Ensure the Slotted Events are removed.
+        Object.values(slots).forEach((slot) => this.clearSlottedEvents(slot))
+      }
+
+      // Use this.hook directly since the context would not exist anymore after
+      // the throttled handler is called.
+      this.hook('disconnected')
+
+      super.disconnectedCallback()
+    } catch (error) {
+      if (error) {
+        // @log
+        // this.log(error as string, 'error')
+      }
+    }
+  }
+
+  /**
    * Traverse from the defined context and return the host Component
    *
    * @param context The existing context Element to traverse from.

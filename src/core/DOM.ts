@@ -210,45 +210,6 @@ export class EnlightenmentDOM extends EnlightenmentKernel {
   }
 
   /**
-   * Removes the additional Event listeners from the direct child elements
-   * that have the [handle] attribute defined. This should be called after a
-   * slot is changed or removed to cleanup obsolete Event handlers.
-   *
-   * @param slot Look for additional [handler] elements within the selected slot
-   * and remove the assigned Global Events.
-   */
-  private clearSlottedEvents(slot?: HTMLSlotElement) {
-    const actions: HTMLElement[] = []
-
-    actions.push(...(Object.values(this.querySelectorAll(`[handle]`)) as HTMLElement[]))
-
-    if (slot) {
-      actions.push(...(Object.values(slot.querySelectorAll('[handle]')) as HTMLElement[]))
-    }
-
-    actions.forEach((element) => {
-      const value = element.getAttribute('handle')
-
-      if (!value) {
-        return
-      }
-
-      let [type, name] = value.split(':')
-
-      if (this.useHost(element) !== this) {
-        return
-      }
-
-      if (!name) {
-        name = type
-        type = 'click'
-      }
-
-      this.clearGlobalEvent(type, element)
-    })
-  }
-
-  /**
    * Assign additional global Event listeners for the direct child elements with
    * the [handle] attribute from the defined Component. The [handle] attribute
    * requires an existing method name of the component:
@@ -438,6 +399,143 @@ export class EnlightenmentDOM extends EnlightenmentKernel {
         }
       }
     })
+  }
+
+  /**
+   * Removes the additional Event listeners from the direct child elements
+   * that have the [handle] attribute defined. This should be called after a
+   * slot is changed or removed to cleanup obsolete Event handlers.
+   *
+   * @param slot Look for additional [handler] elements within the selected slot
+   * and remove the assigned Global Events.
+   */
+  protected clearSlottedEvents(slot?: HTMLSlotElement) {
+    const actions: HTMLElement[] = []
+
+    actions.push(...(Object.values(this.querySelectorAll(`[handle]`)) as HTMLElement[]))
+
+    if (slot) {
+      actions.push(...(Object.values(slot.querySelectorAll('[handle]')) as HTMLElement[]))
+    }
+
+    actions.forEach((element) => {
+      const value = element.getAttribute('handle')
+
+      if (!value) {
+        return
+      }
+
+      let [type, name] = value.split(':')
+
+      if (this.useHost(element) !== this) {
+        return
+      }
+
+      if (!name) {
+        name = type
+        type = 'click'
+      }
+
+      this.clearGlobalEvent(type, element)
+    })
+  }
+
+  /**
+   * Clones the names Slot element that can be used when the defined component
+   * includes multiple slot elements with duplicate name values.
+   *
+   * @param name Clones all existing names Slot elements from the initial
+   * Slot name.
+   */
+  protected cloneSlot(name?: string) {
+    const slot = this.useInitialSlot(name || EnlightenmentDOM.defaults.slot)
+
+    if (!slot || !slot.assignedElements) {
+      return
+    }
+
+    if (!this.shadowRoot) {
+      return
+    }
+
+    this.throttle(this.cloneSlotCallback, this.delay, slot)
+  }
+
+  /**
+   * Actual callback handler to use from the cloneSlot() instance method.
+   *
+   * @param slot The expected slot Element to clone.
+   * @param name Clones the selected slots with the matchin name value.
+   */
+  protected cloneSlotCallback(slot: HTMLSlotElement, name?: string) {
+    if (!slot) {
+      return
+    }
+
+    const nodes = slot.assignedElements()
+    const context = this.shadowRoot || this
+    const slots: NodeListOf<HTMLSlotElement> = name
+      ? context.querySelectorAll(`slot[name="${name || ''}"]`)
+      : context.querySelectorAll('slot')
+    const html = [...slot.assignedElements().map((element) => element.outerHTML)].join('')
+
+    if (!html || !slots.length) {
+      return
+    }
+
+    for (let index = 0; index < slots.length; index++) {
+      if (slots[index] === slot) {
+        continue
+      }
+
+      slots[index].innerHTML = html
+    }
+
+    return html
+  }
+
+  /**
+   * Find the closest Element from the defined selector that should exists
+   * within the initial or any parent ShadowDOM.
+   *
+   * @param selector Requires a valid querySelector value.
+   */
+  protected findParentElement(selector: string) {
+    if (typeof selector !== 'string') {
+      return
+    }
+
+    let host = this.useHost(this) as EnlightenmentDOM
+
+    if (!host || !host.useContext) {
+      return
+    }
+
+    let context = host.useContext()
+
+    while (context && context.tagName !== selector.toUpperCase()) {
+      host = this.useHost(host) as EnlightenmentDOM
+
+      if (!host) {
+        break
+      }
+
+      const target = host.shadowRoot && host.shadowRoot.querySelector(selector.toLowerCase())
+
+      if (target) {
+        context = target
+
+        break
+      }
+
+      context = host.useContext()
+    }
+
+    if (!context || context.tagName !== selector.toUpperCase()) {
+      return
+    }
+
+    return context
   }
 
   /**
@@ -638,6 +736,14 @@ export class EnlightenmentDOM extends EnlightenmentKernel {
   }
 
   /**
+   * Returns the parent element if the defined context type matches with the
+   * parent.
+   */
+  protected isNested() {
+    return this.parent(this.tagName)
+  }
+
+  /**
    * Clears the named fragment Elements from the defined Component and remove
    * any fragment related properties to the connected slot.
    *
@@ -674,6 +780,51 @@ export class EnlightenmentDOM extends EnlightenmentKernel {
     slot.style.display = ''
 
     this.throttle(this.requestUpdate)
+  }
+
+  /**
+   * Returns the matching parent element by default or use the optional
+   * selector value otherwise.
+   *
+   * @param selector Find the parent context from the defined selector value.
+   */
+  protected parent(selector?: string) {
+    if (!selector) {
+      return
+    }
+
+    const parent = this.parentElement && this.parentElement.closest(this.tagName)
+
+    return parent || undefined
+  }
+
+  /**
+   * Returns all matching parent elements from the defined Component.
+   *
+   * @param selector Find the defined parent elements with the optional selector
+   * instead.
+   * @param instance Context reference to defined the current parent.
+   * @param list Contains the parent element that exists from the initial
+   * instance context.
+   */
+  protected parents(
+    selector: string,
+    instance?: EnlightenmentDOM,
+    list?: EnlightenmentDOM[]
+  ): EnlightenmentDOM[] {
+    const parent = instance && instance.parent ? instance.parent(selector) : this.parent(selector)
+
+    if (parent && typeof (parent as EnlightenmentDOM).parent === 'function') {
+      const commit = [...(list || []), parent as EnlightenmentDOM]
+
+      return this.parents(selector, parent as EnlightenmentDOM, commit)
+    }
+
+    if (list && list.length) {
+      return list
+    }
+
+    return []
   }
 
   /**
@@ -791,6 +942,21 @@ export class EnlightenmentDOM extends EnlightenmentKernel {
   }
 
   /**
+   * Returns the actual breakpoint Width value from the defined breakpoint name.
+   *
+   * @param name Returns the breakpoint value from the defined name.
+   */
+  protected useBreakpoint(name: string) {
+    const value = EnlightenmentTheme.breakpoints[name]
+    const fallback =
+      EnlightenmentTheme.breakpoints[0] >= window.innerWidth
+        ? EnlightenmentTheme.breakpoints[0]
+        : window.innerWidth
+
+    return value || fallback
+  }
+
+  /**
    * Iterates through the defined Theme Breakpoints.
    *EnlightenmentTheme
    * @param handler The handler to use for each Theme breakpoint.
@@ -828,6 +994,64 @@ export class EnlightenmentDOM extends EnlightenmentKernel {
    */
   protected useContext() {
     return this.context && this.context.value ? this.context.value : this
+  }
+
+  /**
+   * Returns the initial created slot Element.
+   *
+   * @param name Returns the initial Slot with the defined name Attribute.
+   */
+  protected useInitialSlot(name: string) {
+    if (!this.shadowRoot) {
+      return
+    }
+
+    const slots = this.shadowRoot.querySelectorAll(
+      `slot[name="${name}"]`
+    ) as NodeListOf<HTMLSlotElement>
+
+    if (!slots.length) {
+      return
+    }
+
+    return slots[0]
+  }
+
+  /**
+   * Returns the existing Component if the defined context exists within the
+   * observed Elements from the instance method.
+   *
+   * @param context Traverse from the actual element to get the host Component
+   * that will be checked with `this`.
+   */
+  protected useObserved(context: HTMLElement) {
+    if (!context) {
+      return
+    }
+
+    if (!this.observe) {
+      return
+    }
+
+    // let { observe } = context as Enlightenment
+    let target: HTMLElement | undefined = undefined
+
+    if (!target && !this.isComponentContext(context)) {
+      let current = context
+
+      while (current.parentNode && !target) {
+        if (Object.values(this.observe).includes(current) && current !== this) {
+          target = current
+          break
+        } else if (current.tagName === this.tagName) {
+          break
+        }
+
+        current = current.parentNode as HTMLElement
+      }
+    }
+
+    return target
   }
 
   /**
