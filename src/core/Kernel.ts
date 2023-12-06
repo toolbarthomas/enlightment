@@ -149,7 +149,7 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
       () => {
         this.throttler.handlers = this.throttler.handlers.filter((h) => h != null)
       },
-      this.throttler.handlers.length + this.delay * Enlightenment.MAX_THREADS
+      this.throttler.handlers.length + this.delay * EnlightenmentKernel.MAX_THREADS
     )
   }
 
@@ -175,7 +175,7 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
 
     try {
       process &&
-        this.throttle(process, this.domReady ? this.delay : Enlightenment.MAX_THREADS, {
+        this.throttle(process, this.domReady ? this.delay : EnlightenmentKernel.RPS, {
           target
         })
     } catch (exception) {
@@ -279,6 +279,78 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
    */
   protected dispatchUpdate(name?: string) {
     return this.throttle(this.hook, this.delay, typeof name === 'string' ? name : 'update')
+  }
+
+  /**
+   * Validates if the defined Event handler has already been defined as
+   * global Event.
+   *
+   * @param type Filters within the matching Event types.
+   * @param handler Compares the defined handler name with the existing Global
+   * Event handler.
+   */
+  protected filterGlobalEvent(type: GlobalEventType, handler: GlobalEventHandler) {
+    if (!this.listeners.length) {
+      return []
+    }
+
+    const entry: GlobalEvent[] = []
+    this.listeners.forEach(([t, fn, ctx, h]) => {
+      if (t === type && fn.name.endsWith(handler.name)) {
+        entry.push([t, fn, ctx, h])
+      }
+    })
+
+    return entry.length ? entry[0] : []
+  }
+
+  /**
+   * Removes the assigned global Event handler.
+   *
+   * @param type Omit from the matching Event type.
+   * @param handler Omit the defined handler that was assigned as Global Event
+   * handler.
+   */
+  protected omitGlobalEvent(type: GlobalEventType, handler: GlobalEventHandler) {
+    if (!type) {
+      //@log
+      // this.log('Unable to omit undefined global Event', 'warning')
+
+      return
+    }
+
+    if (typeof handler !== 'function') {
+      //@log
+      // this.log(`Unable to omit global ${type} Event, no valid function was defined.`, 'warning')
+    }
+
+    const [t, fn, ctx] = this.filterGlobalEvent(type, handler)
+
+    if (!t || !fn || !ctx) {
+      //@log
+      // this.log(`Unable to omit undefined global ${type} Event`, 'warning')
+
+      return
+    }
+
+    ctx.removeEventListener(t, fn as any)
+
+    const index: number[] = []
+    this.listeners.forEach(([t2, fn2], i) => {
+      if (fn2 === fn) {
+        index.push(i)
+      }
+    })
+
+    //@ts-ignore
+    this.listeners = this.listeners
+      .map((l, i) => (index.includes(i) ? undefined : l))
+      .filter((l) => l)
+
+    //@log
+    // this.log(`Global ${type} event removed:`)
+
+    this.dispatchUpdate('omit')
   }
 
   /**

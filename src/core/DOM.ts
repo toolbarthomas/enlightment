@@ -16,13 +16,13 @@ export class EnlightenmentDOM extends EnlightenmentKernel {
 
     if (context.shadowRoot) {
       Object.values(context.shadowRoot.children).forEach((child) =>
-        elements.push(...Enlightenment.getElements(child, tags))
+        elements.push(...EnlightenmentDOM.getElements(child, tags))
       )
     }
 
     if (context.children) {
       Object.values(context.children).forEach((child) =>
-        elements.push(...Enlightenment.getElements(child, tags))
+        elements.push(...EnlightenmentDOM.getElements(child, tags))
       )
     }
 
@@ -50,7 +50,7 @@ export class EnlightenmentDOM extends EnlightenmentKernel {
     const elements: HTMLElement[] = []
 
     Object.values(slot.assignedElements()).forEach((element) => {
-      elements.push(...Enlightenment.getElements(element, tags))
+      elements.push(...EnlightenmentDOM.getElements(element, tags))
     })
 
     return [...new Set(elements)]
@@ -122,53 +122,6 @@ export class EnlightenmentDOM extends EnlightenmentKernel {
   }
 
   /**
-   * Traverse from the defined context and return the host Component
-   *
-   * @param context The existing context Element to traverse from.
-   */
-  static useHost(context: any) {
-    if (!context) {
-      return
-    }
-
-    let target: Element | undefined = undefined
-
-    if (!target) {
-      let current: any = context
-
-      while (current.parentNode && !target) {
-        if (context.parentNode && context.parentNode.constructor === context.constructor) {
-          target = context.parentNode
-        }
-
-        if (context.host && context.host.constructor === context.constructor) {
-          target = context.host
-        }
-
-        if (current && current.host && !Object.values(current).length) {
-          target = current.host || current
-        }
-
-        if (!target && current && current.host !== context) {
-          target = current.host
-        }
-
-        if (target) {
-          break
-        }
-
-        current = current.parentNode as Element
-      }
-
-      if (!target && current && current.host !== context) {
-        target = current.host
-      }
-    }
-
-    return target
-  }
-
-  /**
    * Property reference for the actual ARIA disabled Attribute.
    */
   @property({
@@ -182,14 +135,14 @@ export class EnlightenmentDOM extends EnlightenmentKernel {
    * Attribute.
    */
   @property({
-    converter: (value) => EnlightenmentMixins.isBoolean(value),
+    converter: EnlightenmentMixins.isBoolean,
     type: Boolean
   })
   disabled?: boolean
 
   // Returns the full Component context when FALSE.
   @property({
-    converter: (value) => Enlightenment.isBoolean(value),
+    converter: EnlightenmentMixins.isBoolean,
     type: Boolean
   })
   minimalShadowRoot?: boolean
@@ -199,6 +152,13 @@ export class EnlightenmentDOM extends EnlightenmentKernel {
    * once on the main container element.
    */
   context = createRef()
+
+  /**
+   * Defines the current selected pivot from 1 to 9 that should use the defined
+   * Drag interaction.
+   */
+  currentContextX?: number
+  currentContextY?: number
 
   /**
    * Boolean flag that equals True when the current Event target is within
@@ -276,7 +236,7 @@ export class EnlightenmentDOM extends EnlightenmentKernel {
 
       let [type, name] = value.split(':')
 
-      if (Enlightenment.useHost(element) !== this) {
+      if (this.useHost(element) !== this) {
         return
       }
 
@@ -391,7 +351,7 @@ export class EnlightenmentDOM extends EnlightenmentKernel {
         //@ts-ignore
         const fn: Function = this[name.split('(')[0]]
 
-        if (typeof fn === 'function' && Enlightenment.useHost(element) === this) {
+        if (typeof fn === 'function' && this.useHost(element) === this) {
           this.assignGlobalEvent(
             type,
             () => {
@@ -399,6 +359,7 @@ export class EnlightenmentDOM extends EnlightenmentKernel {
                 this.throttle(fn)
               } catch (exception) {
                 if (exception) {
+                  console.error(exception)
                   //@log
                   // this.log(exception, 'error')
                 }
@@ -861,6 +822,13 @@ export class EnlightenmentDOM extends EnlightenmentKernel {
     })
 
     return breakpoints
+  }
+
+  /**
+   * Returns the root node of the defined Enlightenment instance.
+   */
+  protected useContext() {
+    return this.context && this.context.value ? this.context.value : this
   }
 
   /**

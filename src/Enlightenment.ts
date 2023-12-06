@@ -15,76 +15,29 @@ export class Enlightenment extends EnlightenmentInputController {
    * Alias the Enlightment static methoeds to the main Enlightment class
    * instance.
    */
-  static convertToSelector = EnlightenmentDOM.convertToSelector
+  // static convertToSelector = EnlightenmentDOM.convertToSelector
   static filterProperty = EnlightenmentMixins.filterPropertyValue
-  static generateTimestampID = EnlightenmentMixins.generateTimestampID
-  static getElements = EnlightenmentDOM.getElements
-  static getElementsFromSlot = EnlightenmentDOM.getElementsFromSlot
-  static getRelatedComponents = EnlightenmentDOM.getRelatedComponents
-  static imageExtensions = EnlightenmentKernel.imageExtensions
-  static isBoolean = EnlightenmentMixins.isBoolean
-  static isExternal = EnlightenmentMixins.isExternalURL
-  static isInteger = EnlightenmentMixins.isInteger
-  static isWithinViewport = EnlightenmentDOM.isWithinViewport
-  static keyCodes = EnlightenmentInputController.keyCodes
-  static parseJSON = EnlightenmentParser.parseJSON
+  // static generateTimestampID = EnlightenmentMixins.generateTimestampID
+  // static getElements = EnlightenmentDOM.getElements
+  // static getElementsFromSlot = EnlightenmentDOM.getElementsFromSlot
+  // static getRelatedComponents = EnlightenmentDOM.getRelatedComponents
+  // static imageExtensions = EnlightenmentKernel.imageExtensions
+  // static isBoolean = EnlightenmentMixins.isBoolean
+  // static isExternal = EnlightenmentMixins.isExternalURL
+  // static isInteger = EnlightenmentMixins.isInteger
+  // static isWithinViewport = EnlightenmentDOM.isWithinViewport
+  // static keyCodes = EnlightenmentInputController.keyCodes
+  // static parseJSON = EnlightenmentParser.parseJSON
   static parseMatrix = EnlightenmentParser.parseMatrixValue
-  static sanitizeHTML = EnlightenmentParser.sanitizeHTML
-  static strip = EnlightenmentParser.strip
+  // static sanitizeHTML = EnlightenmentParser.sanitizeHTML
+  // static strip = EnlightenmentParser.strip
   static url = EnlightenmentParser.resolveURL
-  static useElementID = EnlightenmentDOM.useElementID
+  // static useElementID = EnlightenmentDOM.useElementID
   static useOption = EnlightenmentParser.usePropertyValue
-  static webfontExtensions = EnlightenmentKernel.webfontExtensions
+  // static webfontExtensions = EnlightenmentKernel.webfontExtensions
 
   static isTarget(value: any) {
     return EnlightenmentMixins.filterPropertyValue(value, ['_self', '_blank', '_parent', '_top'])
-  }
-
-  /**
-   * Traverse from the defined context and return the host Component
-   *
-   * @param context The existing context Element to traverse from.
-   */
-  static useHost(context: any) {
-    if (!context) {
-      return
-    }
-
-    let target: Element | undefined = undefined
-
-    if (!target) {
-      let current: any = context
-
-      while (current.parentNode && !target) {
-        if (context.parentNode instanceof Enlightenment) {
-          target = context.parentNode
-        }
-
-        if (context.host && context.host instanceof Enlightenment) {
-          target = context.host
-        }
-
-        if (current && current.host && !Object.values(current).length) {
-          target = current.host || current
-        }
-
-        if (!target && current && current.host !== context) {
-          target = current.host
-        }
-
-        if (target) {
-          break
-        }
-
-        current = current.parentNode as Element
-      }
-
-      if (!target && current && current.host !== context) {
-        target = current.host
-      }
-    }
-
-    return target
   }
 
   constructor() {
@@ -127,7 +80,7 @@ export class Enlightenment extends EnlightenmentInputController {
    */
   protected handleUpdate(name?: string) {
     // Defines the current Color mode from the Component context or it's host.
-    this.useMode()
+    this.useMode(undefined, Enlightenment)
 
     // Reflect the updated properties or attributes vice versa only once.
     this.updateAttribute('accent', this.accent)
@@ -215,6 +168,58 @@ export class Enlightenment extends EnlightenmentInputController {
       this.assignGlobalEvent('resize', this.handleGlobalResize, { context: window })
     }
 
+    this.throttle(this.assignListeners)
+    this.dispatchUpdate('connected')
+
+    // Fallback to ensure the parent component is updated when the initial
+    // component is connected.
+    const host = this.useHost(this)
+    if (host && typeof host.dispatchUpdate === 'function' && host !== this) {
+      host.dispatchUpdate()
+    }
+
     this.assignGlobalEvent('ready', this.handleReady, { context: this })
+  }
+
+  public useHost(context: any) {
+    if (!context) {
+      return
+    }
+
+    let target: Element | undefined = undefined
+
+    if (!target) {
+      let current: any = context
+
+      while (current.parentNode && !target) {
+        if (context.parentNode instanceof Enlightenment) {
+          target = context.parentNode
+        }
+
+        if (context.host && context.host instanceof Enlightenment) {
+          target = context.host
+        }
+
+        if (current && current.host && !Object.values(current).length) {
+          target = current.host || current
+        }
+
+        if (!target && current && current.host !== context) {
+          target = current.host
+        }
+
+        if (target) {
+          break
+        }
+
+        current = current.parentNode as Element
+      }
+
+      if (!target && current && current.host !== context) {
+        target = current.host
+      }
+    }
+
+    return super.useHost(target) as Enlightenment
   }
 }

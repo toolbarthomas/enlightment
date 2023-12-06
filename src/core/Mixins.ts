@@ -175,4 +175,17 @@ export class EnlightenmentMixins extends LitElement {
   constructor() {
     super()
   }
+
+  /**
+   * Type reference to expose the method for all Class extensions.
+   *
+   * @param target The actual defined host element to return.
+   */
+  public useHost(target: any) {
+    if (!target) {
+      return
+    }
+
+    return target as EnlightenmentMixins
+  }
 }

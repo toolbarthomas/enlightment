@@ -215,6 +215,7 @@ class HelloWorld extends Enlightenment {
     //   console.log('Breakpoint', name, value, delta)
     // })
     // this.commit('foo', !this.foo)
+    console.log('Start')
   }
 
   hello() {

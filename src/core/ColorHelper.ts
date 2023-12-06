@@ -137,10 +137,10 @@ export class EnlightenmentColorHelper extends EnlightenmentImageHelper {
    * @param context Traverse from the optional context Element.
    *
    */
-  protected useMode(context?: Element) {
+  protected useMode(context?: Element, instance?: any) {
     const { mode } = EnlightenmentKernel.globals
     const target = (context || this) as any
-    const host = EnlightenmentDOM.useHost(target)
+    const host = this.useHost(target)
 
     if (!this.mode) {
       this.mode = EnlightenmentKernel.globals.mode
@@ -156,7 +156,7 @@ export class EnlightenmentColorHelper extends EnlightenmentImageHelper {
         // Ensure the unconstructed parent element is ready before we traverse
         // upwards.
         this.throttle(() => {
-          host.useMode && host.useMode(this)
+          host.useMode && host.useMode(this, instance)
         })
 
         return

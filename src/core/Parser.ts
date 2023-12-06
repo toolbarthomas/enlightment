@@ -96,7 +96,7 @@ export class EnlightenmentParser extends EnlightenmentDOM {
     const matrix = value
       .split(/\w*(...)[(]/gim)
       .filter((e) => e.includes(')'))
-      .map((e) => e.split(')')[0].split(',').map(Enlightenment.strip).map(parseFloat))
+      .map((e) => e.split(')')[0].split(',').map(EnlightenmentParser.strip).map(parseFloat))
       .flat()
 
     return matrix
