@@ -1,9 +1,9 @@
-import esbuild from "esbuild";
-import path from "node:path";
+import esbuild from 'esbuild'
+import path from 'node:path'
 
-import { stylePlugin } from "./esbuild.style.plugin.mjs";
+import { stylePlugin } from './esbuild.style.plugin.mjs'
 
-import { argv } from "./argv.mjs";
+import { argv } from './argv.mjs'
 
 /*
  * Creates a new Enlightenment bundle with optional styles that will be included
@@ -15,32 +15,32 @@ import { argv } from "./argv.mjs";
  * <script type="module" ...> in order to import the actual Enlightenment
  * exports. The package should also be loaded before everything else.
  */
-(async () => {
-  const format = argv.f || argv.format || "esm";
-  const suffix = argv.m || argv.minify ? ".min" : "";
+;(async () => {
+  const format = argv.f || argv.format || 'esm'
+  const suffix = argv.m || argv.minify ? '.min' : ''
   const outExtension = {
-    ".js": `${suffix}${format === "cjs" ? ".cjs" : ".js"}`,
-  };
-  const watch = argv.w || argv.watch || false;
+    '.js': `${suffix}${format === 'cjs' ? '.cjs' : '.js'}`
+  }
+  const watch = argv.w || argv.watch || false
 
   const defaults = {
     bundle: true,
-    entryPoints: ["./src/Enlightenment.ts"],
+    entryPoints: ['./src/Enlightenment.ts'],
     format,
     keepNames: true,
     metafile: false,
     minify: argv.m || argv.minify || false,
-    outdir: "dist",
+    outdir: 'dist',
     outExtension,
-    platform: "node",
-    plugins: [stylePlugin()],
-  };
+    platform: 'node',
+    plugins: [stylePlugin()]
+  }
 
   if (watch) {
-    console.log(`Watching on Enlightment source changes...`);
-    (await esbuild.context(defaults)).watch();
+    console.log(`Watching on Enlightment source changes...`)
+    ;(await esbuild.context(defaults)).watch()
   } else {
-    await esbuild.build(defaults);
-    console.log(`Enlightenment ${format} bundle created`);
+    await esbuild.build(defaults)
+    console.log(`Enlightenment ${format} bundle created`)
   }
-})();
+})()

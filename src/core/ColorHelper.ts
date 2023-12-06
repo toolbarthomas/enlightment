@@ -1,8 +1,7 @@
 import { EnlightenmentDOM } from 'src/core/DOM'
 import { EnlightenmentImageHelper } from 'src/core/ImageHelper'
-import { EnlightenmentKernel } from 'src/core/Kernel'
-import { EnlightenmentMixins, property } from 'src/core/Mixins'
 import { EnlightenmentTheme } from 'src/providers/Theme'
+import { property } from 'src/core/Mixins'
 
 export class EnlightenmentColorHelper extends EnlightenmentImageHelper {
   /**
@@ -11,7 +10,7 @@ export class EnlightenmentColorHelper extends EnlightenmentImageHelper {
    * @param value The initial value to validate.
    */
   static isMode(value: any) {
-    return EnlightenmentMixins.filterPropertyValue(value, EnlightenmentTheme.COLOR_MODES)
+    return EnlightenmentColorHelper.filterPropertyValue(value, EnlightenmentTheme.COLOR_MODES)
   }
 
   /**
@@ -113,7 +112,7 @@ export class EnlightenmentColorHelper extends EnlightenmentImageHelper {
     }
 
     const style = `
-      ${EnlightenmentColorHelper.component}
+      ${EnlightenmentTheme.component}
 
       :host {
         ${accents && accents.join('\n')}
@@ -138,12 +137,12 @@ export class EnlightenmentColorHelper extends EnlightenmentImageHelper {
    *
    */
   protected useMode(context?: Element, instance?: any) {
-    const { mode } = EnlightenmentKernel.globals
+    const { mode } = EnlightenmentColorHelper.globals
     const target = (context || this) as any
-    const host = this.useHost(target)
+    const host = this.useHost(target) as EnlightenmentColorHelper
 
     if (!this.mode) {
-      this.mode = EnlightenmentKernel.globals.mode
+      this.mode = EnlightenmentColorHelper.globals.mode
 
       //@log
       // this.log(`Use fallback mode: ${this.mode}`, 'log')
@@ -169,7 +168,7 @@ export class EnlightenmentColorHelper extends EnlightenmentImageHelper {
         // apply the actual CSS styles.
         target.mode && target.setAttribute('mode', target.mode)
       } else if (this.mode === undefined) {
-        this.mode = mode || EnlightenmentKernel.globals.mode
+        this.mode = mode || EnlightenmentColorHelper.globals.mode
       }
     } else if (!this.mode && mode && this.mode !== mode) {
       this.mode = mode

@@ -1,10 +1,9 @@
-import { EnlightenmentTarget } from '../_types/main'
-
-import { EnlightenmentTheme } from 'src/providers/Theme'
-
-import { EnlightenmentKernel } from './Kernel'
-import { createRef, EnlightenmentMixins, property } from './Mixins'
 import { PropertyValues } from 'lit'
+
+import { createRef, EnlightenmentMixins, property } from 'src/core/Mixins'
+import { EnlightenmentKernel } from 'src/core/Kernel'
+import { EnlightenmentTarget } from 'src/_types/main'
+import { EnlightenmentTheme } from 'src/providers/Theme'
 
 export class EnlightenmentDOM extends EnlightenmentKernel {
   static getElements(context: Element, tags: string[]) {
@@ -250,60 +249,6 @@ export class EnlightenmentDOM extends EnlightenmentKernel {
   }
 
   /**
-   * Assigns the defined rendered slot Elements within the current Component
-   * instance.
-   *
-   * @param name Use the defined name instead of the default slot. This is
-   * required when multiple slots exists within the Component.
-   */
-  private assignSlots(name?: string) {
-    if (!this.shadowRoot) {
-      //@log
-      //this.log(`Unable to detect shadowRoot from ${this.namespace}`, 'error')
-
-      return
-    }
-
-    const slots = this.shadowRoot.querySelectorAll('slot')
-
-    if (slots && !slots.length && !Object.keys(this.slots).length) {
-      return
-    } else if (!slots && !Object.keys(this.slots).length) {
-      return
-    }
-
-    this.clearGlobalEvent('slotchange', slots)
-
-    this.commit('slots', () => {
-      if (!slots || !slots.length) {
-        this.slots = {}
-      } else {
-        for (let i = 0; i < slots.length; i += 1) {
-          const slot = slots[i]
-          const name = slot.name || EnlightenmentDOM.defaults.slot
-
-          this.clearSlottedEvents(slot)
-
-          if (!Object.values(this.slots).includes(slot)) {
-            if (!this.slots[name]) {
-              this.throttle(this.handleSlotChange, this.delay, { ...event, target: slot })
-            }
-
-            this.slots[name] = EnlightenmentDOM.isEmptySlot(slot) ? undefined : slot
-
-            this.assignGlobalEvent('slotchange', this.handleSlotChange, { context: slot })
-          }
-        }
-
-        if (this.slots && Object.values(this.slots).filter((s) => s).length) {
-          //@log
-          // this.log([`Found ${this.constructor.name} ${slots.length} slot(s) from:`, this.slots])
-        }
-      }
-    })
-  }
-
-  /**
    * Assign additional global Event listeners for the direct child elements with
    * the [handle] attribute from the defined Component. The [handle] attribute
    * requires an existing method name of the component:
@@ -442,6 +387,60 @@ export class EnlightenmentDOM extends EnlightenmentKernel {
   }
 
   /**
+   * Assigns the defined rendered slot Elements within the current Component
+   * instance.
+   *
+   * @param name Use the defined name instead of the default slot. This is
+   * required when multiple slots exists within the Component.
+   */
+  protected assignSlots(name?: string) {
+    if (!this.shadowRoot) {
+      //@log
+      //this.log(`Unable to detect shadowRoot from ${this.namespace}`, 'error')
+
+      return
+    }
+
+    const slots = this.shadowRoot.querySelectorAll('slot')
+
+    if (slots && !slots.length && !Object.keys(this.slots).length) {
+      return
+    } else if (!slots && !Object.keys(this.slots).length) {
+      return
+    }
+
+    this.clearGlobalEvent('slotchange', slots)
+
+    this.commit('slots', () => {
+      if (!slots || !slots.length) {
+        this.slots = {}
+      } else {
+        for (let i = 0; i < slots.length; i += 1) {
+          const slot = slots[i]
+          const name = slot.name || EnlightenmentDOM.defaults.slot
+
+          this.clearSlottedEvents(slot)
+
+          if (!Object.values(this.slots).includes(slot)) {
+            if (!this.slots[name]) {
+              this.throttle(this.handleSlotChange, this.delay, { ...event, target: slot })
+            }
+
+            this.slots[name] = EnlightenmentDOM.isEmptySlot(slot) ? undefined : slot
+
+            this.assignGlobalEvent('slotchange', this.handleSlotChange, { context: slot })
+          }
+        }
+
+        if (this.slots && Object.values(this.slots).filter((s) => s).length) {
+          //@log
+          // this.log([`Found ${this.constructor.name} ${slots.length} slot(s) from:`, this.slots])
+        }
+      }
+    })
+  }
+
+  /**
    * Toggles the currentElement property within the defined element context.
    *
    * The expected attributes are updated directly without triggering a
@@ -529,12 +528,12 @@ export class EnlightenmentDOM extends EnlightenmentKernel {
    *
    * @param event The initial Mouse Event interface.
    */
-  protected handleGlobalClick(event?: Event) {
-    if (this.preventEvent) {
+  protected handleGlobalClick(event: Event) {
+    if (this.preventEvent || !event) {
       return
     }
 
-    const { target } = event || {}
+    const { target } = event
 
     this.handleCurrentElement(target)
   }
@@ -547,12 +546,12 @@ export class EnlightenmentDOM extends EnlightenmentKernel {
    *
    * @param event THe initial Focus Event interface.
    */
-  protected handleGlobalFocus(event?: Event) {
-    if (this.preventEvent) {
+  protected handleGlobalFocus(event: Event) {
+    if (this.preventEvent || !event) {
       return
     }
 
-    const { target } = event || {}
+    const { target } = event
 
     this.handleCurrentElement(target)
   }
@@ -560,8 +559,8 @@ export class EnlightenmentDOM extends EnlightenmentKernel {
   /**
    * Default resize handler while the document is resized.
    */
-  protected handleGlobalResize(event?: UIEvent) {
-    this.throttle(this.handleCurrentViewport, EnlightenmentKernel.RPS)
+  protected handleGlobalResize(event: UIEvent) {
+    this.throttle(this.handleCurrentViewport, EnlightenmentKernel.RPS, event)
   }
 
   /**

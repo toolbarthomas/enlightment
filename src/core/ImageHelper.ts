@@ -1,8 +1,8 @@
 import { unsafeSVG } from 'lit/directives/unsafe-svg.js'
 
-import { html, property } from './Mixins'
-
-import { EnlightenmentParser } from './Parser'
+import { EnlightenmentImageOptions } from 'src/_types/main'
+import { EnlightenmentParser } from 'src/core/Parser'
+import { html, property } from 'src/core/Mixins'
 
 export class EnlightenmentImageHelper extends EnlightenmentParser {
   /**

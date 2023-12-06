@@ -2,7 +2,7 @@ import {
   ColorMode,
   EnlightenmentProvider,
   EnlightenmentProviders,
-  EnligtenmentTarget
+  EnlightenmentTarget
 } from 'src/_types/main'
 
 /**

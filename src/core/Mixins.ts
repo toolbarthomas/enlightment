@@ -28,7 +28,7 @@ export class EnlightenmentMixins extends LitElement {
    * @param commit The first value to compare.
    * @param initial The second value to compare.
    */
-  static compareValue(commit: any, initial: any) {
+  static compareValue(commit: any, initial: any): boolean | undefined {
     try {
       if (typeof commit !== typeof initial) {
         return false
@@ -165,7 +165,17 @@ export class EnlightenmentMixins extends LitElement {
   }
 
   /**
+   * Ensures the given value is a valid target attribute value.
+   *
+   * @param value The initial value to validate.
+   */
+  static isTarget(value: any) {
+    return EnlightenmentMixins.filterPropertyValue(value, ['_self', '_blank', '_parent', '_top'])
+  }
+
+  /**
    * Parse the defined value as non floating Number value.
+   *
    * @param value The value to parse as Integer.
    */
   static isInteger(value: any) {

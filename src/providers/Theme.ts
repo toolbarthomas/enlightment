@@ -627,7 +627,7 @@ export class EnlightenmentTheme {
    *
    * @param context Assigns the stylesheet to the defined context Element.
    */
-  public assignComponentStylesheets(context: HTMLElement) {
+  public assignComponentStyleSheet(context: HTMLElement) {
     if (!context || !context.shadowRoot) {
       return
     }

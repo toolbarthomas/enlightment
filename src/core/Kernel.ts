@@ -7,8 +7,7 @@ import {
   HookOptions
 } from 'src/_types/main'
 
-import { EnlightenmentMixins, property } from './Mixins'
-import { EnlightenmentDOM } from './DOM'
+import { EnlightenmentMixins, property } from 'src/core/Mixins'
 
 import { EnlightenmentGlobals } from 'src/providers/Globals'
 import { EnlightenmentTheme } from 'src/providers/Theme'
@@ -39,14 +38,14 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
    * Defines the Global variables within the constructed Enlightenment
    * instances.
    */
-  static globals = new EnlightenmentGlobals(EnlightenmentKernel.NAMESPACE.name)
+  static globals = new EnlightenmentGlobals(EnlightenmentKernel.NAMESPACE)
 
   /**
    * Optional timeout value for the defined throttle handler.
    * @see throttle()
    */
   @property({ converter: EnlightenmentMixins.isInteger, type: Number })
-  delay?: number = EnlightenmentKernel.FPS
+  delay = EnlightenmentKernel.FPS
 
   /**
    * Enable the usage for the [handle] Attribute for the defined Element.
@@ -58,7 +57,7 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
    * Will call the defined process method from the constructed instance if the
    * defined value exists within the current DOM.
    */
-  @property({ converter: EnlightenmentMixins.convertToSelector, type: Array })
+  @property({ converter: (value) => EnlightenmentMixins.convertToSelector, type: Array })
   observe?: NodeList
 
   /**
@@ -120,7 +119,7 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
    * defined delay.
    * @see throttle()
    */
-  throttler: { delay: number; handlers: EnlightenmentThrottle[] } = {}
+  throttler: { delay: number; handlers: EnlightenmentThrottle[] }
 
   /**
    * Alias for the instance name.
@@ -171,7 +170,7 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
       return
     }
     const { target } = event || {}
-    const process: any = this.process
+    const process: any = (this as any).process
 
     try {
       process &&
@@ -179,7 +178,8 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
           target
         })
     } catch (exception) {
-      exception && this.log(exception, 'error')
+      //@log
+      // exception && this.log(exception, 'error')
     }
   }
 

@@ -5,7 +5,7 @@ import {
   GlobalEventType
 } from 'src/_types/main'
 
-import { EnlightenmentColorHelper } from './ColorHelper'
+import { EnlightenmentColorHelper } from 'src/core/ColorHelper'
 
 export class EnlightenmentInputController extends EnlightenmentColorHelper {
   /**
@@ -19,6 +19,12 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     // Keyboard additional action trigger signal
     meta: [9, 16, 17, 18, 20]
   }
+
+  /**
+   * Should hold the current edge value while isGrabbed equals TRUE.
+   */
+  currentEdgeX?: 'left' | 'right'
+  currentEdgeY?: 'top' | 'bottom'
 
   /**
    * Keep track of the interaction amount within the selected duration.

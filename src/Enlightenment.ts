@@ -1,44 +1,28 @@
-import { EnlightenmentKernel } from './core/Kernel'
-import { EnlightenmentDOM } from './core/DOM'
-import { EnlightenmentGlobals } from './providers/Globals'
-import { EnlightenmentTheme } from './providers/Theme'
-import { EnlightenmentMixins } from './core/Mixins'
-import { EnlightenmentParser } from './core/Parser'
-import { EnlightenmentInputController } from './core/InputController'
-import { PropertyValueMap } from 'lit'
-import { EnlightenmentColorHelper } from './core/ColorHelper'
+import { PropertyValueMap, PropertyValues } from 'lit'
 
-export { createRef, css, customElement, html, property, ref } from './core/Mixins'
+import { EnlightenmentTheme } from 'src/providers/Theme'
+
+export {
+  createRef,
+  css,
+  customElement,
+  EnlightenmentMixins,
+  html,
+  property,
+  ref
+} from 'src/core/Mixins'
+
+import { EnlightenmentInputController } from 'src/core/InputController'
 
 export class Enlightenment extends EnlightenmentInputController {
   /**
    * Alias the Enlightment static methoeds to the main Enlightment class
    * instance.
    */
-  // static convertToSelector = EnlightenmentDOM.convertToSelector
-  static filterProperty = EnlightenmentMixins.filterPropertyValue
-  // static generateTimestampID = EnlightenmentMixins.generateTimestampID
-  // static getElements = EnlightenmentDOM.getElements
-  // static getElementsFromSlot = EnlightenmentDOM.getElementsFromSlot
-  // static getRelatedComponents = EnlightenmentDOM.getRelatedComponents
-  // static imageExtensions = EnlightenmentKernel.imageExtensions
-  // static isBoolean = EnlightenmentMixins.isBoolean
-  // static isExternal = EnlightenmentMixins.isExternalURL
-  // static isInteger = EnlightenmentMixins.isInteger
-  // static isWithinViewport = EnlightenmentDOM.isWithinViewport
-  // static keyCodes = EnlightenmentInputController.keyCodes
-  // static parseJSON = EnlightenmentParser.parseJSON
-  static parseMatrix = EnlightenmentParser.parseMatrixValue
-  // static sanitizeHTML = EnlightenmentParser.sanitizeHTML
-  // static strip = EnlightenmentParser.strip
-  static url = EnlightenmentParser.resolveURL
-  // static useElementID = EnlightenmentDOM.useElementID
-  static useOption = EnlightenmentParser.usePropertyValue
-  // static webfontExtensions = EnlightenmentKernel.webfontExtensions
-
-  static isTarget(value: any) {
-    return EnlightenmentMixins.filterPropertyValue(value, ['_self', '_blank', '_parent', '_top'])
-  }
+  static filterProperty = Enlightenment.filterPropertyValue
+  static parseMatrix = Enlightenment.parseMatrixValue
+  static url = Enlightenment.resolveURL
+  static useOption = Enlightenment.usePropertyValue
 
   constructor() {
     super()
@@ -112,6 +96,9 @@ export class Enlightenment extends EnlightenmentInputController {
     this.throttle(this.handleUpdate, this.delay, 'updated')
   }
 
+  /**
+   * Defines the initial setup for the constructed Enlightenment element.
+   */
   public connectedCallback(): void {
     super.connectedCallback()
 
@@ -156,8 +143,8 @@ export class Enlightenment extends EnlightenmentInputController {
 
     // Create reference of the custom StyleSheets that will update from their
     // component property values.
-    const customStylesheet = Enlightenment.theme.assignComponentStylesheets(this)
-    this.assignCustomStyleSheet(customStylesheet)
+    const customStylesheet = Enlightenment.theme.assignComponentStyleSheet(this)
+    customStylesheet && this.assignCustomStyleSheet(customStylesheet)
 
     if (this.enableDocumentEvents) {
       console.log('ENAB:E')
@@ -181,6 +168,11 @@ export class Enlightenment extends EnlightenmentInputController {
     this.assignGlobalEvent('ready', this.handleReady, { context: this })
   }
 
+  /**
+   * Traverse from the defined context and return the host Component
+   *
+   * @param context The existing context Element to traverse from.
+   */
   public useHost(context: any) {
     if (!context) {
       return

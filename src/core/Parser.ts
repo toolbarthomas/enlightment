@@ -1,4 +1,6 @@
 import {
+  EnlightenmentDataEntry,
+  EnlightenmentJSONResponse,
   EnlightenmentJSONResponseArray,
   EnlightenmentJSONResponseObject,
   EnlightenmentJSONResponseValue,
@@ -135,7 +137,7 @@ export class EnlightenmentParser extends EnlightenmentDOM {
    */
   static sanitizeHTML(value?: string) {
     const raw = document.createElement('div')
-    raw.innerHTML = value
+    raw.innerHTML = value || ''
 
     const html = raw.textContent || ''
 
@@ -151,7 +153,7 @@ export class EnlightenmentParser extends EnlightenmentDOM {
    */
   static strip(value?: string) {
     if (value === undefined) {
-      return
+      return ''
     }
 
     return typeof value === 'string'
