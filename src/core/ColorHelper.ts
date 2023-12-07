@@ -71,19 +71,17 @@ export class EnlightenmentColorHelper extends EnlightenmentImageHelper {
     }
 
     if (sheet instanceof CSSStyleSheet === false) {
-      //@log
-      // this.log(
-      //   `Unable to assign custom stylesheet '${name}' without a valid CSSStyleSheet`,
-      //   'warning'
-      // )
+      this.log(
+        `Unable to assign custom stylesheet '${name}' without a valid CSSStyleSheet`,
+        'warning'
+      )
 
       return
     }
 
     this.customStyleSheet = sheet
 
-    //@log
-    // this.log(['Custom stylesheet assigned:', sheet.title], 'log')
+    this.log(['Custom stylesheet assigned:', sheet.title], 'log')
   }
 
   /**
@@ -144,8 +142,7 @@ export class EnlightenmentColorHelper extends EnlightenmentImageHelper {
     if (!this.mode) {
       this.mode = EnlightenmentColorHelper.globals.mode
 
-      //@log
-      // this.log(`Use fallback mode: ${this.mode}`, 'log')
+      this.log(`Use fallback mode: ${this.mode}`, 'log')
     }
 
     if (!this.hasAttribute('mode') && host) {

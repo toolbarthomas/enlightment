@@ -169,12 +169,14 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
    */
   protected _process(event: Event) {
     if (!this.observe) {
-      //@log
+      this.log(`Unable to process from undefined listeners...`, 'warning')
+
       return
     }
 
     if (!event) {
-      //@log
+      this.log(`Unable to run process with undefined Event...`, 'warning')
+
       return
     }
     const { target } = event || {}
@@ -186,8 +188,7 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
           target
         })
     } catch (exception) {
-      //@log
-      // exception && this.log(exception, 'error')
+      exception && this.log(exception, 'error')
     }
   }
 
@@ -205,15 +206,13 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
     options?: GlobalEventOptions
   ) {
     if (!type) {
-      //@log
-      // this.log('Unable to assign global event.', 'error')
+      this.log('Unable to assign global event.', 'error')
 
       return
     }
 
     if (typeof handler !== 'function') {
-      //@log
-      // this.log(`Unable to subscribe existing Document Event for ${type}`, 'error')
+      this.log(`Unable to subscribe existing Document Event for ${type}`, 'error')
 
       return
     }
@@ -225,8 +224,7 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
     const exists = this.listeners.filter(([t, _, c, h]) => t === type && h === handler && c === ctx)
 
     if (exists.length) {
-      //@log
-      // this.log(`Unable to overwrite existing global event for ${ctx}`, 'warning')
+      this.log(`Unable to overwrite existing global event for ${ctx}`, 'warning')
 
       return
     }
@@ -237,8 +235,7 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
 
     ctx && ctx.addEventListener(type, fn, { once })
 
-    //@log
-    // this.log([`Global event assigned: ${ctx.constructor.name}@${type}`, ctx])
+    this.log([`Global event assigned: ${ctx.constructor.name}@${type}`, ctx])
   }
 
   /**
@@ -265,8 +262,7 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
       listeners.forEach(([t, fn, ctx]) => {
         ctx.removeEventListener(t, fn as any)
 
-        //@log
-        // this.log([`Global ${t} event removed:`, fn])
+        this.log([`Global ${t} event removed:`, fn])
 
         completed += 1
       })
@@ -274,8 +270,7 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
       if (completed === listeners.length) {
         this.listeners = this.listeners.filter((listener) => !listeners.includes(listener))
 
-        //@log
-        // this.log(`Global ${type} event cleared`)
+        this.log(`Global ${type} event cleared`)
       }
     }
   }
@@ -316,8 +311,7 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
       if (timeout) {
         clearTimeout(timeout)
 
-        //@log
-        // this.log(['Throttle cleared:', fn])
+        this.log(['Throttle cleared:', fn])
       }
     })
 
@@ -389,22 +383,19 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
    */
   protected omitGlobalEvent(type: GlobalEventType, handler: GlobalEventHandler) {
     if (!type) {
-      //@log
-      // this.log('Unable to omit undefined global Event', 'warning')
+      this.log('Unable to omit undefined global Event', 'warning')
 
       return
     }
 
     if (typeof handler !== 'function') {
-      //@log
-      // this.log(`Unable to omit global ${type} Event, no valid function was defined.`, 'warning')
+      this.log(`Unable to omit global ${type} Event, no valid function was defined.`, 'warning')
     }
 
     const [t, fn, ctx] = this.filterGlobalEvent(type, handler)
 
     if (!t || !fn || !ctx) {
-      //@log
-      // this.log(`Unable to omit undefined global ${type} Event`, 'warning')
+      this.log(`Unable to omit undefined global ${type} Event`, 'warning')
 
       return
     }
@@ -423,8 +414,7 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
       .map((l, i) => (index.includes(i) ? undefined : l))
       .filter((l) => l)
 
-    //@log
-    // this.log(`Global ${type} event removed:`)
+    this.log(`Global ${type} event removed:`)
 
     this.dispatchUpdate('omit')
   }
@@ -486,15 +476,13 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
    */
   protected throttle(handler: EnlightenmentThrottle[0], delay?: number, ...args: any[]) {
     if (!this.throttler || !this.throttler.handlers) {
-      //@log
-      // this.log(['Unable to throttle:', handler], 'error')
+      this.log(['Unable to throttle:', handler], 'error')
 
       return
     }
 
     if (typeof handler !== 'function') {
-      //@log
-      // this.log('Unable to use throttle, the defined handler is not a function', 'error')
+      this.log('Unable to use throttle, the defined handler is not a function', 'error')
     }
 
     let index = -1
@@ -511,8 +499,7 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
     })
 
     if (exists) {
-      //@log
-      // this.log([`Abort previous throttle:`, this], 'info')
+      this.log([`Abort previous throttle:`, this], 'info')
 
       const previousTimeout = this.throttler.handlers[index]
 
@@ -532,8 +519,7 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
       // }
     }, ms)
 
-    //@log
-    // this.log([`${this.constructor.name} throttle defined:`, this], 'info')
+    this.log([`${this.constructor.name} throttle defined:`, this], 'info')
 
     this.throttler.handlers.push([handler, timeout, args])
 
@@ -591,15 +577,13 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
    */
   public commit(property: string, handler: any) {
     if (!property) {
-      //@log
-      // this.log([`Unable to commit undefined property`])
+      this.log([`Unable to commit undefined property`])
 
       return
     }
 
     if (handler === null) {
-      //@log
-      // this.log([`Unable to commit ${property}`])
+      this.log([`Unable to commit ${property}`])
 
       return
     }
@@ -636,11 +620,9 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
           // component.requestUpdate method.
           this.hook('commit', { data })
 
-          //@log
-          // this.log([`${this.namespace} property updated for:`, [property, handler]])
+          this.log([`${this.namespace} property updated for:`, [property, handler]])
         } else {
-          //@log
-          // this.log(['Illegal property commit detected.', [property, handler]], 'error')
+          this.log(['Illegal property commit detected.', [property, handler]], 'error')
         }
 
         // Prevent the component update if the proposed value is an identical
@@ -650,20 +632,16 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
         }
       }
 
-      //@ts-ignore
-      // update &&
-      //   this.log([
-      //     `${this.namespace} commit accepted from: ${this.constructor.name}['${property}']`
-      //   ])
-      //@log
+      update &&
+        this.log([
+          `${this.namespace} commit accepted from: ${this.constructor.name}['${property}']`
+        ])
 
       // Ensures the property update fires the component callbacks.
       update && this.requestUpdate(property, value)
     } catch (exception) {
       if (exception) {
-        //@log
-        // this.log(exception, 'error')
-        console.error(exception)
+        this.log(exception, 'error')
 
         update = false
       }
@@ -678,8 +656,7 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
     const { context, data } = options || {}
 
     if (!name) {
-      //@log
-      // this.log('Unable to use undefined hook', 'error')
+      this.log('Unable to use undefined hook', 'error')
 
       return
     }
@@ -694,8 +671,7 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
       detail: data || {}
     })
 
-    //@log
-    // this.log([`Dispatch hook: ${this.constructor.name}@${name}`, this])
+    this.log([`Dispatch hook: ${this.constructor.name}@${name}`, this])
 
     if (context && context !== this) {
       return context.dispatchEvent(event)

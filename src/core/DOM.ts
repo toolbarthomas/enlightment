@@ -265,9 +265,7 @@ export class EnlightenmentDOM extends EnlightenmentKernel {
                 this.throttle(fn)
               } catch (exception) {
                 if (exception) {
-                  console.error(exception)
-                  //@log
-                  // this.log(exception, 'error')
+                  this.log(exception, 'error')
                 }
               }
             },
@@ -356,8 +354,7 @@ export class EnlightenmentDOM extends EnlightenmentKernel {
    */
   protected assignSlots(name?: string) {
     if (!this.shadowRoot) {
-      //@log
-      //this.log(`Unable to detect shadowRoot from ${this.namespace}`, 'error')
+      this.log(`Unable to detect shadowRoot from ${this.namespace}`, 'error')
 
       return
     }
@@ -394,8 +391,7 @@ export class EnlightenmentDOM extends EnlightenmentKernel {
         }
 
         if (this.slots && Object.values(this.slots).filter((s) => s).length) {
-          //@log
-          // this.log([`Found ${this.constructor.name} ${slots.length} slot(s) from:`, this.slots])
+          this.log([`Found ${this.constructor.name} ${slots.length} slot(s) from:`, this.slots])
         }
       }
     })
