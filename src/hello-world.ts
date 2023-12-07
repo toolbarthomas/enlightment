@@ -156,12 +156,24 @@ class HelloWorld extends Enlightenment {
   render() {
     return html`
       <focus-trap ?active=${this.hasActiveFocusTrap}>
-        <div ref="${ref(this.context)}">
+        <div class="container" ref="${ref(this.context)}">
           <h1>Hello ${this.name}</h1>
           <button @click=${this.start}>Start</button>
           <button @mousedown=${this.handleDragStart} @touchstart=${this.handleDragStart}>
             Drag
           </button>
+
+          ${Array.from({ length: 9 }).map((_, index) => {
+            return html`
+              <button
+                data-pivot="${index + 1}"
+                @mousedown=${this.handleDragStart}
+                @touchstart=${this.handleDragStart}
+              >
+                ${index + 1}
+              </button>
+            `
+          })}
 
           <div>
             <slot></slot>

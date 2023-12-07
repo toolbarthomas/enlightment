@@ -153,13 +153,6 @@ export class EnlightenmentDOM extends EnlightenmentKernel {
   context = createRef()
 
   /**
-   * Defines the current selected pivot from 1 to 9 that should use the defined
-   * Drag interaction.
-   */
-  currentContextX?: number
-  currentContextY?: number
-
-  /**
    * Boolean flag that equals True when the current Event target is within
    * the constructed Component context.
    */

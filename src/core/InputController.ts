@@ -21,10 +21,43 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
   }
 
   /**
+   * Defines the 9 possible pivots to use within the 2D Axis:
+   *
+   *    [1][2][3]
+   *    [4][5][6]
+   *    [7][8][9]
+   */
+  static pivots = {
+    x: [1, 3, 4, 6, 7, 9],
+    y: [1, 2, 3, 7, 8, 9]
+  }
+
+  /**
+   * Should contain the updated Resize values for the selected Drag context.
+   */
+  currentContextX?: number
+  currentContextY?: number
+  currentContextWidth?: number
+  currentContextHeight?: number
+  currentContextTranslateX?: number
+  currentContextTranslateY?: number
+
+  /**
+   * Stores the previous defined Context properties to use for the next
+   * Interaction callback.
+   */
+  currentContextCache?: {
+    x: number
+    y: number
+    width: number
+    height: number
+  }
+
+  /**
    * Should hold the current edge value while isGrabbed equals TRUE.
    */
-  currentEdgeX?: 'left' | 'right'
-  currentEdgeY?: 'top' | 'bottom'
+  currentEdgeX?: number
+  currentEdgeY?: number
 
   /**
    * Keep track of the interaction amount within the selected duration.
@@ -34,12 +67,6 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
   currentInteractionResponse?: number
   currentInteractionVelocityX?: number
   currentInteractionVelocityY?: number
-
-  /**
-   * Should hold the current integer X & Y values of the defined Pointer.
-   */
-  currentPointerX?: number
-  currentPointerY?: number
 
   /**
    * Defines the current selected pivot from 1 to 9 that should use the defined
@@ -52,6 +79,12 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
    * hold the current focus within the defined context.
    */
   hasActiveFocusTrap?: boolean = false
+
+  /**
+   * Should hold the current integer X & Y values of the defined Pointer.
+   */
+  initialPointerX?: number
+  initialPointerY?: number
 
   /**
    * Enable the usage for the Aria grabbed Attribute so it can be used within
@@ -67,6 +100,23 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
 
   constructor() {
     super()
+  }
+
+  private updateCurrentContextCache(context: HTMLElement) {
+    if (!context) {
+      return
+    }
+
+    const [translateX, translateY] = EnlightenmentInputController.parseMatrixValue(
+      context.style.transform
+    )
+
+    this.currentContextCache = {
+      x: context.offsetLeft + (translateX || 0),
+      y: context.offsetLeft + (translateY || 0),
+      width: context.offsetWidth,
+      height: context.offsetHeight
+    }
   }
 
   /**
@@ -137,7 +187,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
 
     event.preventDefault()
 
-    // Only listen for the main Mouse button.
+    // Only listen for the main Mouse button.x
     if (event instanceof MouseEvent) {
       if (event.button !== 0) {
         return
@@ -168,8 +218,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     }
 
     if (this.currentInteractions > 1) {
-      console.log('DOUBLE')
-      return
+      return this.handleDragSecondary(event)
     }
 
     this.isGrabbed = true
@@ -179,8 +228,8 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
 
     const [clientX, clientY] = this.usePointerPosition(event)
 
-    this.currentPointerX = Math.round(clientX)
-    this.currentPointerY = Math.round(clientY)
+    this.initialPointerX = Math.round(clientX)
+    this.initialPointerY = Math.round(clientY)
 
     this.handleCurrentElement(this)
 
@@ -199,6 +248,100 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     })
 
     this.assignGlobalEvent('mouseup', this.handleDragEnd, { once: true })
+  }
+
+  protected handleDragSecondary(event) {
+    const context = this.useContext() as HTMLElement
+
+    if (!context) {
+      return
+    }
+
+    if (this.isCenterPivot()) {
+      console.log('CENTER')
+      return
+    }
+
+    this.updateCurrentContextCache()
+
+    switch (this.currentPivot) {
+      case 1:
+        this.currentContextWidth = context.offsetLeft + context.offsetWidth
+        this.currentContextHeight = context.offsetTop + context.offsetHeight
+        this.currentContextX = 0
+        this.currentContextY = 0
+        break
+
+      case 2:
+        this.currentContextWidth = context.offsetWidth
+        this.currentContextHeight = context.offsetTop + context.offsetHeight
+        this.currentContextX = context.offsetLeft
+        this.currentContextY = 0
+        break
+
+      case 3:
+        this.currentContextWidth = window.innerWidth - context.offsetLeft
+        this.currentContextHeight = context.offsetTop + context.offsetHeight
+        this.currentContextX = context.offsetLeft
+        this.currentContextY = 0
+        break
+
+      case 4:
+        this.currentContextWidth = context.offsetLeft + context.offsetWidth
+        this.currentContextHeight = context.offsetHeight
+        this.currentContextX = 0
+        break
+
+      case 6:
+        this.currentContextWidth = window.innerWidth - context.offsetLeft
+        this.currentContextHeight = context.offsetHeight
+        this.currentContextX = context.offsetLeft
+        break
+
+      case 7:
+        this.currentContextWidth = context.offsetLeft + context.offsetWidth
+        this.currentContextHeight = window.innerHeight - context.offsetTop
+        this.currentContextX = 0
+        break
+
+      case 8:
+        this.currentContextWidth = context.offsetWidth
+        this.currentContextHeight = window.innerHeight - context.offsetTop
+        this.currentContextX = context.offsetLeft
+        this.currentContextY = context.offsetTop
+        break
+
+      case 9:
+        this.currentContextWidth = window.innerWidth - context.offsetLeft
+        this.currentContextHeight = window.innerHeight - context.offsetTop
+        this.currentContextX = context.offsetLeft
+        this.currentContextY = context.offsetTop
+        break
+
+      default:
+        //@todo should restore?
+
+        break
+    }
+
+    console.log(
+      'SECONDARY result',
+      this.currentPivot,
+      this.currentContextX,
+      this.currentContextY,
+      this.currentContextWidth,
+      this.currentContextHeight
+    )
+
+    this.currentInteractions = 0
+  }
+
+  protected isCenterPivot() {
+    return (
+      !this.currentPivot ||
+      (!EnlightenmentInputController.pivots.x.includes(this.currentPivot) &&
+        !EnlightenmentInputController.pivots.y.includes(this.currentPivot))
+    )
   }
 
   /**
@@ -255,21 +398,26 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     // Increase the drag precision instead of the a single pixel.
     const treshhold = Math.ceil(devicePixelRatio * 2)
 
-    // Limit the Pointer boundary within the viewport only
+    // Assign the current edge for both X & Y axis with the defined treshhold.
+    //          [top]
+    //          -1
+    // [left] -1 0 1 [right]
+    //           1
+    //        [bottom]
     if (clientY <= top + treshhold) {
-      this.currentEdgeY = 'top'
+      this.currentEdgeY = -1
     } else if (clientY >= bottom - treshhold) {
-      this.currentEdgeY = 'bottom'
+      this.currentEdgeY = 1
     } else {
-      this.currentEdgeY = undefined
+      this.currentEdgeY = 0
     }
 
     if (clientX <= left + treshhold) {
-      this.currentEdgeX = 'left'
+      this.currentEdgeX = -1
     } else if (clientX >= bottom - treshhold) {
-      this.currentEdgeX = 'right'
+      this.currentEdgeX = 1
     } else {
-      this.currentEdgeX = undefined
+      this.currentEdgeX = 0
     }
 
     // Failsafe that should exit the current Drag interaction while the current
