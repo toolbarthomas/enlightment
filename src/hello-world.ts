@@ -159,8 +159,25 @@ class HelloWorld extends Enlightenment {
         <div class="container" ref="${ref(this.context)}">
           <h1>Hello ${this.name}</h1>
           <button @click=${this.start}>Start</button>
+
           <button @mousedown=${this.handleDragStart} @touchstart=${this.handleDragStart}>
             Drag
+          </button>
+
+          <button
+            data-axis="x"
+            @mousedown=${this.handleDragStart}
+            @touchstart=${this.handleDragStart}
+          >
+            X
+          </button>
+
+          <button
+            data-axis="y"
+            @mousedown=${this.handleDragStart}
+            @touchstart=${this.handleDragStart}
+          >
+            Y
           </button>
 
           ${Array.from({ length: 9 }).map((_, index) => {

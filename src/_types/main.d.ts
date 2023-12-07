@@ -50,6 +50,19 @@ export type EnlightenmentProvider = EnlightenmentGlobals | EnlightenmentTheme
 export type EnlightenmentProviders = EnlightenmentProvider[]
 
 /**
+ * Defines the options Interface for the resize() Dom method.
+ * @see resize()
+ */
+export type EnlightenmentResizeOptions = {
+  fit?: boolean
+  height: number
+  position?: string
+  width: number
+  x?: number
+  y?: number
+}
+
+/**
  * Defines the expected Element types to use during any DOM logic.
  */
 export type EnlightenmentTarget = Element | HTMLElement | Node | SVGElement | undefined

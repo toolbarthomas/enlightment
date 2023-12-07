@@ -7,9 +7,9 @@ import {
   EnlightenmentJSONResponseTransformer
 } from 'src/_types/main'
 
-import { EnlightenmentDOM } from './DOM'
+import { EnlightenmentKernel } from './Kernel'
 
-export class EnlightenmentParser extends EnlightenmentDOM {
+export class EnlightenmentParser extends EnlightenmentKernel {
   /**
    * Parses the defined string value as JSON and return the output within an
    * Array regardless of the result.

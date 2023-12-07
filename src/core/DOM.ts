@@ -1,11 +1,11 @@
 import { PropertyValues } from 'lit'
 
 import { createRef, EnlightenmentMixins, property } from 'src/core/Mixins'
-import { EnlightenmentKernel } from 'src/core/Kernel'
-import { EnlightenmentTarget } from 'src/_types/main'
+import { EnlightenmentResizeOptions, EnlightenmentTarget } from 'src/_types/main'
 import { EnlightenmentTheme } from 'src/providers/Theme'
+import { EnlightenmentParser } from 'src/core/Parser'
 
-export class EnlightenmentDOM extends EnlightenmentKernel {
+export class EnlightenmentDOM extends EnlightenmentParser {
   static getElements(context: Element, tags: string[]) {
     if (!context) {
       return []
@@ -199,7 +199,7 @@ export class EnlightenmentDOM extends EnlightenmentKernel {
   private attachCurrentElement() {
     this.commit('currentElement', true)
 
-    EnlightenmentKernel.globals.assignCurrentElement(this)
+    EnlightenmentDOM.globals.assignCurrentElement(this)
   }
 
   /**
@@ -282,7 +282,7 @@ export class EnlightenmentDOM extends EnlightenmentKernel {
       return false
     })
 
-    EnlightenmentKernel.globals.omitCurrentElement(this)
+    EnlightenmentDOM.globals.omitCurrentElement(this)
 
     this.dispatchUpdate('omit')
   }
@@ -814,6 +814,104 @@ export class EnlightenmentDOM extends EnlightenmentKernel {
     }
 
     return []
+  }
+
+  /**
+   * Resize the defined context element and apply the optional position values.
+   *
+   * @param context Resize the defined context Element.
+   * @param options Apply the defined resize options.
+   */
+  protected resize(context: HTMLElement, options: EnlightenmentResizeOptions) {
+    if (!context || !context.style) {
+      return
+    }
+
+    const viewportWidth = window.innerWidth
+    const viewportHeight = window.innerHeight
+    const [translateX, translateY] = EnlightenmentDOM.parseMatrixValue(context.style.transform)
+
+    let { fit, width, height, position, x, y } = options || {}
+    x = Math.round(x + (translateX || 0))
+    y = Math.round(y + (translateY || 0))
+
+    if (width !== undefined) {
+      // Limit the resize to the visible viewport
+      if (fit && viewportWidth <= width + (x || 0)) {
+        width = Math.round(viewportWidth - x)
+      }
+
+      context.style.width = `${width}px`
+    }
+
+    if (height !== undefined) {
+      if (fit && viewportHeight <= height + (y || 0)) {
+        height = Math.round(viewportHeight - y)
+      }
+
+      context.style.height = `${height}px`
+    }
+
+    if (x !== undefined) {
+      if (fit && x < 0) {
+        x = 0
+      }
+
+      console.log('OVERRIDE with', x)
+
+      context.style.left = `${x}px`
+    }
+
+    if (y !== undefined) {
+      if (fit && y < 0) {
+        y = 0
+      }
+
+      context.style.top = `${y}px`
+    }
+
+    if (x !== undefined && y !== undefined) {
+      context.style.position = EnlightenmentDOM.filterPropertyValue(position || 'absolute', [
+        'absolute',
+        'fixed'
+      ])
+    }
+
+    context.style.transform = ''
+  }
+
+  protected transform(context: HTMLElement, x: number, y: number, fit?: boolean) {
+    if (!context || !context.style) {
+      return
+    }
+
+    let translateX = x
+    let translateY = y
+
+    if (fit) {
+      const top = y + context.offsetTop < 0
+      const left = x + context.offsetLeft < 0
+      const bottom = y + context.offsetTop + context.offsetHeight > window.innerHeight
+      const right = x + context.offsetLeft + context.offsetWidth > window.innerWidth
+
+      if (top && !bottom) {
+        const leftover = context.offsetTop + translateY
+        translateY = translateY - leftover
+      } else if (bottom && !top) {
+        const leftover = context.offsetTop + translateY + context.offsetHeight - window.innerHeight
+        translateY = translateY - leftover
+      }
+
+      if (left && !right) {
+        const leftover = context.offsetLeft + translateX
+        translateX = translateX - leftover
+      } else if (right && !left) {
+        const leftover = context.offsetLeft + translateX + context.offsetWidth - window.innerWidth
+        translateX = translateX - leftover
+      }
+    }
+
+    context.style.transform = `translate(${translateX}px, ${translateY}px)`
   }
 
   /**

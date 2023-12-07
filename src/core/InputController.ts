@@ -33,6 +33,13 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
   }
 
   /**
+   * Defines the possible interaction Type values to use from the
+   * [data-interaction] Data Attribute that should be assigned from the
+   * handleDragStart() target element.
+   */
+  static interactionTypes = ['move', 'move-x', 'move-y', 'resize', 'resize-x', 'resize-y']
+
+  /**
    * Should contain the updated Resize values for the selected Drag context.
    */
   currentContextX?: number
@@ -65,8 +72,14 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
   currentInteractions = 0
   currentInteractionRequest?: number
   currentInteractionResponse?: number
+  currentInteractionType?: string
   currentInteractionVelocityX?: number
   currentInteractionVelocityY?: number
+
+  /**
+   * Keep track of the interaction trigger that is currently used.
+   */
+  currentInteractionTarget?: Element
 
   /**
    * Defines the current selected pivot from 1 to 9 that should use the defined
@@ -147,24 +160,32 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
    * @param event Inherit the optional Mouse or Touch event interface.
    */
   protected handleDragEnd(event?: MouseEvent | TouchEvent) {
+    this.currentInteractionRequest && cancelAnimationFrame(this.currentInteractionRequest)
+
     if (this.isGrabbed) {
       const context = this.useContext() as HTMLElement
 
       if (context) {
-        this.currentInteractionRequest && cancelAnimationFrame(this.currentInteractionRequest)
+        this.currentInteractionResponse && clearTimeout(this.currentInteractionResponse)
+        this.currentInteractionRequest = requestAnimationFrame(() => {
+          console.log('BAR', this.currentInteractions, this.isGrabbed)
 
-        const [translateX, translateY] = EnlightenmentInputController.parseMatrixValue(
-          context.style.transform
-        )
+          if (this.currentInteractions <= 1) {
+            this.resize(context, {
+              x: this.currentContextX,
+              y: this.currentContextY
+            })
+          }
 
-        this.currentContextX = translateX || 0
-        this.currentContextY = translateY || 0
+          this.currentInteractionRequest = undefined
+        })
       }
     }
 
-    this.isGrabbed = false
-    this.currentPivot = undefined
     this.currentInteractionResponse = undefined
+    this.currentInteractionTarget = undefined
+    this.currentPivot = undefined
+    this.isGrabbed = false
 
     this.removeAttribute(EnlightenmentInputController.defaults.attrGrabbed)
 
@@ -196,8 +217,24 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
 
     const target = event.target as HTMLElement
 
-    if (target && target.hasAttribute('data-pivot')) {
-      this.currentPivot = EnlightenmentInputController.isInteger(target.getAttribute('data-pivot'))
+    if (target && target.hasAttribute(EnlightenmentInputController.defaults.attrPivot)) {
+    }
+
+    if (target) {
+      this.currentInteractionTarget = target
+
+      const interaction = target.getAttribute('data-interaction')
+      const pivot = EnlightenmentInputController.isInteger(
+        target.getAttribute(EnlightenmentInputController.defaults.attrPivot)
+      )
+
+      this.currentPivot = pivot
+      this.currentInteractionType = interaction
+        ? EnlightenmentInputController.filterPropertyValue(
+            interaction,
+            EnlightenmentInputController.interactionTypes
+          )
+        : undefined
     }
 
     // Apply the Drag behavior on the main Component context, since it should
@@ -216,6 +253,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
         this.currentInteractions = 0
       }, this.delay * 12)
     }
+    console.log('CI', this.currentInteractions)
 
     if (this.currentInteractions > 1) {
       return this.handleDragSecondary(event)
@@ -251,89 +289,103 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
   }
 
   protected handleDragSecondary(event) {
+    this.isGrabbed = false
+
+    console.log('Secondary', this.isGrabbed)
+    // Ensure the previous DragEnd method is canceled to ensure it does not
+    // interfere with this callback.
+    // this.currentInteractionResponse && cancelAnimationFrame(this.currentInteractionResponse)
+
     const context = this.useContext() as HTMLElement
 
     if (!context) {
       return
     }
 
-    if (this.isCenterPivot()) {
-      console.log('CENTER')
-      return
+    let initialStyle = {
+      width: context.offsetWidth,
+      height: context.offsetHeight,
+      x: context.offsetLeft,
+      y: context.offsetTop
     }
+    let updatedStyle = { ...initialStyle }
 
-    this.updateCurrentContextCache()
+    // console.log('TTT', this.currentPivot)
 
     switch (this.currentPivot) {
       case 1:
-        this.currentContextWidth = context.offsetLeft + context.offsetWidth
-        this.currentContextHeight = context.offsetTop + context.offsetHeight
-        this.currentContextX = 0
-        this.currentContextY = 0
+        updatedStyle.width = context.offsetLeft + context.offsetWidth
+        updatedStyle.height = context.offsetTop + context.offsetHeight
+        updatedStyle.x = 0
+        updatedStyle.y = 0
         break
 
       case 2:
-        this.currentContextWidth = context.offsetWidth
-        this.currentContextHeight = context.offsetTop + context.offsetHeight
-        this.currentContextX = context.offsetLeft
-        this.currentContextY = 0
+        updatedStyle.width = context.offsetWidth
+        updatedStyle.height = context.offsetTop + context.offsetHeight
+        updatedStyle.x = context.offsetLeft
+        updatedStyle.y = 0
         break
 
       case 3:
-        this.currentContextWidth = window.innerWidth - context.offsetLeft
-        this.currentContextHeight = context.offsetTop + context.offsetHeight
-        this.currentContextX = context.offsetLeft
-        this.currentContextY = 0
+        updatedStyle.width = window.innerWidth - context.offsetLeft
+        updatedStyle.height = context.offsetTop + context.offsetHeight
+        updatedStyle.x = context.offsetLeft
+        updatedStyle.y = 0
         break
 
       case 4:
-        this.currentContextWidth = context.offsetLeft + context.offsetWidth
-        this.currentContextHeight = context.offsetHeight
-        this.currentContextX = 0
+        updatedStyle.width = context.offsetLeft + context.offsetWidth
+        updatedStyle.height = context.offsetHeight
+        updatedStyle.x = 0
         break
 
       case 6:
-        this.currentContextWidth = window.innerWidth - context.offsetLeft
-        this.currentContextHeight = context.offsetHeight
-        this.currentContextX = context.offsetLeft
+        updatedStyle.width = window.innerWidth - context.offsetLeft
+        updatedStyle.height = context.offsetHeight
+        updatedStyle.x = context.offsetLeft
         break
 
       case 7:
-        this.currentContextWidth = context.offsetLeft + context.offsetWidth
-        this.currentContextHeight = window.innerHeight - context.offsetTop
-        this.currentContextX = 0
+        updatedStyle.width = context.offsetLeft + context.offsetWidth
+        updatedStyle.height = window.innerHeight - context.offsetTop
+        updatedStyle.x = 0
         break
 
       case 8:
-        this.currentContextWidth = context.offsetWidth
-        this.currentContextHeight = window.innerHeight - context.offsetTop
-        this.currentContextX = context.offsetLeft
-        this.currentContextY = context.offsetTop
+        updatedStyle.width = context.offsetWidth
+        updatedStyle.height = window.innerHeight - context.offsetTop
+        updatedStyle.x = context.offsetLeft
+        updatedStyle.y = context.offsetTop
         break
 
       case 9:
-        this.currentContextWidth = window.innerWidth - context.offsetLeft
-        this.currentContextHeight = window.innerHeight - context.offsetTop
-        this.currentContextX = context.offsetLeft
-        this.currentContextY = context.offsetTop
+        updatedStyle.width = window.innerWidth - context.offsetLeft
+        updatedStyle.height = window.innerHeight - context.offsetTop
+        updatedStyle.x = context.offsetLeft
+        updatedStyle.y = context.offsetTop
         break
 
       default:
-        //@todo should restore?
+        updatedStyle.width = window.innerWidth
+        updatedStyle.height = window.innerHeight
+        updatedStyle.x = 0
+        updatedStyle.y = 0
 
         break
     }
 
-    console.log(
-      'SECONDARY result',
-      this.currentPivot,
-      this.currentContextX,
-      this.currentContextY,
-      this.currentContextWidth,
-      this.currentContextHeight
-    )
+    if (EnlightenmentColorHelper.compareValue(initialStyle, updatedStyle)) {
+      if (this.currentContextCache) {
+        this.resize(context, this.currentContextCache)
+        this.updateCurrentContextCache()
+      }
+    } else {
+      this.updateCurrentContextCache(context)
+      this.resize(context, { ...updatedStyle, fit: true })
+    }
 
-    this.currentInteractions = 0
+    console.log('SECONDARY result', initialStyle, updatedStyle)
   }
 
   protected isCenterPivot() {
@@ -350,6 +402,10 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
    * @param event Expected Mouse or Touch event.
    */
   protected handleDragUpdate(event: MouseEvent | TouchEvent) {
+    if (!event) {
+      return this.handleDragEnd()
+    }
+
     const [clientX, clientY] = this.usePointerPosition(event)
 
     if (this.preventEvent) {
@@ -374,7 +430,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     }
 
     // if (this.inter)
-    if (!this.currentPivot || this.currentPivot === 5) {
+    if (this.isCenterPivot()) {
       !this.hasAttribute(EnlightenmentInputController.defaults.attrGrabbed) &&
         this.setAttribute(EnlightenmentInputController.defaults.attrGrabbed, 'true')
     }
@@ -390,10 +446,10 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     // @TODO Should use dynamic viewport context.
     const viewportWidth = window.innerWidth
     const viewportHeight = window.innerHeight
-    const top = 0
-    const bottom = viewportHeight
-    const left = 0
-    const right = viewportWidth
+    // const top = 0
+    // const bottom = viewportHeight
+    // const left = 0
+    // const right = viewportWidth
 
     // Increase the drag precision instead of the a single pixel.
     const treshhold = Math.ceil(devicePixelRatio * 2)
@@ -406,15 +462,15 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     //        [bottom]
     if (clientY <= top + treshhold) {
       this.currentEdgeY = -1
-    } else if (clientY >= bottom - treshhold) {
+    } else if (clientY >= viewportHeight - treshhold) {
       this.currentEdgeY = 1
     } else {
       this.currentEdgeY = 0
     }
 
-    if (clientX <= left + treshhold) {
+    if (clientX <= 0 + treshhold) {
       this.currentEdgeX = -1
-    } else if (clientX >= bottom - treshhold) {
+    } else if (clientX >= viewportHeight - treshhold) {
       this.currentEdgeX = 1
     } else {
       this.currentEdgeX = 0
@@ -422,13 +478,37 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
 
     // Failsafe that should exit the current Drag interaction while the current
     // pointer position is outisde the area for a certain duration.
-    if (!this.currentPivot || this.currentPivot === 5) {
+    if (this.isCenterPivot()) {
       if (clientX < 0 || clientX > viewportWidth || clientY < 0 || clientY > viewportHeight) {
         if (this.currentInteractionResponse === undefined) {
           this.currentInteractionResponse && clearTimeout(this.currentInteractionResponse)
           this.currentInteractionResponse = setTimeout(() => this.handleDragEnd(event), 1000)
         }
       }
+
+      this.currentInteractionRequest = requestAnimationFrame(() => {
+        let x = clientX - this.initialPointerX
+        let y = clientY - this.initialPointerY
+
+        const target = this.currentInteractionTarget
+
+        if (target) {
+          const axis = EnlightenmentInputController.filterPropertyValue(
+            target.getAttribute(EnlightenmentInputController.defaults.attrAxis),
+            ['x', 'y']
+          )
+
+          // Limit the current Drag interaction to the optional Axis
+          if (axis === 'x') {
+            y = 0
+          } else if (axis === 'y') {
+            x = 0
+          }
+        }
+
+        //@todo should inherit [fit] from actual modula
+        this.transform(this.useContext(), x, y, true)
+      })
     }
   }
 

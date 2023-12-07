@@ -20,7 +20,9 @@ import { EnlightenmentTheme } from 'src/providers/Theme'
 export class EnlightenmentKernel extends EnlightenmentMixins {
   static defaults = {
     slot: '_content',
-    attrGrabbed: 'aria-grabbed'
+    attrAxis: 'data-axis',
+    attrGrabbed: 'aria-grabbed',
+    attrPivot: 'data-pivot'
   }
 
   static MAX_THREADS = 128

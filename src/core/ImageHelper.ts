@@ -1,10 +1,10 @@
 import { unsafeSVG } from 'lit/directives/unsafe-svg.js'
 
 import { EnlightenmentImageOptions } from 'src/_types/main'
-import { EnlightenmentParser } from 'src/core/Parser'
 import { html, property } from 'src/core/Mixins'
+import { EnlightenmentDOM } from 'src/core/DOM'
 
-export class EnlightenmentImageHelper extends EnlightenmentParser {
+export class EnlightenmentImageHelper extends EnlightenmentDOM {
   /**
    * Defines the compatible image extensions for the renderImage method.
    */
@@ -27,7 +27,7 @@ export class EnlightenmentImageHelper extends EnlightenmentParser {
    */
   @property({
     attribute: 'svg-sprite-source',
-    converter: (value) => EnlightenmentParser.resolveURL(EnlightenmentParser.strip(String(value)))
+    converter: (value) => EnlightenmentDOM.resolveURL(EnlightenmentDOM.strip(String(value)))
   })
   svgSpriteSource = ''
 
@@ -54,7 +54,7 @@ export class EnlightenmentImageHelper extends EnlightenmentParser {
     if (this.svgSpriteSource && source) {
       if (
         this.testImageSource(this.svgSpriteSource) &&
-        this.testImageSource(EnlightenmentParser.strip(source))
+        this.testImageSource(EnlightenmentImageHelper.strip(source))
       ) {
         return false
       }
@@ -78,7 +78,7 @@ export class EnlightenmentImageHelper extends EnlightenmentParser {
     let result = false
 
     EnlightenmentImageHelper.imageExtensions.forEach((extension) => {
-      if (EnlightenmentParser.strip(source).endsWith(extension)) {
+      if (EnlightenmentImageHelper.strip(source).endsWith(extension)) {
         result = true
       }
     })
@@ -97,15 +97,15 @@ export class EnlightenmentImageHelper extends EnlightenmentParser {
       return ''
     }
 
-    const classname = EnlightenmentParser.usePropertyValue('classname', options)
-    const height = EnlightenmentParser.usePropertyValue('height', options, true)
-    const width = EnlightenmentParser.usePropertyValue('width', options, true)
+    const classname = EnlightenmentImageHelper.usePropertyValue('classname', options)
+    const height = EnlightenmentImageHelper.usePropertyValue('height', options, true)
+    const width = EnlightenmentImageHelper.usePropertyValue('width', options, true)
 
     const use = document.createElement('use')
     use.setAttributeNS(
       'http://www.w3.org/1999/xlink',
       'xlink:href',
-      EnlightenmentParser.sanitizeHTML(`${this.svgSpriteSource}#${source}`)
+      EnlightenmentImageHelper.sanitizeHTML(`${this.svgSpriteSource}#${source}`)
     )
 
     return this.testImage(source)

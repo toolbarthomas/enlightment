@@ -179,7 +179,7 @@ export class EnlightenmentMixins extends LitElement {
    * @param value The value to parse as Integer.
    */
   static isInteger(value: any) {
-    return value && parseInt(value)
+    return value ? parseInt(value) : undefined
   }
 
   constructor() {
