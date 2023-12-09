@@ -21,18 +21,6 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
   }
 
   /**
-   * Defines the 9 possible pivots to use within the 2D Axis:
-   *
-   *    [1][2][3]
-   *    [4][5][6]
-   *    [7][8][9]
-   */
-  static pivots = {
-    x: [1, 3, 4, 6, 7, 9],
-    y: [1, 2, 3, 7, 8, 9]
-  }
-
-  /**
    * Defines the possible interaction Type values to use from the
    * [data-interaction] Data Attribute that should be assigned from the
    * handleDragStart() target element.
@@ -82,12 +70,6 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
   currentInteractionTarget?: Element
 
   /**
-   * Defines the current selected pivot from 1 to 9 that should use the defined
-   * Drag interaction.
-   */
-  currentPivot?: number
-
-  /**
    * Optional flag that should be used by the loaded FocusTrap custom Element to
    * hold the current focus within the defined context.
    */
@@ -132,6 +114,17 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     }
   }
 
+  protected assignCurrentDragTimeout() {
+    if (this.currentInteractionResponse === undefined) {
+      this.currentInteractionResponse = setTimeout(() => this.handleDragEnd(event), 1000)
+    }
+  }
+
+  protected clearCurrentDragTimeout() {
+    this.currentInteractionResponse && clearTimeout(this.currentInteractionResponse)
+    this.currentInteractionResponse = undefined
+  }
+
   /**
    * Assign a new Global Event for each existing component context that is
    * defined the listen property.
@@ -162,13 +155,17 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
   protected handleDragEnd(event?: MouseEvent | TouchEvent) {
     this.currentInteractionRequest && cancelAnimationFrame(this.currentInteractionRequest)
 
-    if (this.isGrabbed) {
-      const context = this.useContext() as HTMLElement
+    const context = this.useContext() as HTMLElement
 
+    if (this.isGrabbed) {
       if (context) {
-        this.currentInteractionResponse && clearTimeout(this.currentInteractionResponse)
+        // Cleanup the optional running Drag Timeout.
+        this.clearCurrentDragTimeout()
+
+        // Validate the updated position and size and ensure it fits within the
+        // visible viewport.
         this.currentInteractionRequest = requestAnimationFrame(() => {
-          console.log('BAR', this.currentInteractions, this.isGrabbed)
+          const bounds = this.useBounds(context)
 
           if (this.currentInteractions <= 1) {
             this.resize(context, {
@@ -177,17 +174,30 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
             })
           }
 
+          if (bounds.right) {
+            this.resize(context, { width: window.innerWidth - context.offsetLeft })
+          } else if (bounds.left) {
+            this.resize(context, { x: 0, width: context.offsetWidth + context.offsetLeft })
+          }
+
+          if (bounds.bottom) {
+            this.resize(context, { height: window.innerHeight - context.offsetTop })
+          } else if (bounds.top) {
+            this.resize(context, { y: 0, height: context.offsetHeight + context.offsetTop })
+          }
+
           this.currentInteractionRequest = undefined
         })
       }
     }
 
+    this.currentContextHeight = undefined
+    this.currentContextWidth = undefined
     this.currentInteractionResponse = undefined
     this.currentInteractionTarget = undefined
     this.currentPivot = undefined
     this.isGrabbed = false
-
-    this.removeAttribute(EnlightenmentInputController.defaults.attrGrabbed)
+    this.updateAttributeAlias('isGrabbed', EnlightenmentInputController.defaults.attrGrabbed, true)
 
     this.omitGlobalEvent('mousemove', this.handleDragUpdate)
     this.omitGlobalEvent('mouseup', this.handleDragEnd)
@@ -223,18 +233,12 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     if (target) {
       this.currentInteractionTarget = target
 
-      const interaction = target.getAttribute('data-interaction')
+      // const interaction = target.getAttribute('data-interaction')
       const pivot = EnlightenmentInputController.isInteger(
         target.getAttribute(EnlightenmentInputController.defaults.attrPivot)
       )
 
       this.currentPivot = pivot
-      this.currentInteractionType = interaction
-        ? EnlightenmentInputController.filterPropertyValue(
-            interaction,
-            EnlightenmentInputController.interactionTypes
-          )
-        : undefined
     }
 
     // Apply the Drag behavior on the main Component context, since it should
@@ -253,7 +257,6 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
         this.currentInteractions = 0
       }, this.delay * 12)
     }
-    console.log('CI', this.currentInteractions)
 
     if (this.currentInteractions > 1) {
       return this.handleDragSecondary(event)
@@ -271,8 +274,6 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
 
     this.handleCurrentElement(this)
 
-    console.log('DRAG START')
-
     this.assignGlobalEvent('mousemove', this.handleDragUpdate, {
       context: document.documentElement
     })
@@ -288,10 +289,15 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     this.assignGlobalEvent('mouseup', this.handleDragEnd, { once: true })
   }
 
+  /**
+   * Callback handler that should initiate when the secondary Pointer
+   * interaction is triggered.
+   * @param event
+   * @returns
+   */
   protected handleDragSecondary(event) {
     this.isGrabbed = false
 
-    console.log('Secondary', this.isGrabbed)
     // Ensure the previous DragEnd method is canceled to ensure it does not
     // interfere with this callback.
     // this.currentInteractionResponse && cancelAnimationFrame(this.currentInteractionResponse)
@@ -302,98 +308,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
       return
     }
 
-    let initialStyle = {
-      width: context.offsetWidth,
-      height: context.offsetHeight,
-      x: context.offsetLeft,
-      y: context.offsetTop
-    }
-    let updatedStyle = { ...initialStyle }
-
-    // console.log('TTT', this.currentPivot)
-
-    switch (this.currentPivot) {
-      case 1:
-        updatedStyle.width = context.offsetLeft + context.offsetWidth
-        updatedStyle.height = context.offsetTop + context.offsetHeight
-        updatedStyle.x = 0
-        updatedStyle.y = 0
-        break
-
-      case 2:
-        updatedStyle.width = context.offsetWidth
-        updatedStyle.height = context.offsetTop + context.offsetHeight
-        updatedStyle.x = context.offsetLeft
-        updatedStyle.y = 0
-        break
-
-      case 3:
-        updatedStyle.width = window.innerWidth - context.offsetLeft
-        updatedStyle.height = context.offsetTop + context.offsetHeight
-        updatedStyle.x = context.offsetLeft
-        updatedStyle.y = 0
-        break
-
-      case 4:
-        updatedStyle.width = context.offsetLeft + context.offsetWidth
-        updatedStyle.height = context.offsetHeight
-        updatedStyle.x = 0
-        break
-
-      case 6:
-        updatedStyle.width = window.innerWidth - context.offsetLeft
-        updatedStyle.height = context.offsetHeight
-        updatedStyle.x = context.offsetLeft
-        break
-
-      case 7:
-        updatedStyle.width = context.offsetLeft + context.offsetWidth
-        updatedStyle.height = window.innerHeight - context.offsetTop
-        updatedStyle.x = 0
-        break
-
-      case 8:
-        updatedStyle.width = context.offsetWidth
-        updatedStyle.height = window.innerHeight - context.offsetTop
-        updatedStyle.x = context.offsetLeft
-        updatedStyle.y = context.offsetTop
-        break
-
-      case 9:
-        updatedStyle.width = window.innerWidth - context.offsetLeft
-        updatedStyle.height = window.innerHeight - context.offsetTop
-        updatedStyle.x = context.offsetLeft
-        updatedStyle.y = context.offsetTop
-        break
-
-      default:
-        updatedStyle.width = window.innerWidth
-        updatedStyle.height = window.innerHeight
-        updatedStyle.x = 0
-        updatedStyle.y = 0
-
-        break
-    }
-
-    if (EnlightenmentColorHelper.compareValue(initialStyle, updatedStyle)) {
-      if (this.currentContextCache) {
-        this.resize(context, this.currentContextCache)
-        this.updateCurrentContextCache()
-      }
-    } else {
-      this.updateCurrentContextCache(context)
-      this.resize(context, { ...updatedStyle, fit: true })
-    }
-
-    console.log('SECONDARY result', initialStyle, updatedStyle)
-  }
-
-  protected isCenterPivot() {
-    return (
-      !this.currentPivot ||
-      (!EnlightenmentInputController.pivots.x.includes(this.currentPivot) &&
-        !EnlightenmentInputController.pivots.y.includes(this.currentPivot))
-    )
+    this.strech(context, this.currentPivot)
   }
 
   /**
@@ -444,8 +359,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     }
 
     // @TODO Should use dynamic viewport context.
-    const viewportWidth = window.innerWidth
-    const viewportHeight = window.innerHeight
+    const viewport = this.useViewport()
     // const top = 0
     // const bottom = viewportHeight
     // const left = 0
@@ -462,7 +376,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     //        [bottom]
     if (clientY <= top + treshhold) {
       this.currentEdgeY = -1
-    } else if (clientY >= viewportHeight - treshhold) {
+    } else if (clientY >= viewport.height - treshhold) {
       this.currentEdgeY = 1
     } else {
       this.currentEdgeY = 0
@@ -470,7 +384,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
 
     if (clientX <= 0 + treshhold) {
       this.currentEdgeX = -1
-    } else if (clientX >= viewportHeight - treshhold) {
+    } else if (clientX >= viewport.height - treshhold) {
       this.currentEdgeX = 1
     } else {
       this.currentEdgeX = 0
@@ -478,37 +392,316 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
 
     // Failsafe that should exit the current Drag interaction while the current
     // pointer position is outisde the area for a certain duration.
-    if (this.isCenterPivot()) {
-      if (clientX < 0 || clientX > viewportWidth || clientY < 0 || clientY > viewportHeight) {
-        if (this.currentInteractionResponse === undefined) {
-          this.currentInteractionResponse && clearTimeout(this.currentInteractionResponse)
-          this.currentInteractionResponse = setTimeout(() => this.handleDragEnd(event), 1000)
-        }
+    if (!this.isWithinViewport(clientX, clientY)) {
+      this.assignCurrentDragTimeout()
+    } else {
+      console.log('RESET')
+      this.clearCurrentDragTimeout()
+    }
+
+    this.currentInteractionRequest = requestAnimationFrame(() => {
+      let x = clientX - this.initialPointerX
+      let y = clientY - this.initialPointerY
+
+      if (clientX < viewport.left) {
+        x = viewport.left
+        console.log('RESET MIN')
+      } else if (clientX > viewport.width) {
+        x = x + (clientX - viewport.width)
+        console.log('RESET MAX')
       }
 
-      this.currentInteractionRequest = requestAnimationFrame(() => {
-        let x = clientX - this.initialPointerX
-        let y = clientY - this.initialPointerY
+      if (clientY < viewport.top) {
+        console.log(this.previ)
 
-        const target = this.currentInteractionTarget
+        y = viewport
+      } else if (clientY > viewport.height) {
+        y = y + (clientY - viewport.height)
+      }
 
-        if (target) {
-          const axis = EnlightenmentInputController.filterPropertyValue(
-            target.getAttribute(EnlightenmentInputController.defaults.attrAxis),
-            ['x', 'y']
-          )
+      if (this.isCenterPivot()) {
+        this.handleDragUpdateMove(this.useContext(), x, y)
+      } else if (this.currentPivot) {
+        this.handleDragUpdateResize(this.useContext(), clientX, clientY, this.currentPivot)
+      }
+    })
+  }
 
-          // Limit the current Drag interaction to the optional Axis
-          if (axis === 'x') {
-            y = 0
-          } else if (axis === 'y') {
-            x = 0
+  protected handleDragUpdateMove(context: HTMLElement, x: number, y: number) {
+    const target = this.currentInteractionTarget
+
+    let left = x
+    let top = y
+
+    if (target) {
+      const axis = EnlightenmentInputController.filterPropertyValue(
+        target.getAttribute(EnlightenmentInputController.defaults.attrAxis),
+        ['x', 'y']
+      )
+
+      // Limit the current Drag interaction to the optional Axis
+      if (axis === 'x') {
+        top = 0
+      } else if (axis === 'y') {
+        left = 0
+      }
+    }
+
+    //@todo should inherit [fit] from actual modula
+    this.transform(context, left, top, true)
+  }
+  protected handleDragUpdateResize(context: HTMLElement, x: number, y: number, pivot: number) {
+    if (!context) {
+      return
+    }
+
+    if (!this.currentContextWidth) {
+      this.currentContextWidth = context.offsetWidth
+    }
+
+    if (!this.currentContextHeight) {
+      this.currentContextHeight = context.offsetHeight
+    }
+
+    const resizeX = EnlightenmentInputController.pivots.x.includes(pivot)
+    const resizeY = EnlightenmentInputController.pivots.y.includes(pivot)
+
+    const left = x - this.initialPointerX
+    const top = y - this.initialPointerY
+    const viewport = this.useViewport()
+    let translateX = 0
+    let translateY = 0
+    let height = 0
+    let width = 0
+    const [fallbackX, fallbackY] = EnlightenmentInputController.parseMatrixValue(
+      context.style.transform
+    )
+
+    const bounds = this.useBounds(context, fallbackX, fallbackY)
+
+    if (bounds.top || bounds.right || bounds.bottom || bounds.left) {
+      this.assignCurrentDragTimeout()
+    } else if (this.isWithinViewport(x, y)) {
+      console.log('CLEAR', { ...bounds })
+      this.clearCurrentDragTimeout()
+    }
+
+    if (resizeX) {
+      if ((bounds.right && this.currentInteractionVelocityX !== -1) || x > viewport.width) {
+        // width = window.innerWidth - context.offsetLeft
+        // this.currentWidth = context.offsetWidth
+        console.log('TOO WIDE', this.edgeX)
+      } else {
+        // const right = clientX <= context.offsetLeft && [1, 4, 7].includes(this.currentPivot)
+        // const left = clientX <= context.offsetLeft && [1, 4, 7].includes(this.currentPivot)mbv
+
+        let rtl = false
+
+        if (this.currentInteractionVelocityX !== -1 && [3, 6, 9].includes(this.currentPivot)) {
+          rtl = true
+          console.log('RTL1')
+        } else if (
+          this.currentInteractionVelocityX !== 1 &&
+          [3, 6, 9].includes(this.currentPivot)
+        ) {
+          console.log('RTL2')
+          rtl = true
+
+          if (x <= context.offsetLeft) {
+            console.log('THIS?')
+            return this.handleDragEnd()
+          }
+        } else if (
+          this.currentInteractionVelocityX !== 1 &&
+          [1, 4, 7].includes(this.currentPivot)
+        ) {
+          console.log('RTL3', left)
+          rtl = false
+          if (!bounds.left) {
+            translateX = left
+          }
+        } else if (
+          this.currentInteractionVelocityX !== -1 &&
+          [1, 4, 7].includes(this.currentPivot)
+        ) {
+          console.log('RTL4', translateX, x, context.offsetLeft)
+          // console.log('RTL4', this.currentInteractionVelocityX, this.currentInteractionVelocityY)
+          translateX = left
+          rtl = false
+
+          if (x >= (fallbackX || 0) + context.offsetLeft + context.offsetWidth) {
+            return this.handleDragEnd()
           }
         }
 
-        //@todo should inherit [fit] from actual modula
-        this.transform(this.useContext(), x, y, true)
-      })
+        if (rtl) {
+          width = this.currentContextWidth + left
+          console.log('REV', x <= viewport.width)
+        } else if (!rtl) {
+          width = this.currentContextWidth - left
+        }
+
+        // Limit the final height within the viewport
+        if (context.offsetLeft + translateY + width > viewport.width) {
+          width = viewport.width - context.offsetLeft
+        }
+
+        // Prevent the resize to flip while the context width is mirrored.
+        if (width && width <= 200) {
+          translateX = translateX
+        } else if (width <= viewport.left) {
+          return this.assignCurrentDragTimeout()
+        }
+
+        // if ([1, 4, 7].includes(this.currentPivot)) {
+        //   width = this.currentWidth - x
+
+        //   // if () {
+        //   translateX = x
+        //   // }
+        // } else {
+        //   width = this.currentWidth + x
+        // }
+
+        // let left = clientX <= context.offsetLeft
+
+        // console.log('POINTER', this.previousPointerX, clientX)
+
+        // if (clientX >= context.offsetLeft && [1, 4, 7].includes(this.currentPivot)) {
+        //   left = false
+        //   console.log('Should move left')
+        // }
+
+        // // left
+        // if (left) {
+        // } else {
+        //   // right
+        //   width = this.currentWidth + x
+        // }
+      }
+    }
+
+    if (resizeY) {
+      if (context.offsetTop + context.offsetHeight >= viewport.height && bounds.bottom) {
+        height = viewport.height - context.offsetTop
+        console.log('TOO HIGH', height, height)
+      } else {
+        // if ([1, 2, 3].includes(this.currentPivot)) {
+        //   height = this.currentHeight - y
+
+        let btt = false
+
+        if (this.currentInteractionVelocityY === 1 && [7, 8, 9].includes(this.currentPivot)) {
+          btt = true
+        } else if (
+          this.currentInteractionVelocityY == -1 &&
+          [7, 8, 9].includes(this.currentPivot)
+        ) {
+          btt = true
+
+          if (y <= context.offsetTop) {
+            console.log('STOP')
+
+            return this.handleDragEnd()
+          }
+        } else if (
+          this.currentInteractionVelocityY === -1 &&
+          [1, 2, 3].includes(this.currentPivot)
+        ) {
+          btt = false
+          if (!bounds.top) {
+            translateY = top
+          }
+        } else if (
+          this.currentInteractionVelocityY === 1 &&
+          [1, 2, 3].includes(this.currentPivot)
+        ) {
+          translateY = top
+          btt = false
+
+          if (y >= (fallbackY || 0) + context.offsetTop + context.offsetHeight) {
+            console.log('STOP')
+            return this.handleDragEnd()
+          }
+        }
+
+        //   // if () {
+        //   translateY = y
+        // } else {
+        // }
+        if (btt && !bounds.bottom) {
+          height = this.currentContextHeight + top
+          console.log('RESET?', height)
+        } else if (!bounds.top && y >= 0 && y <= viewport.height) {
+          height = this.currentContextHeight - top
+        }
+
+        // Limit the final height within the viewport
+        if (context.offsetTop + translateX + height > viewport.height) {
+          height = viewport.height - context.offsetTop
+        }
+
+        // Prevent the resize to flip while the context height is mirrored.
+        if (height && height <= 200) {
+          translateY = fallbackY
+        } else if (height <= viewport.top) {
+          return this.assignCurrentDragTimeout()
+        }
+
+        // if (clientY <= context.offsetTop || [1, 2, 3].includes(this.currentPivot)) {
+        //   height = this.currentHeight - y
+        //   translateY = y
+        // } else {
+        //   context.style.height = `${this.currentHeight + y}px`
+        // }
+      }
+    }
+
+    // if (width) {
+    //   if (width < EnlightenmentWindow.minWidth) {
+    //     width = EnlightenmentWindow.minWidth
+    //     translateX = 0
+    //   }
+
+    //   context.style.width = `${width}px`
+    // }
+
+    // if (height) {
+    //   if (height < EnlightenmentWindow.minHeight) {
+    //     height = EnlightenmentWindow.minHeight
+    //     translateY = 0
+    //   }
+
+    //   context.style.height = `${height}px`
+    // }
+
+    if (!this.currentInteractionVelocityX && !bounds.left && !bounds.right) {
+      width = context.offsetWidth
+    }
+
+    if (!this.currentInteractionVelocityY && !bounds.top && !bounds.bottom) {
+      height = context.offsetHeight
+    }
+
+    if (width) {
+      if (width < 300) {
+        width = 300
+      }
+
+      context.style.width = `${width}px`
+    }
+
+    if (height) {
+      if (height < 200) {
+        height = 200
+      }
+      context.style.height = `${height}px`
+    }
+
+    if (translateX || translateY) {
+      console.log('TRANSFORM', translateX, translateY, resizeX, resizeY)
+      this.transform(context, translateX || fallbackX, translateY || fallbackY)
+      // context.style.transform = `translate(${translateX}px, ${translateY}px)`
     }
   }
 

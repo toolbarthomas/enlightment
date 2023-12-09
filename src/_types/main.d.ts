@@ -50,16 +50,35 @@ export type EnlightenmentProvider = EnlightenmentGlobals | EnlightenmentTheme
 export type EnlightenmentProviders = EnlightenmentProvider[]
 
 /**
+ * Defines the Object definition of the last defined Transformation values
+ * of the defined HTMLElement.
+ */
+export type EnlightenmentContextCache = {
+  context: HTMLElement
+  height?: number
+  pivot?: number
+  width?: number
+  x?: number
+  y?: number
+}
+
+/**
  * Defines the options Interface for the resize() Dom method.
  * @see resize()
  */
-export type EnlightenmentResizeOptions = {
+export type EnlightenmentDOMResizeOptions = {
   fit?: boolean
   height: number
   position?: string
   width: number
   x?: number
   y?: number
+  offset?: {
+    bottom?: number
+    left?: number
+    right?: number
+    top?: number
+  }
 }
 
 /**

@@ -1,7 +1,11 @@
 import { PropertyValues } from 'lit'
 
 import { createRef, EnlightenmentMixins, property } from 'src/core/Mixins'
-import { EnlightenmentResizeOptions, EnlightenmentTarget } from 'src/_types/main'
+import {
+  EnlightenmentContextCache,
+  EnlightenmentDOMResizeOptions,
+  EnlightenmentTarget
+} from 'src/_types/main'
 import { EnlightenmentTheme } from 'src/providers/Theme'
 import { EnlightenmentParser } from 'src/core/Parser'
 
@@ -647,7 +651,7 @@ export class EnlightenmentDOM extends EnlightenmentParser {
    * Default resize handler while the document is resized.
    */
   protected handleGlobalResize(event: UIEvent) {
-    this.throttle(this.handleCurrentViewport, EnlightenmentKernel.RPS, event)
+    this.throttle(this.handleCurrentViewport, EnlightenmentDOM.RPS, event)
   }
 
   /**
@@ -814,104 +818,6 @@ export class EnlightenmentDOM extends EnlightenmentParser {
     }
 
     return []
-  }
-
-  /**
-   * Resize the defined context element and apply the optional position values.
-   *
-   * @param context Resize the defined context Element.
-   * @param options Apply the defined resize options.
-   */
-  protected resize(context: HTMLElement, options: EnlightenmentResizeOptions) {
-    if (!context || !context.style) {
-      return
-    }
-
-    const viewportWidth = window.innerWidth
-    const viewportHeight = window.innerHeight
-    const [translateX, translateY] = EnlightenmentDOM.parseMatrixValue(context.style.transform)
-
-    let { fit, width, height, position, x, y } = options || {}
-    x = Math.round(x + (translateX || 0))
-    y = Math.round(y + (translateY || 0))
-
-    if (width !== undefined) {
-      // Limit the resize to the visible viewport
-      if (fit && viewportWidth <= width + (x || 0)) {
-        width = Math.round(viewportWidth - x)
-      }
-
-      context.style.width = `${width}px`
-    }
-
-    if (height !== undefined) {
-      if (fit && viewportHeight <= height + (y || 0)) {
-        height = Math.round(viewportHeight - y)
-      }
-
-      context.style.height = `${height}px`
-    }
-
-    if (x !== undefined) {
-      if (fit && x < 0) {
-        x = 0
-      }
-
-      console.log('OVERRIDE with', x)
-
-      context.style.left = `${x}px`
-    }
-
-    if (y !== undefined) {
-      if (fit && y < 0) {
-        y = 0
-      }
-
-      context.style.top = `${y}px`
-    }
-
-    if (x !== undefined && y !== undefined) {
-      context.style.position = EnlightenmentDOM.filterPropertyValue(position || 'absolute', [
-        'absolute',
-        'fixed'
-      ])
-    }
-
-    context.style.transform = ''
-  }
-
-  protected transform(context: HTMLElement, x: number, y: number, fit?: boolean) {
-    if (!context || !context.style) {
-      return
-    }
-
-    let translateX = x
-    let translateY = y
-
-    if (fit) {
-      const top = y + context.offsetTop < 0
-      const left = x + context.offsetLeft < 0
-      const bottom = y + context.offsetTop + context.offsetHeight > window.innerHeight
-      const right = x + context.offsetLeft + context.offsetWidth > window.innerWidth
-
-      if (top && !bottom) {
-        const leftover = context.offsetTop + translateY
-        translateY = translateY - leftover
-      } else if (bottom && !top) {
-        const leftover = context.offsetTop + translateY + context.offsetHeight - window.innerHeight
-        translateY = translateY - leftover
-      }
-
-      if (left && !right) {
-        const leftover = context.offsetLeft + translateX
-        translateX = translateX - leftover
-      } else if (right && !left) {
-        const leftover = context.offsetLeft + translateX + context.offsetWidth - window.innerWidth
-        translateX = translateX - leftover
-      }
-    }
-
-    context.style.transform = `translate(${translateX}px, ${translateY}px)`
   }
 
   /**
@@ -1191,7 +1097,7 @@ export class EnlightenmentDOM extends EnlightenmentParser {
     }
 
     const [result] = Object.entries(this.slots).filter(
-      ([n, slot]) => n === EnlightenmentKernel.defaults.slot
+      ([n, slot]) => n === EnlightenmentDOM.defaults.slot
     )
 
     return result && result[1]

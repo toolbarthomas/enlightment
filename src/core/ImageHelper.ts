@@ -2,9 +2,9 @@ import { unsafeSVG } from 'lit/directives/unsafe-svg.js'
 
 import { EnlightenmentImageOptions } from 'src/_types/main'
 import { html, property } from 'src/core/Mixins'
-import { EnlightenmentDOM } from 'src/core/DOM'
+import { EnlightenmentContext2D } from 'src/core/Context2D'
 
-export class EnlightenmentImageHelper extends EnlightenmentDOM {
+export class EnlightenmentImageHelper extends EnlightenmentContext2D {
   /**
    * Defines the compatible image extensions for the renderImage method.
    */
@@ -27,7 +27,8 @@ export class EnlightenmentImageHelper extends EnlightenmentDOM {
    */
   @property({
     attribute: 'svg-sprite-source',
-    converter: (value) => EnlightenmentDOM.resolveURL(EnlightenmentDOM.strip(String(value)))
+    converter: (value) =>
+      EnlightenmentContext2D.resolveURL(EnlightenmentContext2D.strip(String(value)))
   })
   svgSpriteSource = ''
 
