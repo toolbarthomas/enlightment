@@ -102,7 +102,6 @@ export class EnlightenmentDOM extends EnlightenmentParser {
     }
 
     const bounds = context.getBoundingClientRect()
-
     return (
       bounds.top >= 0 &&
       bounds.left >= 0 &&

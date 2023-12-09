@@ -395,7 +395,6 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     if (!this.isWithinViewport(clientX, clientY)) {
       this.assignCurrentDragTimeout()
     } else {
-      console.log('RESET')
       this.clearCurrentDragTimeout()
     }
 
@@ -469,20 +468,20 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     const left = x - this.initialPointerX
     const top = y - this.initialPointerY
     const viewport = this.useViewport()
-    let translateX = 0
-    let translateY = 0
     let height = 0
     let width = 0
     const [fallbackX, fallbackY] = EnlightenmentInputController.parseMatrixValue(
       context.style.transform
     )
 
+    let translateX = fallbackX || 0
+    let translateY = fallbackY || 0
+
     const bounds = this.useBounds(context, fallbackX, fallbackY)
 
     if (bounds.top || bounds.right || bounds.bottom || bounds.left) {
       this.assignCurrentDragTimeout()
     } else if (this.isWithinViewport(x, y)) {
-      console.log('CLEAR', { ...bounds })
       this.clearCurrentDragTimeout()
     }
 
@@ -539,10 +538,16 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
           console.log('REV', x <= viewport.width)
         } else if (!rtl) {
           width = this.currentContextWidth - left
+        } else {
+          width = context.offsetWidth
+        }
+
+        if (!this.currentInteractionVelocityX) {
+          width = context.offsetWidth
         }
 
         // Limit the final height within the viewport
-        if (context.offsetLeft + translateY + width > viewport.width) {
+        if (context.offsetLeft + translateX + width > viewport.width) {
           width = viewport.width - context.offsetLeft
         }
 
@@ -575,7 +580,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
         // // left
         // if (left) {
         // } else {
-        //   // right
+        //   // right'
         //   width = this.currentWidth + x
         // }
       }
@@ -633,11 +638,19 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
           height = this.currentContextHeight + top
           console.log('RESET?', height)
         } else if (!bounds.top && y >= 0 && y <= viewport.height) {
+          console.log('fallback', this.currentContextHeight, top)
           height = this.currentContextHeight - top
+        } else {
+          height = context.offsetHeight
+          console.log('RRRR', height)
+        }
+
+        if (!this.currentInteractionVelocityY) {
+          height = context.offsetHeight
         }
 
         // Limit the final height within the viewport
-        if (context.offsetTop + translateX + height > viewport.height) {
+        if (context.offsetTop + translateY + height > viewport.height) {
           height = viewport.height - context.offsetTop
         }
 
@@ -645,47 +658,28 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
         if (height && height <= 200) {
           translateY = fallbackY
         } else if (height <= viewport.top) {
+          console.log('RRRR, RRRR')
           return this.assignCurrentDragTimeout()
         }
-
-        // if (clientY <= context.offsetTop || [1, 2, 3].includes(this.currentPivot)) {
-        //   height = this.currentHeight - y
-        //   translateY = y
-        // } else {
-        //   context.style.height = `${this.currentHeight + y}px`
-        // }
       }
     }
 
-    // if (width) {
-    //   if (width < EnlightenmentWindow.minWidth) {
-    //     width = EnlightenmentWindow.minWidth
-    //     translateX = 0
-    //   }
-
-    //   context.style.width = `${width}px`
+    //@DEPRECATED
+    // if (!this.currentInteractionVelocityX && !bounds.left && !bounds.right) {
+    //   width = context.offsetWidth
     // }
 
-    // if (height) {
-    //   if (height < EnlightenmentWindow.minHeight) {
-    //     height = EnlightenmentWindow.minHeight
-    //     translateY = 0
-    //   }
-
-    //   context.style.height = `${height}px`
+    // if (!this.currentInteractionVelocityY && !bounds.top && !bounds.bottom) {
+    //   height = context.offsetHeight
     // }
-
-    if (!this.currentInteractionVelocityX && !bounds.left && !bounds.right) {
-      width = context.offsetWidth
-    }
-
-    if (!this.currentInteractionVelocityY && !bounds.top && !bounds.bottom) {
-      height = context.offsetHeight
-    }
 
     if (width) {
       if (width < 300) {
         width = 300
+      }
+
+      if (context.offsetWidth === width && fallbackX) {
+        translateX = fallbackX
       }
 
       context.style.width = `${width}px`
@@ -693,15 +687,22 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
 
     if (height) {
       if (height < 200) {
+        console.log('fallback', height)
         height = 200
       }
+
+      if (context.offsetHeight === height && fallbackY) {
+        console.log('fallback')
+        // translateY = fallbackY
+      }
+
       context.style.height = `${height}px`
     }
 
+    console.log('tx', translateY)
+
     if (translateX || translateY) {
-      console.log('TRANSFORM', translateX, translateY, resizeX, resizeY)
       this.transform(context, translateX || fallbackX, translateY || fallbackY)
-      // context.style.transform = `translate(${translateX}px, ${translateY}px)`
     }
   }
 

@@ -73,12 +73,6 @@ export type EnlightenmentDOMResizeOptions = {
   width: number
   x?: number
   y?: number
-  offset?: {
-    bottom?: number
-    left?: number
-    right?: number
-    top?: number
-  }
 }
 
 /**
