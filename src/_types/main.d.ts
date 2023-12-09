@@ -50,27 +50,40 @@ export type EnlightenmentProvider = EnlightenmentGlobals | EnlightenmentTheme
 export type EnlightenmentProviders = EnlightenmentProvider[]
 
 /**
+ * Defines the Object Interface for a Context2D viewport reference: Window or
+ * HTMLElement.
+ */
+export type EnlightenmentContext2DViewport = {
+  top: number
+  left: number
+  width: number
+  height: number
+}
+
+/**
  * Defines the Object definition of the last defined Transformation values
  * of the defined HTMLElement.
  */
-export type EnlightenmentContextCache = {
-  context: HTMLElement
-  height?: number
-  pivot?: number
-  width?: number
-  x?: number
-  y?: number
-}
+export type EnlightenmentContext2DCacheEntry =
+  | {
+      context: HTMLElement
+      height?: number
+      pivot?: number
+      width?: number
+      x?: number
+      y?: number
+    }
+  | undefined
 
 /**
  * Defines the options Interface for the resize() Dom method.
  * @see resize()
  */
 export type EnlightenmentDOMResizeOptions = {
-  fit?: boolean
-  height: number
+  height?: number
   position?: string
-  width: number
+  viewport?: HTMLElement | typeof globalThis
+  width?: number
   x?: number
   y?: number
 }

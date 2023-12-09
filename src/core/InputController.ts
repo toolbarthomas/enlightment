@@ -38,17 +38,6 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
   currentContextTranslateY?: number
 
   /**
-   * Stores the previous defined Context properties to use for the next
-   * Interaction callback.
-   */
-  currentContextCache?: {
-    x: number
-    y: number
-    width: number
-    height: number
-  }
-
-  /**
    * Should hold the current edge value while isGrabbed equals TRUE.
    */
   currentEdgeX?: number
@@ -97,29 +86,21 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     super()
   }
 
-  private updateCurrentContextCache(context: HTMLElement) {
-    if (!context) {
-      return
-    }
-
-    const [translateX, translateY] = EnlightenmentInputController.parseMatrixValue(
-      context.style.transform
-    )
-
-    this.currentContextCache = {
-      x: context.offsetLeft + (translateX || 0),
-      y: context.offsetLeft + (translateY || 0),
-      width: context.offsetWidth,
-      height: context.offsetHeight
-    }
-  }
-
+  /**
+   * Assigns a new Interaction response callback that should end the current
+   * interaction. This should stop any interaction when the Pointer position
+   * is outside the visible viewport.
+   */
   protected assignCurrentDragTimeout() {
     if (this.currentInteractionResponse === undefined) {
-      this.currentInteractionResponse = setTimeout(() => this.handleDragEnd(event), 1000)
+      this.currentInteractionResponse = setTimeout(() => this.handleDragEnd(), 1000)
     }
   }
 
+  /**
+   * Clears the existing Interaction response callback and remove the initial
+   * timeout ID.
+   */
   protected clearCurrentDragTimeout() {
     this.currentInteractionResponse && clearTimeout(this.currentInteractionResponse)
     this.currentInteractionResponse = undefined
@@ -295,7 +276,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
    * @param event
    * @returns
    */
-  protected handleDragSecondary(event) {
+  protected handleDragSecondary(event: MouseEvent | TouchEvent) {
     this.isGrabbed = false
 
     // Ensure the previous DragEnd method is canceled to ensure it does not
@@ -360,10 +341,6 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
 
     // @TODO Should use dynamic viewport context.
     const viewport = this.useViewport()
-    // const top = 0
-    // const bottom = viewportHeight
-    // const left = 0
-    // const right = viewportWidth
 
     // Increase the drag precision instead of the a single pixel.
     const treshhold = Math.ceil(devicePixelRatio * 2)
@@ -374,7 +351,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     // [left] -1 0 1 [right]
     //           1
     //        [bottom]
-    if (clientY <= top + treshhold) {
+    if (clientY <= viewport.top + treshhold) {
       this.currentEdgeY = -1
     } else if (clientY >= viewport.height - treshhold) {
       this.currentEdgeY = 1
@@ -399,8 +376,8 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     }
 
     this.currentInteractionRequest = requestAnimationFrame(() => {
-      let x = clientX - this.initialPointerX
-      let y = clientY - this.initialPointerY
+      let x = clientX - (this.initialPointerX || 0)
+      let y = clientY - (this.initialPointerY || 0)
 
       if (clientX < viewport.left) {
         x = viewport.left
@@ -411,21 +388,35 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
       }
 
       if (clientY < viewport.top) {
-        console.log(this.previ)
-
-        y = viewport
+        y = viewport.top
       } else if (clientY > viewport.height) {
         y = y + (clientY - viewport.height)
       }
 
       if (this.isCenterPivot()) {
-        this.handleDragUpdateMove(this.useContext(), x, y)
+        this.handleDragUpdateMove(this.useContext() as HTMLElement, x, y)
       } else if (this.currentPivot) {
-        this.handleDragUpdateResize(this.useContext(), clientX, clientY, this.currentPivot)
+        this.handleDragUpdateResize(
+          this.useContext() as HTMLElement,
+          clientX,
+          clientY,
+          this.currentPivot
+        )
       }
     })
   }
 
+  /**
+   * Callback handler that updates the X and/or Y position for the selected
+   * context Element within the visible viewport.
+   *
+   * @param context Adjusts the current X/Y position from the current X & Y
+   * delta value.
+   * @param x Defines the delta X value from the initial Pointer X & defined x
+   * parameter.
+   * @param y Defines the delta Y value from the initial Pointer Y & defined y
+   * parameter.
+   */
   protected handleDragUpdateMove(context: HTMLElement, x: number, y: number) {
     const target = this.currentInteractionTarget
 
@@ -447,10 +438,22 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     }
 
     //@todo should inherit [fit] from actual modula
-    this.transform(context, left, top, true)
+    this.transform(context, left, top, window)
   }
+
+  /**
+   * Callback handler that should resize the defined context Element within
+   * the visible viewport.
+   *
+   * @param context Appy the resize transformation on the defined Element.
+   * @param x Calculate the width from the defined X position value.
+   * @param y Calculate the height from the defined X position value.
+   * @param pivot Apply the actual resize from the defined pivots: (1-9). The
+   * current defined 2D position will updated while the size is increased or
+   * decreased from the selected pivot position.
+   */
   protected handleDragUpdateResize(context: HTMLElement, x: number, y: number, pivot: number) {
-    if (!context) {
+    if (!context || !this.currentPivot) {
       return
     }
 
@@ -462,22 +465,30 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
       this.currentContextHeight = context.offsetHeight
     }
 
+    // Check the movement for both X & Y axis.
     const resizeX = EnlightenmentInputController.pivots.x.includes(pivot)
     const resizeY = EnlightenmentInputController.pivots.y.includes(pivot)
 
-    const left = x - this.initialPointerX
-    const top = y - this.initialPointerY
+    // Use the left and top values for the optional transform position during
+    // the resize interaction.
+    const left = x - (this.initialPointerX || 0)
+    const top = y - (this.initialPointerY || 0)
+
+    // Validate the Resize interaction within the defined viewport.
     const viewport = this.useViewport()
+
     let height = 0
     let width = 0
-    const [fallbackX, fallbackY] = EnlightenmentInputController.parseMatrixValue(
+
+    //
+    const [initialTranslateX, initialTranslateY] = EnlightenmentInputController.parseMatrixValue(
       context.style.transform
     )
 
-    let translateX = fallbackX || 0
-    let translateY = fallbackY || 0
+    let translateX = initialTranslateX || 0
+    let translateY = initialTranslateY || 0
 
-    const bounds = this.useBounds(context, fallbackX, fallbackY)
+    const bounds = this.useBounds(context, initialTranslateX, initialTranslateY)
 
     if (bounds.top || bounds.right || bounds.bottom || bounds.left) {
       this.assignCurrentDragTimeout()
@@ -487,13 +498,8 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
 
     if (resizeX) {
       if ((bounds.right && this.currentInteractionVelocityX !== -1) || x > viewport.width) {
-        // width = window.innerWidth - context.offsetLeft
-        // this.currentWidth = context.offsetWidth
-        console.log('TOO WIDE', this.edgeX)
+        this.assignCurrentDragTimeout()
       } else {
-        // const right = clientX <= context.offsetLeft && [1, 4, 7].includes(this.currentPivot)
-        // const left = clientX <= context.offsetLeft && [1, 4, 7].includes(this.currentPivot)mbv
-
         let rtl = false
 
         if (this.currentInteractionVelocityX !== -1 && [3, 6, 9].includes(this.currentPivot)) {
@@ -523,19 +529,16 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
           this.currentInteractionVelocityX !== -1 &&
           [1, 4, 7].includes(this.currentPivot)
         ) {
-          console.log('RTL4', translateX, x, context.offsetLeft)
-          // console.log('RTL4', this.currentInteractionVelocityX, this.currentInteractionVelocityY)
           translateX = left
           rtl = false
 
-          if (x >= (fallbackX || 0) + context.offsetLeft + context.offsetWidth) {
+          if (x >= (initialTranslateX || 0) + context.offsetLeft + context.offsetWidth) {
             return this.handleDragEnd()
           }
         }
 
         if (rtl) {
           width = this.currentContextWidth + left
-          console.log('REV', x <= viewport.width)
         } else if (!rtl) {
           width = this.currentContextWidth - left
         } else {
@@ -557,43 +560,13 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
         } else if (width <= viewport.left) {
           return this.assignCurrentDragTimeout()
         }
-
-        // if ([1, 4, 7].includes(this.currentPivot)) {
-        //   width = this.currentWidth - x
-
-        //   // if () {
-        //   translateX = x
-        //   // }
-        // } else {
-        //   width = this.currentWidth + x
-        // }
-
-        // let left = clientX <= context.offsetLeft
-
-        // console.log('POINTER', this.previousPointerX, clientX)
-
-        // if (clientX >= context.offsetLeft && [1, 4, 7].includes(this.currentPivot)) {
-        //   left = false
-        //   console.log('Should move left')
-        // }
-
-        // // left
-        // if (left) {
-        // } else {
-        //   // right'
-        //   width = this.currentWidth + x
-        // }
       }
     }
 
     if (resizeY) {
       if (context.offsetTop + context.offsetHeight >= viewport.height && bounds.bottom) {
-        height = viewport.height - context.offsetTop
-        console.log('TOO HIGH', height, height)
+        height = viewport.height - context.offsetTop - (initialTranslateY || 0)
       } else {
-        // if ([1, 2, 3].includes(this.currentPivot)) {
-        //   height = this.currentHeight - y
-
         let btt = false
 
         if (this.currentInteractionVelocityY === 1 && [7, 8, 9].includes(this.currentPivot)) {
@@ -605,8 +578,6 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
           btt = true
 
           if (y <= context.offsetTop) {
-            console.log('STOP')
-
             return this.handleDragEnd()
           }
         } else if (
@@ -624,25 +595,17 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
           translateY = top
           btt = false
 
-          if (y >= (fallbackY || 0) + context.offsetTop + context.offsetHeight) {
-            console.log('STOP')
+          if (y >= (initialTranslateY || 0) + context.offsetTop + context.offsetHeight) {
             return this.handleDragEnd()
           }
         }
 
-        //   // if () {
-        //   translateY = y
-        // } else {
-        // }
         if (btt && !bounds.bottom) {
           height = this.currentContextHeight + top
-          console.log('RESET?', height)
         } else if (!bounds.top && y >= 0 && y <= viewport.height) {
-          console.log('fallback', this.currentContextHeight, top)
           height = this.currentContextHeight - top
         } else {
           height = context.offsetHeight
-          console.log('RRRR', height)
         }
 
         if (!this.currentInteractionVelocityY) {
@@ -656,9 +619,8 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
 
         // Prevent the resize to flip while the context height is mirrored.
         if (height && height <= 200) {
-          translateY = fallbackY
+          translateY = initialTranslateY
         } else if (height <= viewport.top) {
-          console.log('RRRR, RRRR')
           return this.assignCurrentDragTimeout()
         }
       }
@@ -678,8 +640,8 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
         width = 300
       }
 
-      if (context.offsetWidth === width && fallbackX) {
-        translateX = fallbackX
+      if (context.offsetWidth === width && initialTranslateX) {
+        translateX = initialTranslateX
       }
 
       context.style.width = `${width}px`
@@ -691,18 +653,17 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
         height = 200
       }
 
-      if (context.offsetHeight === height && fallbackY) {
-        console.log('fallback')
-        // translateY = fallbackY
-      }
+      //@DEPRECATED
+      // if (context.offsetHeight === height && initialTranslateY) {
+      //   console.log('fallback')
+      //   // translateY = initialTranslateY
+      // }
 
       context.style.height = `${height}px`
     }
 
-    console.log('tx', translateY)
-
     if (translateX || translateY) {
-      this.transform(context, translateX || fallbackX, translateY || fallbackY)
+      this.transform(context, translateX || initialTranslateX, translateY || initialTranslateY)
     }
   }
 

@@ -1,11 +1,7 @@
 import { PropertyValues } from 'lit'
 
 import { createRef, EnlightenmentMixins, property } from 'src/core/Mixins'
-import {
-  EnlightenmentContextCache,
-  EnlightenmentDOMResizeOptions,
-  EnlightenmentTarget
-} from 'src/_types/main'
+import { EnlightenmentDOMResizeOptions, EnlightenmentTarget } from 'src/_types/main'
 import { EnlightenmentTheme } from 'src/providers/Theme'
 import { EnlightenmentParser } from 'src/core/Parser'
 

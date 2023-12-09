@@ -87,7 +87,7 @@ export class EnlightenmentMixins extends LitElement {
    * @param value Return the value when defined in the options parameter.
    * @param options The options parameter to filter from.
    */
-  static filterPropertyValue(value: string, options: string[]) {
+  static filterPropertyValue(value: string | null, options: string[]) {
     if (!value || !options || !options.length) {
       return
     }
