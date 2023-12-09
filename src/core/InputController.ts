@@ -93,7 +93,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
    */
   protected assignCurrentDragTimeout() {
     if (this.currentInteractionResponse === undefined) {
-      this.currentInteractionResponse = setTimeout(() => this.handleDragEnd(), 1000)
+      this.currentInteractionResponse = setTimeout(() => this.handleDragEnd(), 3000)
     }
   }
 
@@ -268,6 +268,9 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     })
 
     this.assignGlobalEvent('mouseup', this.handleDragEnd, { once: true })
+
+    // Ensure the interaction is limited to the defined FPS.
+    this.assignAnimationTimestamp()
   }
 
   /**
@@ -359,7 +362,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
       this.currentEdgeY = 0
     }
 
-    if (clientX <= 0 + treshhold) {
+    if (clientX <= viewport.left + treshhold) {
       this.currentEdgeX = -1
     } else if (clientX >= viewport.height - treshhold) {
       this.currentEdgeX = 1
@@ -375,24 +378,19 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
       this.clearCurrentDragTimeout()
     }
 
-    this.currentInteractionRequest = requestAnimationFrame(() => {
+    this.currentInteractionRequest = this.useAnimationFrame(() => {
       let x = clientX - (this.initialPointerX || 0)
       let y = clientY - (this.initialPointerY || 0)
-
       if (clientX < viewport.left) {
         x = viewport.left
-        console.log('RESET MIN')
       } else if (clientX > viewport.width) {
         x = x + (clientX - viewport.width)
-        console.log('RESET MAX')
       }
-
       if (clientY < viewport.top) {
         y = viewport.top
       } else if (clientY > viewport.height) {
         y = y + (clientY - viewport.height)
       }
-
       if (this.isCenterPivot()) {
         this.handleDragUpdateMove(this.useContext() as HTMLElement, x, y)
       } else if (this.currentPivot) {
@@ -404,6 +402,34 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
         )
       }
     })
+
+    // this.currentInteractionRequest = requestAnimationFrame(() => {
+    //   let x = clientX - (this.initialPointerX || 0)
+    //   let y = clientY - (this.initialPointerY || 0)
+
+    //   if (clientX < viewport.left) {
+    //     x = viewport.left
+    //   } else if (clientX > viewport.width) {
+    //     x = x + (clientX - viewport.width)
+    //   }
+
+    //   if (clientY < viewport.top) {
+    //     y = viewport.top
+    //   } else if (clientY > viewport.height) {
+    //     y = y + (clientY - viewport.height)
+    //   }
+
+    //   if (this.isCenterPivot()) {
+    //     this.handleDragUpdateMove(this.useContext() as HTMLElement, x, y)
+    //   } else if (this.currentPivot) {
+    //     this.handleDragUpdateResize(
+    //       this.useContext() as HTMLElement,
+    //       clientX,
+    //       clientY,
+    //       this.currentPivot
+    //     )
+    //   }
+    // })
   }
 
   /**
@@ -435,6 +461,23 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
       } else if (axis === 'y') {
         left = 0
       }
+    }
+
+    if (!this.currentInteractionVelocityX) {
+    }
+    if (!this.currentInteractionVelocityY) {
+      console.log('UP')
+    }
+
+    // Hold the previous translateX / translateY value while the current X / Y
+    // position is outside the defined viewport.
+    if (!x || !y) {
+      const [translateX, translateY] = EnlightenmentInputController.parseMatrixValue(
+        context.style.transform
+      )
+
+      left = translateX
+      top = translateY
     }
 
     //@todo should inherit [fit] from actual modula
@@ -504,23 +547,19 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
 
         if (this.currentInteractionVelocityX !== -1 && [3, 6, 9].includes(this.currentPivot)) {
           rtl = true
-          console.log('RTL1')
         } else if (
           this.currentInteractionVelocityX !== 1 &&
           [3, 6, 9].includes(this.currentPivot)
         ) {
-          console.log('RTL2')
           rtl = true
 
           if (x <= context.offsetLeft) {
-            console.log('THIS?')
             return this.handleDragEnd()
           }
         } else if (
           this.currentInteractionVelocityX !== 1 &&
           [1, 4, 7].includes(this.currentPivot)
         ) {
-          console.log('RTL3', left)
           rtl = false
           if (!bounds.left) {
             translateX = left

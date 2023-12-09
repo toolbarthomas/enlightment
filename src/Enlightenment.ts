@@ -141,7 +141,6 @@ export class Enlightenment extends EnlightenmentInputController {
     customStylesheet && this.assignCustomStyleSheet(customStylesheet)
 
     if (this.enableDocumentEvents) {
-      console.log('ENAB:E')
       this.assignGlobalEvent('click', this.handleGlobalClick)
       this.assignGlobalEvent('keydown', this.handleGlobalKeydown)
       this.assignGlobalEvent('focus', this.handleGlobalFocus)
