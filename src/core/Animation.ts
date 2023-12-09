@@ -32,6 +32,14 @@ export class EnlightenmentAnimation extends EnlightenmentDOM {
     this.currentAnimationTimestamp = this.initialAnimationTimestamp
   }
 
+  clearAnimationFrame(id?: number) {
+    if (id && id !== this.currentAnimationFrame) {
+      cancelAnimationFrame(id)
+    } else {
+      this.currentAnimationFrame && cancelAnimationFrame(this.currentAnimationFrame)
+    }
+  }
+
   /**
    * Apply the defined callback handler with a new Animation frame that should
    * limit the defined callback with the defined FPS limit.
@@ -44,22 +52,22 @@ export class EnlightenmentAnimation extends EnlightenmentDOM {
       this.assignAnimationTimestamp()
     }
 
-    this.currentAnimationFrame && cancelAnimationFrame(this.currentAnimationFrame)
+    this.clearAnimationFrame()
     this.currentAnimationFrame = requestAnimationFrame(() => {
+      const limit = Math.round(EnlightenmentAnimation.FPS / devicePixelRatio)
       this.currentAnimationTimestamp = this.useTimestamp()
       this.currentAnimationDuration =
         this.currentAnimationTimestamp - (this.initialAnimationTimestamp || this.useTimestamp())
 
-      if (this.currentAnimationDuration < EnlightenmentDOM.FPS / devicePixelRatio) {
+      if (this.currentAnimationDuration < limit) {
+        this.clearAnimationFrame()
         return this.useAnimationFrame(handler, ...args)
       }
 
       this.initialAnimationTimestamp =
-        this.currentAnimationTimestamp - (this.currentAnimationDuration % EnlightenmentDOM.FPS)
+        this.currentAnimationTimestamp - (this.currentAnimationDuration % limit)
 
       handler.call(this, ...args)
-
-      this.initialAnimationTimestamp = undefined
     })
 
     return this.currentAnimationFrame

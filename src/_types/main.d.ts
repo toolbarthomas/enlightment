@@ -72,6 +72,8 @@ export type EnlightenmentContext2DCacheEntry =
       width?: number
       x?: number
       y?: number
+      viewportWidth?: number
+      viewportHeight?: number
     }
   | undefined
 

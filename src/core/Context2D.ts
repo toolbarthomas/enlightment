@@ -342,8 +342,6 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
       } else if (bounds.left) {
         const leftover = context.offsetLeft + translateX
 
-        console.log('EDGE', offsetX)
-
         translateX = translateX - leftover
       } else if (translateX - context.offsetLeft <= viewportProperties.left) {
         // if (bounds.left || !offsetX) {

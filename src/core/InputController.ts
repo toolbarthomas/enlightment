@@ -145,7 +145,8 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
 
         // Validate the updated position and size and ensure it fits within the
         // visible viewport.
-        this.currentInteractionRequest = requestAnimationFrame(() => {
+        this.clearAnimationFrame(this.currentInteractionRequest)
+        this.currentInteractionResponse = this.useAnimationFrame(() => {
           const bounds = this.useBounds(context)
 
           if (this.currentInteractions <= 1) {
@@ -461,12 +462,6 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
       } else if (axis === 'y') {
         left = 0
       }
-    }
-
-    if (!this.currentInteractionVelocityX) {
-    }
-    if (!this.currentInteractionVelocityY) {
-      console.log('UP')
     }
 
     // Hold the previous translateX / translateY value while the current X / Y
