@@ -21,9 +21,10 @@
   ],
   "scripts": {
     "prebuild": "npm run tsc",
+    "postbuild": "node node/esbuild.extensions.mjs -r=src/enlightenment -s & node node/esbuild.extensions.mjs -r=src/enlightenment -s -f=cjs",
     "build": "node node/esbuild.enlightenment.mjs -r=src/enlightenment -s & node node/esbuild.enlightenment.mjs -r=src/enlightenment -s -f=cjs",
     "build:minify": "node node/esbuild.enlightenment.mjs -r=src/enlightenment -s -m & node node/esbuild.enlightenment.mjs -r=src/enlightenment -s -f=cjs -m",
-    "dev": "node node/esbuild.enlightenment.mjs -r=src/enlightenment -s -w & node node/esbuild.serve.mjs",
+    "dev": "node node/esbuild.enlightenment.mjs -r=src/enlightenment -s -w & node node/esbuild.extensions.mjs -r=src/enlightenment -s -w & node node/esbuild.serve.mjs",
     "prepublish": "npm run build && npm run build:minify",
     "test": "echo \"Error: no test specified\" && exit 1",
     "tsc": "tsc --noEmit"

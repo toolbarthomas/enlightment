@@ -53,6 +53,7 @@ export class EnlightenmentAnimation extends EnlightenmentDOM {
     }
 
     this.clearAnimationFrame()
+
     this.currentAnimationFrame = requestAnimationFrame(() => {
       const limit = Math.round(EnlightenmentAnimation.FPS / devicePixelRatio)
       this.currentAnimationTimestamp = this.useTimestamp()
@@ -61,7 +62,8 @@ export class EnlightenmentAnimation extends EnlightenmentDOM {
 
       if (this.currentAnimationDuration < limit) {
         this.clearAnimationFrame()
-        return this.useAnimationFrame(handler, ...args)
+        this.useAnimationFrame(handler, ...args)
+        return
       }
 
       this.initialAnimationTimestamp =

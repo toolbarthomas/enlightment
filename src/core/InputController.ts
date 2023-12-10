@@ -1,10 +1,12 @@
 import {
+  EnlightenmentInputControllerPointerData,
   GlobalEvent,
   GlobalEventHandler,
   GlobalEventOptions,
   GlobalEventType
 } from 'src/_types/main'
 
+import { eventOptions } from 'src/core/Mixins'
 import { EnlightenmentColorHelper } from 'src/core/ColorHelper'
 
 export class EnlightenmentInputController extends EnlightenmentColorHelper {
@@ -30,6 +32,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
   /**
    * Should contain the updated Resize values for the selected Drag context.
    */
+  currentContext?: HTMLElement
   currentContextX?: number
   currentContextY?: number
   currentContextWidth?: number
@@ -140,6 +143,8 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
 
     if (this.isGrabbed) {
       if (context) {
+        this.currentContext = undefined
+
         // Cleanup the optional running Drag Timeout.
         this.clearCurrentDragTimeout()
 
@@ -168,6 +173,10 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
             this.resize(context, { y: 0, height: context.offsetHeight + context.offsetTop })
           }
 
+          const ariaTarget = this.currentContext || this.useContext() || this
+          ariaTarget &&
+            ariaTarget.removeAttribute(EnlightenmentInputController.defaults.attrGrabbed)
+
           this.currentInteractionRequest = undefined
         })
       }
@@ -192,13 +201,14 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
    * Mouse & Touch devices.
    *
    * @param event The expected Mouse or Touch Event.
+   * @param customTarget Use the defined HTMLElement
+   * currentInteractionTarget instead.
    */
-  protected handleDragStart(event: MouseEvent | TouchEvent) {
+  @eventOptions({ passive: true })
+  protected handleDragStart(event: MouseEvent | TouchEvent, customTarget?: HTMLElement) {
     if (!event || this.isGrabbed || this.preventEvent) {
       return
     }
-
-    event.preventDefault()
 
     // Only listen for the main Mouse button.x
     if (event instanceof MouseEvent) {
@@ -207,10 +217,11 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
       }
     }
 
-    const target = event.target as HTMLElement
+    const target = customTarget || (event.target as HTMLElement)
 
-    if (target && target.hasAttribute(EnlightenmentInputController.defaults.attrPivot)) {
-    }
+    //@DEPRECATED
+    // if (target && target.hasAttribute(EnlightenmentInputController.defaults.attrPivot)) {
+    // }
 
     if (target) {
       this.currentInteractionTarget = target
@@ -230,6 +241,8 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     if (!context) {
       return
     }
+
+    this.currentContext = context
 
     this.currentInteractions += 1
 
@@ -293,6 +306,8 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
       return
     }
 
+    console.log('STRETCH', context, this.currentPivot)
+
     this.strech(context, this.currentPivot)
   }
 
@@ -331,8 +346,14 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
 
     // if (this.inter)
     if (this.isCenterPivot()) {
-      !this.hasAttribute(EnlightenmentInputController.defaults.attrGrabbed) &&
+      const ariaTarget = this.currentContext || this.useContext() || this
+
+      !ariaTarget.hasAttribute(EnlightenmentInputController.defaults.attrGrabbed) &&
+        ariaTarget.setAttribute(EnlightenmentInputController.defaults.attrGrabbed, 'true')
+
+      if (ariaTarget !== this) {
         this.setAttribute(EnlightenmentInputController.defaults.attrGrabbed, 'true')
+      }
     }
 
     if (clientX !== undefined) {
@@ -344,7 +365,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     }
 
     // @TODO Should use dynamic viewport context.
-    const viewport = this.useViewport()
+    const viewport = this.useBoundingRect()
 
     // Increase the drag precision instead of the a single pixel.
     const treshhold = Math.ceil(devicePixelRatio * 2)
@@ -365,7 +386,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
 
     if (clientX <= viewport.left + treshhold) {
       this.currentEdgeX = -1
-    } else if (clientX >= viewport.height - treshhold) {
+    } else if (clientX >= viewport.width - treshhold) {
       this.currentEdgeX = 1
     } else {
       this.currentEdgeX = 0
@@ -392,16 +413,14 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
       } else if (clientY > viewport.height) {
         y = y + (clientY - viewport.height)
       }
-      if (this.isCenterPivot()) {
-        this.handleDragUpdateMove(this.useContext() as HTMLElement, x, y)
-      } else if (this.currentPivot) {
-        this.handleDragUpdateResize(
-          this.useContext() as HTMLElement,
-          clientX,
-          clientY,
-          this.currentPivot
-        )
-      }
+
+      this.handleDragUpdateCallback(this.currentContext || this.useContext, {
+        pivot: this.currentPivot,
+        clientX,
+        clientY,
+        x,
+        y
+      })
     })
 
     // this.currentInteractionRequest = requestAnimationFrame(() => {
@@ -431,6 +450,13 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     //     )
     //   }
     // })
+  }
+
+  protected handleDragUpdateCallback(
+    context: HTMLElement,
+    properties: EnlightenmentInputControllerPointerData
+  ) {
+    return [context, properties]
   }
 
   /**
@@ -513,7 +539,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     const top = y - (this.initialPointerY || 0)
 
     // Validate the Resize interaction within the defined viewport.
-    const viewport = this.useViewport()
+    const viewport = this.useBoundingRect()
 
     let height = 0
     let width = 0

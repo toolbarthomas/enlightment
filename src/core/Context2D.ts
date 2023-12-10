@@ -1,5 +1,5 @@
 import {
-  EnlightenmentContext2DViewport,
+  EnlightenmentContext2DRect,
   EnlightenmentContext2DCacheEntry,
   EnlightenmentDOMResizeOptions
 } from 'src/_types/main'
@@ -126,7 +126,7 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
    * @param viewport Validate from the optionally defined viewport context.
    */
   protected isWithinViewport(x: number, y: number, viewport?: HTMLElement) {
-    const context = this.useViewport(viewport)
+    const context = this.useBoundingRect(viewport)
 
     return x >= context.left && x <= context.width && y >= context.top && y <= context.width
   }
@@ -147,7 +147,7 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
     )
 
     let { width, height, position, viewport, x, y } = options || {}
-    const viewportProperties = this.useViewport(viewport)
+    const viewportProperties = this.useBoundingRect(viewport)
     x = Math.round((x || 0) + (translateX || 0))
     y = Math.round((y || 0) + (translateY || 0))
 
@@ -329,7 +329,7 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
     let translateX = offsetX || 0
     let translateY = offsetY || 0
 
-    const viewportProperties = this.useViewport(viewport)
+    const viewportProperties = this.useBoundingRect(viewport)
     const bounds = this.useBounds(context, translateX, translateY)
 
     // Limit
@@ -376,7 +376,7 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
    * @param context Use the defined Context element position, width & height.
    */
   protected useBounds(context: HTMLElement, translateX?: number, translateY?: number) {
-    const viewport = this.useViewport()
+    const viewport = this.useBoundingRect()
 
     const top = (translateY || 0) + context.offsetTop < viewport.top
     const left = (translateX || 0) + context.offsetLeft < viewport.left
@@ -419,9 +419,7 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
    * @param viewport Returns the Box model properties from the defined viewport
    * as alternative.
    */
-  protected useViewport(
-    viewport?: HTMLElement | typeof globalThis
-  ): EnlightenmentContext2DViewport {
+  protected useBoundingRect(context?: HTMLElement | typeof globalThis): EnlightenmentContext2DRect {
     const defaultViewport = {
       top: 0,
       left: 0,
@@ -429,7 +427,7 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
       height: window.innerHeight
     }
 
-    if (!viewport || viewport === globalThis) {
+    if (!context || context === globalThis) {
       return defaultViewport
     }
 

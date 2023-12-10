@@ -49,11 +49,19 @@ export type EnlightenmentJSONResponse =
 export type EnlightenmentProvider = EnlightenmentGlobals | EnlightenmentTheme
 export type EnlightenmentProviders = EnlightenmentProvider[]
 
+export type EnlightenmentInputControllerPointerData = {
+  clientX: number
+  clientY: number
+  pivot?: number
+  x: number
+  y: number
+}
+
 /**
  * Defines the Object Interface for a Context2D viewport reference: Window or
  * HTMLElement.
  */
-export type EnlightenmentContext2DViewport = {
+export type EnlightenmentContext2DRect = {
   top: number
   left: number
   width: number

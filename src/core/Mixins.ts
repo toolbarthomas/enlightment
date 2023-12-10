@@ -9,12 +9,18 @@ import {
   svg
 } from 'lit'
 
-import { customElement as _customElement, property as _property, query } from 'lit/decorators.js'
+import {
+  customElement as _customElement,
+  eventOptions as _eventOptions,
+  property as _property,
+  query
+} from 'lit/decorators.js'
 import { createRef as _createRef, ref as _ref, Ref } from 'lit/directives/ref.js'
 
 export const createRef = _createRef
 export const css = _css
 export const customElement = _customElement
+export const eventOptions = _eventOptions
 export const LitElement = _LitElement
 export const html = _html
 export const nothing = _nothing
