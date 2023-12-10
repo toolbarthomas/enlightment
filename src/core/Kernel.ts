@@ -22,7 +22,8 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
     slot: '_content',
     attrAxis: 'data-axis',
     attrGrabbed: 'aria-grabbed',
-    attrPivot: 'data-pivot'
+    attrPivot: 'data-pivot',
+    passiveEventTypes: ['mousemove', 'resize', 'scroll', 'touchmove', 'wheel', 'wheel']
   }
 
   static MAX_THREADS = 128
@@ -219,7 +220,7 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
       return
     }
 
-    const { context, once } = options || {}
+    const { context, once, passive } = options || {}
 
     const ctx = context || document
 
@@ -235,7 +236,13 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
 
     this.listeners.push([type, fn, ctx, handler])
 
-    ctx && ctx.addEventListener(type, fn, { once })
+    // Ensure the assigned Event is marked as passive for the event type
+    let pv = passive
+    if (EnlightenmentKernel.defaults.passiveEventTypes.includes(type)) {
+      pv = true
+    }
+
+    ctx && ctx.addEventListener(type, fn, { once, passive: pv })
 
     this.log([`Global event assigned: ${ctx.constructor.name}@${type}`, ctx])
   }

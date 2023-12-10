@@ -660,10 +660,6 @@ export class EnlightenmentDOM extends EnlightenmentParser {
       return
     }
 
-    if (this.preventEvent) {
-      return
-    }
-
     this.isEmptyComponentSlot(event)
 
     this.assignSlottedEvent(event)

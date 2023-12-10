@@ -18,6 +18,7 @@
       You can ignore the workflow if your component will be bundled with the
       actual Enlightenment library within your working development.
   -->
+  <script src="Draggable.extension.js" type="module"></script>
   <script src="hello-world.js" type="module"></script>
 
   <script>
@@ -70,6 +71,19 @@
     //   console.log(window.NLGHTNMNT)
     // }, 3000)
   </script>
+
+  <style>
+    #bar {
+      background: grey;
+    }
+
+    .square {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      background: green;
+    }
+  </style>
 </head>
 
 <body>
@@ -93,12 +107,17 @@
     </hello-world>
   </hello-world> -->
 
-  <hello-world accent="30" neutral="100" mode="dark" svg-sprite-source="/sprite.svg">
-    <!-- <hello-world></hello-world> -->
-    <!-- <hello-world handle="ready:start(),updated:hello()">
-    </hello-world> -->
-    <button handle="click:start()">Manual start</button>
-  </hello-world>
+
+  <div id="bar">
+    <hello-world accent="30" neutral="100" mode="dark" svg-sprite-source="/sprite.svg">
+      <!-- <hello-world></hello-world> -->
+      <!-- <hello-world handle="ready:start(),updated:hello()">
+      </hello-world> -->
+      <button handle="click:start()">Manual start</button>
+
+
+    </hello-world>
+  </div>
   <!-- <hello-world>
     <hello-world></hello-world>
 

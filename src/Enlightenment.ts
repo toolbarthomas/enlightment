@@ -2,7 +2,16 @@ import { PropertyValueMap, PropertyValues } from 'lit'
 
 import { EnlightenmentTheme } from 'src/providers/Theme'
 
-export { createRef, css, customElement, html, nothing, property, ref } from 'src/core/Mixins'
+export {
+  createRef,
+  css,
+  customElement,
+  eventOptions,
+  html,
+  nothing,
+  property,
+  ref
+} from 'src/core/Mixins'
 
 import { EnlightenmentInputController } from 'src/core/InputController'
 

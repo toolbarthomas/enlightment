@@ -119,6 +119,7 @@ export type GlobalEventContext = EventTarget
 export type GlobalEventOptions = {
   context?: GlobalEventContext
   once?: boolean
+  passive?: boolean
 }
 
 export type GlobalEvent = [

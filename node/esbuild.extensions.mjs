@@ -4,6 +4,7 @@ import path from 'node:path'
 import { argv } from './argv.mjs'
 
 import { resolvePlugin } from './esbuild.resolve.plugin.mjs'
+import { stylePlugin } from './esbuild.style.plugin.mjs'
 
 /*
  * Creates a new Enlightenment bundle with optional styles that will be included
@@ -33,8 +34,8 @@ import { resolvePlugin } from './esbuild.resolve.plugin.mjs'
     minify: argv.m || argv.minify || false,
     outdir: 'dist',
     outExtension,
-    platform: 'node',
-    plugins: [resolvePlugin()]
+    platform: 'browser',
+    plugins: [resolvePlugin(), stylePlugin()]
   }
 
   if (watch) {

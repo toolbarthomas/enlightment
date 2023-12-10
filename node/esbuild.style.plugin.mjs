@@ -1,25 +1,25 @@
-import * as sass from "sass";
-import { readFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import * as sass from 'sass'
+import { readFileSync } from 'node:fs'
+import { dirname, resolve } from 'node:path'
 
-import autoprefixer from "autoprefixer";
-import combineDuplicateSelectors from "postcss-combine-duplicated-selectors";
-import cssnano from "cssnano";
-import postcss from "postcss";
+import autoprefixer from 'autoprefixer'
+import combineDuplicateSelectors from 'postcss-combine-duplicated-selectors'
+import cssnano from 'cssnano'
+import postcss from 'postcss'
 
-import { argv } from "./argv.mjs";
-import { globSync } from "glob";
-import { fileURLToPath } from "node:url";
+import { argv } from './argv.mjs'
+import { globSync } from 'glob'
+import { fileURLToPath } from 'node:url'
 
 /**
  * Load the required BrowserList configuration from the Node context or this
  * package as fallback.
  */
-const [browserlistCustomConfig] = globSync(".browserlistrc*");
+const [browserlistCustomConfig] = globSync('.browserlistrc*')
 const browserlistDefaultConfig = resolve(
   dirname(fileURLToPath(import.meta.url)),
-  "../.browserlistrc"
-);
+  '../.browserlistrc'
+)
 
 /**
  * Minifies the defined data value with the installed minifiers.
@@ -33,30 +33,30 @@ const optimize = (data, context) => {
       autoprefixer: browserlistCustomConfig
         ? {}
         : {
-            overrideBrowserslist: [("> 2%", "last 2 versions")],
+            overrideBrowserslist: [('> 2%', 'last 2 versions')]
           },
 
       cssnano: {
         mergeLonghand: false,
-        discardComments: true,
-      },
-    };
+        discardComments: true
+      }
+    }
 
     const config = [
       autoprefixer(plugins.autoprefixer),
       argv.m || argv.minify ? cssnano(plugins.cssnano) : undefined,
-      combineDuplicateSelectors(plugins.combineDuplicateSelectors),
-    ].filter((_) => _);
+      combineDuplicateSelectors(plugins.combineDuplicateSelectors)
+    ].filter((_) => _)
 
     postcss(config)
       .process(data, {
-        from: context || process.cwd(),
+        from: context || process.cwd()
       })
       .then((result) => {
-        return done(result.css || data);
-      });
-  });
-};
+        return done(result.css || data)
+      })
+  })
+}
 
 /**
  * Esbuild Plugin that compiles the defined scss imports with the Sass library.
@@ -69,41 +69,38 @@ const optimize = (data, context) => {
  * defining body related properties like typography and inline element layouts.
  */
 export const stylePlugin = () => ({
-  name: "Sass",
+  name: 'Sass',
   setup(build) {
     build.onLoad({ filter: /\.scss|css$/ }, async (args) => {
-      const data = readFileSync(args.path);
-      let css = "";
+      const data = readFileSync(args.path)
+      let css = ''
 
-      if (String(args.path).endsWith(".scss")) {
+      if (String(args.path).endsWith('.scss')) {
         css = sass.compileString(data.toString(), {
-          loadPaths: [process.cwd(), dirname(args.path), "./node_modules"],
-        }).css;
+          loadPaths: [process.cwd(), dirname(args.path), './node_modules']
+        }).css
       } else {
-        css = data.toString();
+        css = data.toString()
       }
 
-      css = await optimize(css, args.path);
+      css = await optimize(css, args.path)
 
       // Use the dynamic name alias in order to resolve to actual Enlightenment
       // package. The development version uses the relative path defined from
       // the first CLI argument. This enables the usage of this Esbuild Plugin
       // outside the actual enlightenment package and will resolve Sass imports:
       // import { stylePlugin } from '@toolbarthomas/enlightenment'
-      const { r, resolve, s, split } = argv;
-      const name = r || resolve || "@toolbarthomas/enlightenment";
+      const { r, resolve, s, split } = argv
+      const name = r || resolve || '@toolbarthomas/enlightenment'
 
       // Enclose the rendered style as a Component stylesheet if the
       // defined stylesheet exists within the components directory.
       return s || split
-        ? { contents: css, loader: "css" }
+        ? { contents: css, loader: 'css' }
         : {
-            contents: [
-              `import { css } from '${name}'`,
-              `export default css\`${css}\``,
-            ].join("\n"),
-            loader: "js",
-          };
-    });
-  },
-});
+            contents: [`import { css } from '${name}'`, `export default css\`${css}\``].join('\n'),
+            loader: 'js'
+          }
+    })
+  }
+})

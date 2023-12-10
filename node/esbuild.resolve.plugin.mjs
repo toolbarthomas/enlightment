@@ -38,6 +38,8 @@ export const resolvePlugin = (options) => ({
       }
     }
 
+    build.initialOptions
+
     build.onResolve({ filter: /@toolbarthomas\/enlightenment$/ }, (args) => {
       return {
         path: d,
