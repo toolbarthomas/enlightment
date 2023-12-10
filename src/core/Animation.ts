@@ -1,4 +1,4 @@
-import { EnlightenmentDOM } from './DOM'
+import { EnlightenmentDOM } from 'src/core/DOM'
 
 export class EnlightenmentAnimation extends EnlightenmentDOM {
   // Defines the initial start time in order to limit the callback with the

@@ -1,9 +1,9 @@
-import { PropertyValues } from 'lit'
-
-import { createRef, EnlightenmentMixins, property } from 'src/core/Mixins'
 import { EnlightenmentDOMResizeOptions, EnlightenmentTarget } from 'src/_types/main'
-import { EnlightenmentTheme } from 'src/providers/Theme'
+
+import { createRef, property } from 'src/core/Mixins'
 import { EnlightenmentParser } from 'src/core/Parser'
+
+import { EnlightenmentTheme } from 'src/providers/Theme'
 
 export class EnlightenmentDOM extends EnlightenmentParser {
   static getElements(context: Element, tags: string[]) {
@@ -110,10 +110,10 @@ export class EnlightenmentDOM extends EnlightenmentParser {
    * Generates a new valid element id selector for the current DOM.
    */
   static useElementID() {
-    let id = EnlightenmentMixins.generateTimestampID()
+    let id = EnlightenmentParser.generateTimestampID()
 
     while (document.getElementById(id)) {
-      id = EnlightenmentMixins.generateTimestampID()
+      id = EnlightenmentParser.generateTimestampID()
     }
 
     return id
@@ -133,14 +133,14 @@ export class EnlightenmentDOM extends EnlightenmentParser {
    * Attribute.
    */
   @property({
-    converter: EnlightenmentMixins.isBoolean,
+    converter: EnlightenmentParser.isBoolean,
     type: Boolean
   })
   disabled?: boolean
 
   // Returns the full Component context when FALSE.
   @property({
-    converter: EnlightenmentMixins.isBoolean,
+    converter: EnlightenmentParser.isBoolean,
     type: Boolean
   })
   minimalShadowRoot?: boolean

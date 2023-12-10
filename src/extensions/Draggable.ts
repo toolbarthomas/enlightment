@@ -66,7 +66,7 @@ class EnlightenmentDraggable extends Enlightenment {
     }
 
     if (this.static && !target) {
-      this.currentTarget = this
+      this.currentTarget = this as any
     }
 
     if (!this.currentTarget && !target && host !== this) {
@@ -86,7 +86,7 @@ class EnlightenmentDraggable extends Enlightenment {
     if (!this.currentTarget && target) {
       this.currentTarget = target
     } else if (!this.currentTarget) {
-      this.currentTarget = this
+      this.currentTarget = this as any
     }
 
     this.log(['Draggable target defined:', this.currentTarget], 'log')

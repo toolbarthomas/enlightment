@@ -1,7 +1,7 @@
-import { EnlightenmentDOM } from 'src/core/DOM'
 import { EnlightenmentImageHelper } from 'src/core/ImageHelper'
-import { EnlightenmentTheme } from 'src/providers/Theme'
 import { property } from 'src/core/Mixins'
+
+import { EnlightenmentTheme } from 'src/providers/Theme'
 
 export class EnlightenmentColorHelper extends EnlightenmentImageHelper {
   /**

@@ -3,6 +3,7 @@ import {
   EnlightenmentContext2DCacheEntry,
   EnlightenmentDOMResizeOptions
 } from 'src/_types/main'
+
 import { EnlightenmentAnimation } from 'src/core/Animation'
 
 export class EnlightenmentContext2D extends EnlightenmentAnimation {
@@ -431,7 +432,7 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
       return defaultViewport
     }
 
-    const element = viewport as HTMLElement
+    const element = context as HTMLElement
 
     return element
       ? {

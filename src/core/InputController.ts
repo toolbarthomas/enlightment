@@ -1,12 +1,7 @@
-import {
-  EnlightenmentInputControllerPointerData,
-  GlobalEvent,
-  GlobalEventHandler,
-  GlobalEventOptions,
-  GlobalEventType
-} from 'src/_types/main'
+import { EnlightenmentInputControllerPointerData } from 'src/_types/main'
 
 import { eventOptions } from 'src/core/Mixins'
+
 import { EnlightenmentColorHelper } from 'src/core/ColorHelper'
 
 export class EnlightenmentInputController extends EnlightenmentColorHelper {
@@ -414,7 +409,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
         y = y + (clientY - viewport.height)
       }
 
-      this.handleDragUpdateCallback(this.currentContext || this.useContext, {
+      this.handleDragUpdateCallback(this.currentContext || (this.useContext() as HTMLElement), {
         pivot: this.currentPivot,
         clientX,
         clientY,

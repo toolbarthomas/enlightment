@@ -1,8 +1,9 @@
 import { unsafeSVG } from 'lit/directives/unsafe-svg.js'
 
 import { EnlightenmentImageOptions } from 'src/_types/main'
-import { html, property } from 'src/core/Mixins'
+
 import { EnlightenmentContext2D } from 'src/core/Context2D'
+import { html, property } from 'src/core/Mixins'
 
 export class EnlightenmentImageHelper extends EnlightenmentContext2D {
   /**
