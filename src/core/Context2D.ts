@@ -330,11 +330,15 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
     let translateX = offsetX || 0
     let translateY = offsetY || 0
 
-    const viewportProperties = this.useBoundingRect(viewport)
     const bounds = this.useBounds(context, translateX, translateY)
 
     // Limit
     if (viewport) {
+      const viewportProperties = this.useBoundingRect(viewport)
+      if (viewportProperties.width > context.offsetWidth) {
+        console.log('Ignore fit')
+      }
+
       if (translateX + context.offsetLeft + context.offsetWidth > viewportProperties.width) {
         const leftover =
           context.offsetLeft + translateX + context.offsetWidth - viewportProperties.width

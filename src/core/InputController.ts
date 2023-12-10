@@ -47,9 +47,9 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
   currentInteractions = 0
   currentInteractionRequest?: number
   currentInteractionResponse?: number
-  currentInteractionType?: string
   currentInteractionVelocityX?: number
   currentInteractionVelocityY?: number
+  currentInteractionEvent?: MouseEvent | TouchEvent
 
   /**
    * Keep track of the interaction trigger that is currently used.
@@ -132,11 +132,15 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
    * @param event Inherit the optional Mouse or Touch event interface.
    */
   protected handleDragEnd(event?: MouseEvent | TouchEvent) {
+    if (!this.currentInteractionEvent) {
+      return
+    }
+
     this.currentInteractionRequest && cancelAnimationFrame(this.currentInteractionRequest)
 
-    const context = this.useContext() as HTMLElement
-
     if (this.isGrabbed) {
+      const context = this.useContext() as HTMLElement
+
       if (context) {
         this.currentContext = undefined
 
@@ -173,6 +177,9 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
             ariaTarget.removeAttribute(EnlightenmentInputController.defaults.attrGrabbed)
 
           this.currentInteractionRequest = undefined
+          this.throttle(() => {
+            this.currentInteractionEvent = undefined
+          })
         })
       }
     }
@@ -205,8 +212,13 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
       return
     }
 
-    // Only listen for the main Mouse button.x
+    // Ensures to only use the initial Pointer Mouse or Touch Event.
+    if (!this.isCurrentInteractionEvent(event)) {
+      return
+    }
+
     if (event instanceof MouseEvent) {
+      // Only listen for the main Mouse button.x
       if (event.button !== 0) {
         return
       }
@@ -249,6 +261,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     }
 
     if (this.currentInteractions > 1) {
+      console.log('THIS', this.currentInteractions)
       return this.handleDragSecondary(event)
     }
 
@@ -256,6 +269,12 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
 
     this.currentContextX = context.offsetLeft
     this.currentContextY = context.offsetTop
+
+    // Ensure the method is called only once since a MouseEvent a TouchEvent
+    // can be called together.
+    if (!this.currentInteractionEvent) {
+      this.currentInteractionEvent = event
+    }
 
     const [clientX, clientY] = this.usePointerPosition(event)
 
@@ -301,8 +320,6 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
       return
     }
 
-    console.log('STRETCH', context, this.currentPivot)
-
     this.strech(context, this.currentPivot)
   }
 
@@ -314,6 +331,11 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
   protected handleDragUpdate(event: MouseEvent | TouchEvent) {
     if (!event) {
       return this.handleDragEnd()
+    }
+
+    if (!this.isCurrentInteractionEvent(event)) {
+      console.log('IGNORE', event)
+      return
     }
 
     const [clientX, clientY] = this.usePointerPosition(event)
@@ -390,6 +412,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     // Failsafe that should exit the current Drag interaction while the current
     // pointer position is outisde the area for a certain duration.
     if (!this.isWithinViewport(clientX, clientY)) {
+      console.log('TIMEOUT')
       this.assignCurrentDragTimeout()
     } else {
       this.clearCurrentDragTimeout()
@@ -498,6 +521,48 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
         this.handleCurrentElement(document.activeElement)
       })
     }
+  }
+
+  /**
+   * Compares the defined Event with the current Interaction Event that was
+   * assigned during the initial Interaction event.
+   *
+   * @param event The Event object to compare.
+   */
+  protected isCurrentInteractionEvent(event: Event) {
+    if (
+      event instanceof MouseEvent &&
+      this.currentInteractionEvent &&
+      this.currentInteractionEvent instanceof MouseEvent === false
+    ) {
+      return false
+    }
+
+    if (
+      event instanceof TouchEvent &&
+      this.currentInteractionEvent &&
+      this.currentInteractionEvent instanceof TouchEvent === false
+    ) {
+      return false
+    }
+
+    if (
+      event instanceof MouseEvent &&
+      this.currentInteractionEvent &&
+      this.currentInteractionEvent instanceof MouseEvent
+    ) {
+      return true
+    }
+
+    if (
+      this.currentInteractionEvent instanceof TouchEvent &&
+      this.currentInteractionEvent &&
+      event instanceof TouchEvent
+    ) {
+      return true
+    }
+
+    return !this.currentInteractionEvent ? true : false
   }
 
   /**

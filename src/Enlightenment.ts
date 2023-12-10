@@ -77,7 +77,7 @@ export class Enlightenment extends EnlightenmentInputController {
     this.updateAttributeAlias('isExpanded', 'aria-expanded')
     this.updateAttributeAlias('pending', 'aria-busy')
 
-    !this.currentElement && this.handleDragEnd()
+    !this.currentElement && this.throttle(this.handleDragEnd)
 
     this.updateCustomStyleSheet()
     this.updatePreventEvent()
