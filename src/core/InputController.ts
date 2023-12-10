@@ -132,8 +132,10 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
    * @param event Inherit the optional Mouse or Touch event interface.
    */
   protected handleDragEnd(event?: MouseEvent | TouchEvent) {
-    if (!this.currentInteractionEvent) {
-      return
+    if (event) {
+      if (!this.currentInteractionEvent || !this.isCurrentInteractionEvent(event as Event)) {
+        return
+      }
     }
 
     this.currentInteractionRequest && cancelAnimationFrame(this.currentInteractionRequest)
@@ -151,7 +153,8 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
         // visible viewport.
         this.clearAnimationFrame(this.currentInteractionRequest)
         this.currentInteractionResponse = this.useAnimationFrame(() => {
-          const bounds = this.useBounds(context)
+          const bounds = this.useScreenBounds(context)
+          const viewport = this.useBoundingRect()
 
           if (this.currentInteractions <= 1) {
             this.resize(context, {
@@ -160,15 +163,20 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
             })
           }
 
-          if (bounds.right) {
+          // Ensure the Dragged Element is placed within the visible viewport
+          // but ignore when the context element is larger than the viewport.
+          const fitX = viewport.width > context.offsetWidth
+          const fitY = viewport.height > context.offsetHeight
+
+          if (fitX && bounds.right) {
             this.resize(context, { width: window.innerWidth - context.offsetLeft })
-          } else if (bounds.left) {
+          } else if (fitX && bounds.left) {
             this.resize(context, { x: 0, width: context.offsetWidth + context.offsetLeft })
           }
 
-          if (bounds.bottom) {
+          if (fitY && bounds.bottom) {
             this.resize(context, { height: window.innerHeight - context.offsetTop })
-          } else if (bounds.top) {
+          } else if (fitY && bounds.top) {
             this.resize(context, { y: 0, height: context.offsetHeight + context.offsetTop })
           }
 
@@ -333,8 +341,9 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
       return this.handleDragEnd()
     }
 
+    // Don't continue if the initial Event instance does not match with the
+    // current Event parameter value.
     if (!this.isCurrentInteractionEvent(event)) {
-      console.log('IGNORE', event)
       return
     }
 

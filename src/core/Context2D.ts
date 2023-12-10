@@ -149,8 +149,13 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
 
     let { width, height, position, viewport, x, y } = options || {}
     const viewportProperties = this.useBoundingRect(viewport)
-    x = Math.round((x || 0) + (translateX || 0))
-    y = Math.round((y || 0) + (translateY || 0))
+    if (x !== undefined && translateX !== undefined) {
+      x = Math.round((x || 0) + (translateX || 0))
+    }
+
+    if (y !== undefined && translateY !== undefined) {
+      y = Math.round((y || 0) + (translateY || 0))
+    }
 
     if (width !== undefined) {
       // Limit the resize to the visible viewport
@@ -330,44 +335,45 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
     let translateX = offsetX || 0
     let translateY = offsetY || 0
 
-    const bounds = this.useBounds(context, translateX, translateY)
+    const bounds = this.useScreenBounds(context, translateX, translateY)
 
-    // Limit
+    // Limit the position update within the visible viewport.
     if (viewport) {
       const viewportProperties = this.useBoundingRect(viewport)
-      if (viewportProperties.width > context.offsetWidth) {
-        console.log('Ignore fit')
+
+      if (!viewportProperties.width || viewportProperties.width > context.offsetWidth) {
+        if (translateX + context.offsetLeft + context.offsetWidth > viewportProperties.width) {
+          const leftover =
+            context.offsetLeft + translateX + context.offsetWidth - viewportProperties.width
+
+          translateX = translateX - leftover
+        } else if (bounds.left) {
+          const leftover = context.offsetLeft + translateX
+
+          translateX = translateX - leftover
+        } else if (translateX - context.offsetLeft <= viewportProperties.left) {
+          // if (bounds.left || !offsetX) {
+          //   console.log('BOO', translateX, offsetX)
+          //   translateX = -context.offsetLeft
+          // }
+        }
       }
 
-      if (translateX + context.offsetLeft + context.offsetWidth > viewportProperties.width) {
-        const leftover =
-          context.offsetLeft + translateX + context.offsetWidth - viewportProperties.width
+      if (!viewportProperties.height || viewportProperties.height > context.offsetHeight) {
+        if (translateY + context.offsetTop + context.offsetHeight > viewportProperties.height) {
+          const leftover =
+            context.offsetTop + translateY + context.offsetHeight - viewportProperties.height
 
-        translateX = translateX - leftover
-      } else if (bounds.left) {
-        const leftover = context.offsetLeft + translateX
+          translateY = translateY - leftover
+        } else if (bounds.top) {
+          const leftover = context.offsetTop + translateY
 
-        translateX = translateX - leftover
-      } else if (translateX - context.offsetLeft <= viewportProperties.left) {
-        // if (bounds.left || !offsetX) {
-        //   console.log('BOO', translateX, offsetX)
-        //   translateX = -context.offsetLeft
-        // }
-      }
-
-      if (translateY + context.offsetTop + context.offsetHeight > viewportProperties.height) {
-        const leftover =
-          context.offsetTop + translateY + context.offsetHeight - viewportProperties.height
-
-        translateY = translateY - leftover
-      } else if (bounds.top) {
-        const leftover = context.offsetTop + translateY
-
-        translateY = translateY - leftover
-      } else if (translateX - context.offsetTop <= viewportProperties.top) {
-        // if (bounds.top || !offsetY) {
-        //   translateY = -context.offsetTop
-        // }
+          translateY = translateY - leftover
+        } else if (translateX - context.offsetTop <= viewportProperties.top) {
+          // if (bounds.top || !offsetY) {
+          //   translateY = -context.offsetTop
+          // }
+        }
       }
     }
 
@@ -380,7 +386,7 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
    *
    * @param context Use the defined Context element position, width & height.
    */
-  protected useBounds(context: HTMLElement, translateX?: number, translateY?: number) {
+  protected useScreenBounds(context: HTMLElement, translateX?: number, translateY?: number) {
     const viewport = this.useBoundingRect()
 
     const top = (translateY || 0) + context.offsetTop < viewport.top

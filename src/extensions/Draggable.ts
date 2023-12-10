@@ -246,7 +246,7 @@ class EnlightenmentDraggable extends Enlightenment {
     let translateX = initialTranslateX || 0
     let translateY = initialTranslateY || 0
 
-    const bounds = this.useBounds(context, initialTranslateX, initialTranslateY)
+    const bounds = this.useScreenBounds(context, initialTranslateX, initialTranslateY)
 
     if (bounds.top || bounds.right || bounds.bottom || bounds.left) {
       this.assignCurrentDragTimeout()
