@@ -54,6 +54,11 @@ class EnlightenmentDraggable extends Enlightenment {
     super()
   }
 
+  /**
+   * Ignore the initial Context reference and us the custom target reference
+   * instead. This should apply any DOM mutation on the selected target instead
+   * within the Component context.
+   */
   protected useContext() {
     const context = super.useContext()
 
@@ -68,13 +73,20 @@ class EnlightenmentDraggable extends Enlightenment {
     return this.currentTarget
   }
 
+  /**
+   * Defines the actual interaction target from the optional target Property
+   * attribute. The parent Web Component will be used as target fallback or use
+   * the initial Slotted Element or This Component as fallback targts.
+   */
   protected defineTarget() {
     if (this.currentTarget) {
       return this.currentTarget
     }
 
-    const target = this.closest(this.target) as HTMLElement
+    const target = this.closest(this.target) || this.querySelector(this.target)
     const host = this.useHost(this) as any
+
+    console.log('FIND', target)
 
     if (this.preventEvent || (host && host.preventEvent)) {
       this.handleDragEnd()
@@ -86,6 +98,8 @@ class EnlightenmentDraggable extends Enlightenment {
       this.currentTarget = this as any
     }
 
+    // Check if the current Component exists within another Enlightenment
+    // component and use the parent as context instead
     if (!this.currentTarget && !target && host && host !== this) {
       const context = host.useContext && host.useContext()
 
@@ -100,13 +114,14 @@ class EnlightenmentDraggable extends Enlightenment {
       }
     }
 
+    // Assign the existing parent target defined from the target attribute.
     if (!this.currentTarget && target) {
       this.currentTarget = target
     } else if (!this.currentTarget) {
+      // Use the first slotted Element instead if the custom target is not
+      // defined for this Component.
       const initialElement = this.useInitialElement()
       this.currentTarget = initialElement
-
-      console.log('AAA', initialElement)
 
       if (!this.currentTarget) {
         this.currentTarget = this as any
@@ -119,23 +134,43 @@ class EnlightenmentDraggable extends Enlightenment {
       this.applyCurrentTargetStyles()
     }
 
-    this.currentHost = this.currentTarget === this ? this : this.useHost(this.currentTarget)
+    if (this.currentTarget !== this) {
+      this.currentHost = this.useHost(this.currentTarget)
+    }
+
+    if (!this.currentHost) {
+      this.currentHost = this
+    }
 
     return this.currentTarget ? true : false
   }
 
+  /**
+   * Ensure the Interaction target is defined within the current DOM.
+   */
   handleUpdate() {
     super.handleUpdate()
 
     this.defineTarget()
   }
 
+  /**
+   * Removes the required interaction styles on the current target.
+   */
   protected cleanupCurrentTarget() {
     if (this.currentTarget) {
       this.currentTarget.style.userSelect = ''
     }
   }
 
+  /**
+   * Validates the updated interaction after the last requested Animation Frame
+   * that was defined in the InputController. This callback defines the
+   * requested interaction from the given target pivot.
+   *
+   * @param context Validate from the defined context.
+   * @param properties Defines the required Pointer data to use.
+   */
   protected handleDragUpdateCallback(
     context: HTMLElement,
     properties: EnlightenmentInputControllerPointerData
@@ -149,6 +184,10 @@ class EnlightenmentDraggable extends Enlightenment {
     }
   }
 
+  /**
+   * Assign the required position styles for the actual target context to ensure
+   * the interaction is displayed correctly.
+   */
   protected applyCurrentTargetStyles() {
     if (this.currentTarget) {
       const { position, top, left, width, height } = this.currentTarget.style
@@ -247,7 +286,6 @@ class EnlightenmentDraggable extends Enlightenment {
       this.currentContextWidth = context.offsetWidth
     }
 
-    console.log('HHH')
     if (!this.currentContextHeight) {
       this.currentContextHeight = context.offsetHeight
     }
@@ -433,7 +471,6 @@ class EnlightenmentDraggable extends Enlightenment {
 
     if (height) {
       if (height < 200) {
-        console.log('fallback', height)
         height = 200
       }
 
@@ -556,7 +593,11 @@ class EnlightenmentDraggable extends Enlightenment {
 
       this.omitGlobalEvent('keydown', this.handleDragExit)
 
-      this.currentHost.hook && this.currentHost.hook(Enlightenment.defaults.customEvents.dragEnd)
+      if (this.currentHost && this.currentHost.hook) {
+        this.currentHost.hook(Enlightenment.defaults.customEvents.dragEnd)
+      } else {
+        this.hook(Enlightenment.defaults.customEvents.dragEnd)
+      }
     })
   }
 
@@ -600,7 +641,11 @@ class EnlightenmentDraggable extends Enlightenment {
 
     this.assignGlobalEvent('keydown', this.handleDragExit, { once: true })
 
-    this.currentHost.hook && this.currentHost.hook(Enlightenment.defaults.customEvents.dragStart)
+    if (this.currentHost && this.currentHost.hook) {
+      this.currentHost.hook(Enlightenment.defaults.customEvents.dragStart)
+    } else {
+      this.hook(Enlightenment.defaults.customEvents.dragStart)
+    }
 
     super.handleDragStart(event, slot)
   }
