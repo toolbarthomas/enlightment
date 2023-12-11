@@ -132,6 +132,18 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
     return x >= context.left && x <= context.width && y >= context.top && y <= context.width
   }
 
+  protected useStretched(
+    context: HTMLElement,
+    viewport?: EnlightenmentDOMResizeOptions['viewport']
+  ) {
+    const viewportProperties = this.useBoundingRect(viewport)
+
+    const x = viewportProperties.width <= context.offsetWidth
+    const y = viewportProperties.height <= context.offsetHeight
+
+    return [x, y]
+  }
+
   /**
    * Resize the defined context element and apply the optional position values.
    *
@@ -149,12 +161,16 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
 
     let { width, height, position, viewport, x, y } = options || {}
     const viewportProperties = this.useBoundingRect(viewport)
-    if (x !== undefined && translateX !== undefined) {
+    if (x !== undefined) {
       x = Math.round((x || 0) + (translateX || 0))
+    } else {
+      x = context.offsetLeft
     }
 
-    if (y !== undefined && translateY !== undefined) {
+    if (y !== undefined) {
       y = Math.round((y || 0) + (translateY || 0))
+    } else {
+      y = context.offsetTop
     }
 
     if (width !== undefined) {
@@ -209,7 +225,7 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
    *
    * @param pivot Apply the stretch transformation from the defined pivot value.
    */
-  protected strech(context: HTMLElement, pivot?: number) {
+  protected stretch(context: HTMLElement, pivot?: number) {
     if (!context) {
       return
     }
@@ -222,6 +238,8 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
     ) {
       return
     }
+
+    const viewport = this.useBoundingRect()
 
     // Override the initial defined values from the given currentPivot value.
     const initial = {
@@ -249,7 +267,7 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
         break
 
       case 3:
-        commit.width = window.innerWidth - context.offsetLeft
+        commit.width = viewport.width - context.offsetLeft
         commit.height = context.offsetTop + context.offsetHeight
         commit.x = context.offsetLeft
         commit.y = 0
@@ -262,35 +280,35 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
         break
 
       case 6:
-        commit.width = window.innerWidth - context.offsetLeft
+        commit.width = viewport.width - context.offsetLeft
         commit.height = context.offsetHeight
         commit.x = context.offsetLeft
         break
 
       case 7:
         commit.width = context.offsetLeft + context.offsetWidth
-        commit.height = window.innerHeight - context.offsetTop
+        commit.height = viewport.height - context.offsetTop
         commit.x = 0
 
         break
 
       case 8:
         commit.width = context.offsetWidth
-        commit.height = window.innerHeight - context.offsetTop
+        commit.height = viewport.height - context.offsetTop
         commit.x = context.offsetLeft
         commit.y = context.offsetTop
         break
 
       case 9:
-        commit.width = window.innerWidth - context.offsetLeft
-        commit.height = window.innerHeight - context.offsetTop
+        commit.width = viewport.width - context.offsetLeft
+        commit.height = viewport.height - context.offsetTop
         commit.x = context.offsetLeft
         commit.y = context.offsetTop
         break
 
       default:
-        commit.width = window.innerWidth
-        commit.height = window.innerHeight
+        commit.width = viewport.width
+        commit.height = viewport.height
         commit.x = 0
         commit.y = 0
 
@@ -305,10 +323,14 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
       if (cache) {
         this.resize(context, { ...cache, viewport: window })
       }
+
+      return this.useStretched(context)
     } else {
-      this.assignContextCache({ ...initial, context })
+      this.assignContextCache({ ...initial, context, screen: viewport })
 
       this.resize(context, { ...commit, viewport: window })
+
+      return this.useStretched(context)
     }
   }
 

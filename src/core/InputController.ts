@@ -1,8 +1,12 @@
-import { EnlightenmentInputControllerPointerData } from 'src/_types/main'
+import {
+  EnlightenmentInputControllerPointerData,
+  EnlightenmentInteractionEndCallback
+} from 'src/_types/main'
 
 import { eventOptions } from 'src/core/Mixins'
 
 import { EnlightenmentColorHelper } from 'src/core/ColorHelper'
+import { Enlightenment } from 'src/Enlightenment'
 
 export class EnlightenmentInputController extends EnlightenmentColorHelper {
   /**
@@ -132,78 +136,117 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
    * @param event Inherit the optional Mouse or Touch event interface.
    */
   protected handleDragEnd(event?: MouseEvent | TouchEvent) {
-    if (event) {
-      if (!this.currentInteractionEvent || !this.isCurrentInteractionEvent(event as Event)) {
-        return
+    return new Promise<boolean>((resolve) => {
+      try {
+        if (event) {
+          if (!this.currentInteractionEvent || !this.isCurrentInteractionEvent(event as Event)) {
+            return resolve(false)
+          }
+
+          this.currentInteractionRequest && cancelAnimationFrame(this.currentInteractionRequest)
+
+          if (this.isGrabbed) {
+            const context = this.useContext() as HTMLElement
+
+            if (context) {
+              // Cleanup the optional running Drag Timeout.
+              this.clearCurrentDragTimeout()
+
+              // Validate the updated position and size and ensure it fits within the
+              // visible viewport.
+              this.clearAnimationFrame(this.currentInteractionRequest)
+              this.currentInteractionResponse = this.useAnimationFrame(() =>
+                this.handleDragEndCallback(context, resolve)
+              )
+            }
+          }
+
+          this.isGrabbed = false
+
+          this.updateAttributeAlias(
+            'isGrabbed',
+            EnlightenmentInputController.defaults.attr.grabbed,
+            true
+          )
+
+          this.omitGlobalEvent('mousemove', this.handleDragUpdate)
+          this.omitGlobalEvent('mouseup', this.handleDragEnd)
+          this.omitGlobalEvent('touchmove', this.handleDragUpdate)
+          this.omitGlobalEvent('touchend', this.handleDragEnd)
+        }
+      } catch (exception) {
+        exception && this.log(exception, 'error')
       }
+    })
+  }
+
+  protected handleDragEndCallback(
+    context: HTMLElement,
+    resolve: EnlightenmentInteractionEndCallback
+  ) {
+    const bounds = this.useScreenBounds(context)
+    const viewport = this.useBoundingRect()
+
+    if (this.currentInteractions <= 1) {
+      this.resize(context, {
+        x: this.currentContextX,
+        y: this.currentContextY
+      })
     }
 
-    this.currentInteractionRequest && cancelAnimationFrame(this.currentInteractionRequest)
+    // Ensure the Dragged Element is placed within the visible viewport
+    // but ignore when the context element is larger than the viewport.
+    const fitX = viewport.width > context.offsetWidth
+    const fitY = viewport.height > context.offsetHeight
+    const [stretchX, stretcY] = this.useStretched(context)
 
-    if (this.isGrabbed) {
-      const context = this.useContext() as HTMLElement
+    // Restore the stretched context to its original width & height.
+    if (stretchX && stretcY && !this.currentInteractions) {
+      const cache = this.useContextCache(context)
 
-      if (context) {
-        this.currentContext = undefined
-
-        // Cleanup the optional running Drag Timeout.
-        this.clearCurrentDragTimeout()
-
-        // Validate the updated position and size and ensure it fits within the
-        // visible viewport.
-        this.clearAnimationFrame(this.currentInteractionRequest)
-        this.currentInteractionResponse = this.useAnimationFrame(() => {
-          const bounds = this.useScreenBounds(context)
-          const viewport = this.useBoundingRect()
-
-          if (this.currentInteractions <= 1) {
-            this.resize(context, {
-              x: this.currentContextX,
-              y: this.currentContextY
-            })
-          }
-
-          // Ensure the Dragged Element is placed within the visible viewport
-          // but ignore when the context element is larger than the viewport.
-          const fitX = viewport.width > context.offsetWidth
-          const fitY = viewport.height > context.offsetHeight
-
-          if (fitX && bounds.right) {
-            this.resize(context, { width: window.innerWidth - context.offsetLeft })
-          } else if (fitX && bounds.left) {
-            this.resize(context, { x: 0, width: context.offsetWidth + context.offsetLeft })
-          }
-
-          if (fitY && bounds.bottom) {
-            this.resize(context, { height: window.innerHeight - context.offsetTop })
-          } else if (fitY && bounds.top) {
-            this.resize(context, { y: 0, height: context.offsetHeight + context.offsetTop })
-          }
-
-          const ariaTarget = this.currentContext || this.useContext() || this
-          ariaTarget &&
-            ariaTarget.removeAttribute(EnlightenmentInputController.defaults.attrGrabbed)
-
-          this.currentInteractionRequest = undefined
-          this.throttle(() => {
-            this.currentInteractionEvent = undefined
-          })
+      if (cache) {
+        this.resize(context, {
+          width: cache.width,
+          height: cache.height,
+          viewport: window
         })
+      } else {
+        this.log(['Unable to restore 2D context from cache: ${context}', context], 'warning')
       }
+
+      return
     }
 
-    this.currentContextHeight = undefined
-    this.currentContextWidth = undefined
-    this.currentInteractionResponse = undefined
-    this.currentInteractionTarget = undefined
-    this.currentPivot = undefined
-    this.isGrabbed = false
-    this.updateAttributeAlias('isGrabbed', EnlightenmentInputController.defaults.attrGrabbed, true)
+    if (fitX && bounds.right) {
+      this.resize(context, { width: viewport.width - context.offsetLeft })
+    } else if (fitX && bounds.left) {
+      this.resize(context, { x: 0, width: context.offsetWidth + context.offsetLeft })
+    } else if (this.useScreenBounds(context).right) {
+      this.resize(context, { x: viewport.width - context.offsetWidth })
+    } else {
+      this.resize(context, { x: context.offsetLeft, viewport: window })
+    }
 
-    this.omitGlobalEvent('mousemove', this.handleDragUpdate)
-    this.omitGlobalEvent('mouseup', this.handleDragEnd)
-    this.omitGlobalEvent('touchmove', this.handleDragUpdate)
-    this.omitGlobalEvent('touchend', this.handleDragEnd)
+    if (fitY && bounds.bottom) {
+      this.resize(context, { height: viewport.height - context.offsetTop })
+    } else if (fitY && bounds.top) {
+      this.resize(context, { y: 0, height: context.offsetHeight + context.offsetTop })
+    } else if (this.useScreenBounds(context).bottom) {
+      this.resize(context, { y: viewport.height - context.offsetHeight })
+    } else {
+      this.resize(context, { y: context.offsetTop, viewport: window })
+    }
+
+    const ariaTarget = this.currentContext || this.useContext() || this
+    ariaTarget && ariaTarget.removeAttribute(EnlightenmentInputController.defaults.attr.grabbed)
+
+    this.currentInteractionRequest = undefined
+    this.currentInteractionEvent &&
+      this.throttle(() => {
+        this.currentInteractionEvent = undefined
+
+        resolve(true)
+      })
   }
 
   /**
@@ -216,7 +259,8 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
    */
   @eventOptions({ passive: true })
   protected handleDragStart(event: MouseEvent | TouchEvent, customTarget?: HTMLElement) {
-    if (!event || this.isGrabbed || this.preventEvent) {
+    // console.log('start', this.isGrabbed)
+    if (!event || this.preventEvent) {
       return
     }
 
@@ -243,7 +287,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
 
       // const interaction = target.getAttribute('data-interaction')
       const pivot = EnlightenmentInputController.isInteger(
-        target.getAttribute(EnlightenmentInputController.defaults.attrPivot)
+        target.getAttribute(EnlightenmentInputController.defaults.attr.pivot)
       )
 
       this.currentPivot = pivot
@@ -257,7 +301,9 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
       return
     }
 
-    this.currentContext = context
+    if (!this.currentInteractions) {
+      this.currentContext = context
+    }
 
     this.currentInteractions += 1
 
@@ -265,11 +311,10 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     if (this.currentInteractions === 1) {
       this.throttle(() => {
         this.currentInteractions = 0
-      }, this.delay * 12)
+      }, EnlightenmentInputController.RPS)
     }
 
     if (this.currentInteractions > 1) {
-      console.log('THIS', this.currentInteractions)
       return this.handleDragSecondary(event)
     }
 
@@ -317,7 +362,6 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
    */
   protected handleDragSecondary(event: MouseEvent | TouchEvent) {
     this.isGrabbed = false
-
     // Ensure the previous DragEnd method is canceled to ensure it does not
     // interfere with this callback.
     // this.currentInteractionResponse && cancelAnimationFrame(this.currentInteractionResponse)
@@ -328,7 +372,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
       return
     }
 
-    this.strech(context, this.currentPivot)
+    this.stretch(context, this.currentPivot)
   }
 
   /**
@@ -338,7 +382,9 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
    */
   protected handleDragUpdate(event: MouseEvent | TouchEvent) {
     if (!event) {
-      return this.handleDragEnd()
+      this.handleDragEnd()
+
+      return
     }
 
     // Don't continue if the initial Event instance does not match with the
@@ -374,11 +420,11 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     if (this.isCenterPivot()) {
       const ariaTarget = this.currentContext || this.useContext() || this
 
-      !ariaTarget.hasAttribute(EnlightenmentInputController.defaults.attrGrabbed) &&
-        ariaTarget.setAttribute(EnlightenmentInputController.defaults.attrGrabbed, 'true')
+      !ariaTarget.hasAttribute(EnlightenmentInputController.defaults.attr.grabbed) &&
+        ariaTarget.setAttribute(EnlightenmentInputController.defaults.attr.grabbed, 'true')
 
       if (ariaTarget !== this) {
-        this.setAttribute(EnlightenmentInputController.defaults.attrGrabbed, 'true')
+        this.setAttribute(EnlightenmentInputController.defaults.attr.grabbed, 'true')
       }
     }
 
@@ -421,7 +467,6 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     // Failsafe that should exit the current Drag interaction while the current
     // pointer position is outisde the area for a certain duration.
     if (!this.isWithinViewport(clientX, clientY)) {
-      console.log('TIMEOUT')
       this.assignCurrentDragTimeout()
     } else {
       this.clearCurrentDragTimeout()
@@ -440,6 +485,8 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
       } else if (clientY > viewport.height) {
         y = y + (clientY - viewport.height)
       }
+
+      console.log('DRAG', this.isGrabbed)
 
       this.handleDragUpdateCallback(this.currentContext || (this.useContext() as HTMLElement), {
         pivot: this.currentPivot,
@@ -532,6 +579,10 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     }
   }
 
+  // protected handleGlobalResize(event?: Event) {
+
+  // }
+
   /**
    * Compares the defined Event with the current Interaction Event that was
    * assigned during the initial Interaction event.
@@ -581,7 +632,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
    * TouchEvent.
    */
   protected usePointerPosition(event: MouseEvent | TouchEvent) {
-    if (!event || !this.isGrabbed) {
+    if (!event) {
       return []
     }
 

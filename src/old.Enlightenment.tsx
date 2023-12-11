@@ -1044,6 +1044,7 @@ export class Enlightenment extends LitElement {
    * handler.
    */
   private omitGlobalEvent(type: GlobalEventType, handler: GlobalEventHandler) {
+    console.log('remove', type)
     if (!type) {
       this.log('Unable to omit undefined global Event', 'warning')
 
@@ -1864,6 +1865,7 @@ export class Enlightenment extends LitElement {
     this.updateAttributeAlias('isCollapsed', 'aria-collapsed')
     this.updateAttributeAlias('isExpanded', 'aria-expanded')
     this.updateAttributeAlias('pending', 'aria-busy')
+
     !this.currentElement && this.handleDragEnd()
 
     this.updateCustomStylesSheets()

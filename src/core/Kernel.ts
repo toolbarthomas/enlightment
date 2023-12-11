@@ -1,3 +1,4 @@
+import { Enlightenment } from 'src/Enlightenment'
 import {
   EnlightenmentProcessHandler,
   EnlightenmentThrottle,
@@ -20,9 +21,19 @@ import { EnlightenmentTheme } from 'src/providers/Theme'
 export class EnlightenmentKernel extends EnlightenmentMixins {
   static defaults = {
     slot: '_content',
-    attrAxis: 'data-axis',
-    attrGrabbed: 'aria-grabbed',
-    attrPivot: 'data-pivot',
+    attr: {
+      axis: 'data-axis',
+      edgeX: 'edge-x',
+      edgeY: 'edge-y',
+      grabbed: 'aria-grabbed',
+      pivot: 'data-pivot',
+      stretchX: 'stretch-y',
+      stretchY: 'stretch-x'
+    },
+    customEvents: {
+      dragEnd: 'dragend',
+      dragStart: 'dragstart'
+    },
     passiveEventTypes: ['mousemove', 'resize', 'scroll', 'touchmove', 'wheel', 'wheel']
   }
 
@@ -220,7 +231,7 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
       return
     }
 
-    const { context, once, passive } = options || {}
+    const { context, once, passive, thisArg } = options || {}
 
     const ctx = context || document
 
@@ -232,7 +243,7 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
       return
     }
 
-    const fn = handler.bind(this)
+    const fn = handler.bind(thisArg instanceof Enlightenment ? thisArg : this)
 
     this.listeners.push([type, fn, ctx, handler])
 

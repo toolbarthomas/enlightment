@@ -57,6 +57,8 @@ export type EnlightenmentInputControllerPointerData = {
   y: number
 }
 
+export type EnlightenmentInteractionEndCallback = (value: boolean | PromiseLike<boolean>) => void
+
 /**
  * Defines the Object Interface for a Context2D viewport reference: Window or
  * HTMLElement.
@@ -80,8 +82,7 @@ export type EnlightenmentContext2DCacheEntry =
       width?: number
       x?: number
       y?: number
-      viewportWidth?: number
-      viewportHeight?: number
+      screen?: EnlightenmentContext2DRect
     }
   | undefined
 
@@ -120,6 +121,7 @@ export type GlobalEventOptions = {
   context?: GlobalEventContext
   once?: boolean
   passive?: boolean
+  thisArg?: Element
 }
 
 export type GlobalEvent = [

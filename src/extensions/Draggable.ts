@@ -32,6 +32,7 @@ class EnlightenmentDraggable extends Enlightenment {
   target?: string
 
   currentTarget?: HTMLElement
+  currentHost?: ReturnType<typeof Enlightenment>
 
   constructor() {
     super()
@@ -91,7 +92,11 @@ class EnlightenmentDraggable extends Enlightenment {
 
     this.log(['Draggable target defined:', this.currentTarget], 'log')
 
-    this.currentTarget && this.applyCurrentTargetStyles()
+    if (this.currentTarget) {
+      this.applyCurrentTargetStyles()
+    }
+
+    this.currentHost = this.useHost(this.currentTarget)
 
     return this.currentTarget ? true : false
   }
@@ -174,7 +179,7 @@ class EnlightenmentDraggable extends Enlightenment {
 
     if (target) {
       const axis = Enlightenment.filterPropertyValue(
-        target.getAttribute(Enlightenment.defaults.attrAxis),
+        target.getAttribute(Enlightenment.defaults.attr.axis),
         ['x', 'y']
       )
 
@@ -421,10 +426,75 @@ class EnlightenmentDraggable extends Enlightenment {
     }
   }
 
-  protected handleDragEnd(event?: MouseEvent | TouchEvent) {
-    super.handleDragEnd(event)
+  protected handleDragEdge() {
+    this.currentHost.removeAttribute(Enlightenment.defaults.attr.edgeX)
+    this.currentHost.removeAttribute(Enlightenment.defaults.attr.edgeY)
+    console.log(this.currentPivot)
 
-    this.cleanupCurrentTarget()
+    if (!this.isCenterPivot(this.currentPivot)) {
+      return
+    }
+
+    if (!this.currentHost) {
+      return
+    }
+
+    if (!this.currentEdgeX && !this.currentEdgeY) {
+      return
+    }
+
+    if (this.currentHost) {
+      console.log('End', this.currentEdgeX, this.currentEdgeY)
+    }
+  }
+
+  protected handleDragEnd(event?: MouseEvent | TouchEvent) {
+    if (!this.currentContext) {
+      return
+    }
+
+    super.handleDragEnd(event).then((result: boolean) => {
+      if (this.currentTarget && this.currentHost) {
+        const [stretchX, stretchY] = this.useStretched(this.currentTarget)
+        this.currentHost.omitGlobalEvent('resize', this.handleDragEndResizeCallback)
+
+        if (stretchX || stretchY) {
+          this.currentHost.assignGlobalEvent('resize', this.handleDragEndResizeCallback, {
+            context: window,
+            thisArg: this
+          })
+        }
+      }
+
+      this.cleanupCurrentTarget()
+
+      // Resize the Interaction context when the Pointer has reached one of the
+      // viewport edges.
+      this.handleDragEdge()
+
+      this.updateStretched(this.currentTarget)
+
+      this.currentTarget = undefined
+
+      this.omitGlobalEvent('keydown', this.handleDragExit)
+
+      this.currentHost.hook && this.currentHost.hook(Enlightenment.defaults.customEvents.dragEnd)
+    })
+  }
+
+  /**
+   * Callback handler that should end the current Interaction.
+   * @param event
+   * @returns
+   */
+  protected handleDragExit(event: KeyboardEvent) {
+    const { keyCode } = event || {}
+    if (!Enlightenment.keyCodes.exit.includes(keyCode)) {
+      return
+    }
+
+    this.handleCurrentElement(event.target)
+    return this.handleDragEnd()
   }
 
   /**
@@ -444,10 +514,14 @@ class EnlightenmentDraggable extends Enlightenment {
     const slot = this.useSlot()
 
     if (!slot) {
-      this.setAttribute(Enlightenment.defaults.attrPivot, String(this.pivot))
+      this.setAttribute(Enlightenment.defaults.attr.pivot, String(this.pivot))
     } else {
-      this.removeAttribute(Enlightenment.defaults.attrPivot)
+      this.removeAttribute(Enlightenment.defaults.attr.pivot)
     }
+
+    this.assignGlobalEvent('keydown', this.handleDragExit, { once: true })
+
+    this.currentHost.hook && this.currentHost.hook(Enlightenment.defaults.customEvents.dragStart)
 
     super.handleDragStart(event, slot)
   }
@@ -460,11 +534,76 @@ class EnlightenmentDraggable extends Enlightenment {
   protected handleDragUpdate(event: MouseEvent | TouchEvent) {
     super.handleDragUpdate(event)
 
+    if (this.currentEdgeX && this.currentHost) {
+      this.currentHost.setAttribute(Enlightenment.defaults.attrEdgeX, String(this.currentEdgeX))
+    } else {
+      this.currentHost.removeAttribute(Enlightenment.defaults.attrEdgeX)
+    }
+
+    if (this.currentEdgeY && this.currentHost) {
+      this.currentHost.setAttribute(Enlightenment.defaults.attrEdgeY, String(this.currentEdgeY))
+    } else {
+      this.currentHost.removeAttribute(Enlightenment.defaults.attrEdgeY)
+    }
+
     // Prevent content from being selecting while preforming the drag
     // interaction.
     if (this.currentTarget && !this.currentTarget.style.userSelect) {
       this.currentTarget.style.userSelect = 'none'
     }
+  }
+
+  protected handleDragEndResizeCallback(event?: Event) {
+    this.throttle(this.handleGlobalResize, Enlightenment.RPS, event)
+  }
+
+  protected handleGlobalResize(event: UIEvent) {
+    super.handleGlobalResize(event)
+
+    console.log('resize', this)
+
+    this.defineTarget()
+
+    const host = this.useHost(this.currentTarget)
+    if (host) {
+      const bounds = this.useBoundingRect()
+      const width = host.hasAttribute(Enlightenment.defaults.attr.stretchX)
+        ? bounds.width
+        : undefined
+      const height = host.hasAttribute(Enlightenment.defaults.attr.stretchY)
+        ? bounds.height
+        : undefined
+
+      const top = height ? 0 : undefined
+      const left = width ? 0 : undefined
+
+      this.resize(this.currentTarget, { width, height, top, left })
+    }
+  }
+
+  protected updateStretched(context?: HTMLElement) {
+    if (!context) {
+      return
+    }
+
+    const stretch: boolean[] = this.useStretched(context)
+    const host = this.useHost(context)
+
+    if (!host || host === context) {
+      return
+    }
+
+    stretch.forEach((value, index) => {
+      const name = index
+        ? Enlightenment.defaults.attr.stretchY
+        : Enlightenment.defaults.attr.stretchX
+
+      if (value) {
+        host.setAttribute(name, '')
+      } else {
+        host.removeAttribute(name)
+      }
+    })
   }
 
   render() {
