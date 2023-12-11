@@ -665,7 +665,7 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
       update &&
         this.log([
           `${this.namespace} commit accepted from: ${this.uuid}`,
-          Object.defineProperty({}, property, { value: this[property] })
+          Object.defineProperty({}, property, { value: (this as any)[property] })
         ])
 
       // Ensures the property update fires the component callbacks.
