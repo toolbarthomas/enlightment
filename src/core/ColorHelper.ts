@@ -55,10 +55,6 @@ export class EnlightenmentColorHelper extends EnlightenmentImageHelper {
    */
   customStyleSheetCache?: string
 
-  constructor() {
-    super()
-  }
-
   /**
    * Expose the constructed Component stylesheet in order to update it within
    * a lifecycle Event.
@@ -72,7 +68,7 @@ export class EnlightenmentColorHelper extends EnlightenmentImageHelper {
 
     if (sheet instanceof CSSStyleSheet === false) {
       this.log(
-        `Unable to assign custom stylesheet '${name}' without a valid CSSStyleSheet`,
+        `Unable to assign custom stylesheet '${this.uuid}' without a valid CSSStyleSheet`,
         'warning'
       )
 
@@ -81,7 +77,7 @@ export class EnlightenmentColorHelper extends EnlightenmentImageHelper {
 
     this.customStyleSheet = sheet
 
-    this.log(['Custom stylesheet assigned:', sheet.title], 'log')
+    this.log(['Custom stylesheet assigned:', this.uuid], 'log')
   }
 
   /**

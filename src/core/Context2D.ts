@@ -32,10 +32,6 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
    */
   currentPivot?: number
 
-  constructor() {
-    super()
-  }
-
   /**
    * Assign or update the defined Context Cache Object.
    *

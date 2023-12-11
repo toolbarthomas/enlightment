@@ -33,10 +33,6 @@ export class EnlightenmentImageHelper extends EnlightenmentContext2D {
   })
   svgSpriteSource = ''
 
-  constructor() {
-    super()
-  }
-
   /**
    * Validates if the given image source should be renderd as inline image when
    * TRUE or static image as default.

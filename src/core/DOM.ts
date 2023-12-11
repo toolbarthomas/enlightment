@@ -188,10 +188,6 @@ export class EnlightenmentDOM extends EnlightenmentParser {
    */
   viewport?: string
 
-  constructor() {
-    super()
-  }
-
   /**
    * Attaches the defined component to the currentElement global.
    */
@@ -383,7 +379,7 @@ export class EnlightenmentDOM extends EnlightenmentParser {
         }
 
         if (this.slots && Object.values(this.slots).filter((s) => s).length) {
-          this.log([`Found ${this.constructor.name} ${slots.length} slot(s) from:`, this.slots])
+          this.log([`Found ${this.uuid} ${slots.length} slot(s) from:`, this.slots])
         }
       }
     })

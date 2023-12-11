@@ -159,6 +159,10 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
     }
   }
 
+  /**
+   * Callback handler that should cleanup the obsolete throttle handlers that
+   * have been called or canceled.
+   */
   private cleanup() {
     this.cid != null && clearTimeout(this.cid)
 
@@ -255,7 +259,12 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
 
     ctx && ctx.addEventListener(type, fn, { once, passive: pv })
 
-    this.log([`Global event assigned: ${ctx.constructor.name}@${type}`, ctx])
+    this.log(
+      [`Global event assigned: ${ctx.constructor.name}@${type}`, { context: ctx, host: this }],
+      'info'
+    )
+
+    this.hook('addglobalevent')
   }
 
   /**
@@ -297,7 +306,7 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
 
   /**
    * Removes the optional process callback from the Component context, this will
-   * disabl the optional process usage when sibling Components dispatch the
+   * disable the optional process usage when sibling Components dispatch the
    * 'updated' event.
    */
   protected clearListeners() {
@@ -344,7 +353,7 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
    * @param name Dispatch the optional Event type instead.
    */
   protected dispatchUpdate(name?: string) {
-    return this.throttle(this.hook, this.delay, typeof name === 'string' ? name : 'update')
+    return this.throttle(this.hook, this.delay, typeof name === 'string' ? name : 'updated')
   }
 
   /**
@@ -377,20 +386,21 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
    * @param type Use the defined Console method instead of the default log.
    */
   protected log(message: any | any[], type?: string) {
-    //@ts-ignore
-    if (typeof console[type || 'log'] !== 'function') {
+    const t = type === 'warning' ? 'warn' : type || 'log'
+    const stdout = (console as any)[t]
+
+    if (typeof stdout !== 'function') {
       return
     }
 
-    let output = Array.isArray(message) ? message : [message]
+    const output = (Array.isArray(message) ? message : [message]).map((entry) =>
+      typeof entry === 'function' ? [entry] : entry
+    )
 
     const { verbose } = EnlightenmentKernel.globals
 
-    if (verbose || type === 'error') {
-      let t = type === 'warning' ? 'warn' : type
-
-      //@ts-ignore
-      output.forEach((m) => console[t || 'log'](m))
+    if (!verbose || t === 'error') {
+      stdout(...output)
     }
   }
 
@@ -519,7 +529,7 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
     })
 
     if (exists) {
-      this.log([`Abort previous throttle:`, this], 'info')
+      this.log([`Abort previous ${this.uuid} throttle:`, exists], 'info')
 
       const previousTimeout = this.throttler.handlers[index]
 
@@ -539,7 +549,7 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
       // }
     }, ms)
 
-    this.log([`${this.constructor.name} throttle defined:`, this], 'info')
+    this.log([`${this.uuid} throttle defined:`, handler, [...args]], 'info')
 
     this.throttler.handlers.push([handler, timeout, args])
 
@@ -654,7 +664,8 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
 
       update &&
         this.log([
-          `${this.namespace} commit accepted from: ${this.constructor.name}['${property}']`
+          `${this.namespace} commit accepted from: ${this.uuid}`,
+          Object.defineProperty({}, property, { value: this[property] })
         ])
 
       // Ensures the property update fires the component callbacks.
@@ -691,7 +702,7 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
       detail: data || {}
     })
 
-    this.log([`Dispatch hook: ${this.constructor.name}@${name}`, this])
+    this.log(`@hook: ${this.uuid}@${name}`)
 
     if (context && context !== this) {
       return context.dispatchEvent(event)

@@ -7,7 +7,10 @@ import {
   property,
   ref
 } from '@toolbarthomas/enlightenment'
-import { EnlightenmentInputControllerPointerData } from 'src/_types/main'
+import {
+  EnlightenmentDOMResizeOptions,
+  EnlightenmentInputControllerPointerData
+} from 'src/_types/main'
 
 import styles from './Draggable.scss'
 
@@ -86,8 +89,6 @@ class EnlightenmentDraggable extends Enlightenment {
     const target = this.closest(this.target) || this.querySelector(this.target)
     const host = this.useHost(this) as any
 
-    console.log('FIND', target)
-
     if (this.preventEvent || (host && host.preventEvent)) {
       this.handleDragEnd()
 
@@ -134,7 +135,7 @@ class EnlightenmentDraggable extends Enlightenment {
       this.applyCurrentTargetStyles()
     }
 
-    if (this.currentTarget !== this) {
+    if ((this.currentTarget as any) !== this) {
       this.currentHost = this.useHost(this.currentTarget)
     }
 

@@ -188,6 +188,15 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     })
   }
 
+  /**
+   * Callback handler that is called when the current interaction has ended.
+   * This method ensures the actual interaction target fit's within the visible
+   * viewport.
+   *
+   * @param context Use the actual currentTarget from the useContext method.
+   * @param resolve Resolver to ensure the callback is handled within the last
+   * requested Animation Frame.
+   */
   protected handleDragEndCallback(
     context: HTMLElement,
     resolve: EnlightenmentInteractionEndCallback
@@ -224,91 +233,30 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
       }
       const commit = { ...initial }
 
+      // Fit X Axis.
       if (context.offsetWidth > maxWidth) {
-        console.log('Fit X')
         commit.width = maxWidth
       }
 
+      // Fit Y Axis.
       if (context.offsetHeight > maxHeight) {
-        console.log('Fit Y')
         commit.height = maxHeight
       }
 
-      if (initial.x < 0) {
+      if (initial.x && initial.x < 0) {
         commit.x = 0
       }
 
-      if (initial.y < 0) {
+      if (initial.y && initial.y < 0) {
         commit.y = 0
       }
 
       if (!EnlightenmentInputController.compareValue(initial, commit)) {
         this.resize(context, commit)
-        console.log('NOT SAME', commit, maxHeight, maxWidth)
-      } else {
-        console.log('SAME')
       }
-      // this.resize()
     }
 
-    // // Restore the stretched context to its original width & height.
-    // if (stretchX && stretcY && !this.currentInteractions) {
-    //   const cache = this.useContextCache(context, true)
-    //   console.log('CB CACHE')
-
-    //   if (cache) {
-    //     this.resize(context, {
-    //       width: cache.width,
-    //       height: cache.height,
-    //       viewport: window
-    //     })
-    //   } else {
-    //     this.log(['Unable to restore 2D context from cache: ${context}', context], 'warning')
-    //   }
-
-    //   return
-    // }
-
-    // true false true false
     const cache = this.useContextCache(context)
-
-    // if (fitX && bounds.right) {
-    //   console.log('CBX1')
-    //   this.resize(context, { width: viewport.width - context.offsetLeft })
-    // } else if (fitX && bounds.left) {
-    //   console.log('CBX2')
-    //   this.resize(context, { x: 0, width: context.offsetWidth + context.offsetLeft })
-    // } else if (this.useScreenBounds(context).right) {
-    //   console.log('CBX3')
-    //   this.resize(context, { x: viewport.width - context.offsetWidth })
-    // } else if (!this.currentEdgeX && !this.currentEdgeY) {
-    //   // if (cache) {
-    //   //   this.resize(context, { x: context.offsetLeft, height: cache.height })
-    //   // } else {
-    //   console.log('CBX4')
-    //   this.resize(context, { x: context.offsetLeft })
-    //   // }
-    // }
-
-    // if (fitY && bounds.bottom) {
-    //   console.log('CBY1')
-    //   this.resize(context, { height: viewport.height - context.offsetTop })
-    // } else if (fitY && bounds.top) {
-    //   console.log('CBY2')
-    //   this.resize(context, { y: 0, height: context.offsetHeight + context.offsetTop })
-    // } else if (this.useScreenBounds(context).bottom) {
-    //   console.log('CBY3')
-    //   this.resize(context, { y: viewport.height - context.offsetHeight })
-    // } else if (!this.currentEdgeX && !this.currentEdgeY) {
-    //   console.log('CBY4')
-    //   console.log('end2', cache)
-
-    //   // if (cache) {
-    //   // this.resize(context, { y: context.offsetTop, width: cache.width })
-    //   // } else {
-    //   this.resize(context, { y: context.offsetTop })
-    //   // }
-    // }
 
     const ariaTarget = this.currentContext || this.useContext() || this
     ariaTarget && ariaTarget.removeAttribute(EnlightenmentInputController.defaults.attr.grabbed)

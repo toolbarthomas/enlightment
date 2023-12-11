@@ -188,10 +188,6 @@ export class EnlightenmentMixins extends LitElement {
     return value ? parseInt(value) : undefined
   }
 
-  constructor() {
-    super()
-  }
-
   /**
    * Type reference to expose the method for all Class extensions.
    *

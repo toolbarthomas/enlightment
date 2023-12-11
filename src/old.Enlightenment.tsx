@@ -842,7 +842,7 @@ export class Enlightenment extends LitElement {
 
     this.customStyleSheet = sheet
 
-    this.log(['Custom stylesheet assigned:', sheet.title], 'log')
+    this.log(['Custom stylesheet assigned:', sheet.title || name], 'log')
   }
 
   /**

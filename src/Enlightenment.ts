@@ -39,7 +39,7 @@ export class Enlightenment extends EnlightenmentInputController {
 
     this.throttle(this.useMode)
 
-    this.dispatchUpdate('updated')
+    this.dispatchUpdate()
   }
 
   /**

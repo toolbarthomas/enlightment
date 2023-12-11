@@ -179,8 +179,4 @@ export class EnlightenmentParser extends EnlightenmentKernel {
       String((typeof value === 'string' && !optional ? value : (value || {})[property]) || '')
     )
   }
-
-  constructor() {
-    super()
-  }
 }
