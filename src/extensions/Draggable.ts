@@ -15,23 +15,39 @@ import styles from './Draggable.scss'
 class EnlightenmentDraggable extends Enlightenment {
   static styles = [styles]
 
+  /**
+   * Defines the pivot position and interaction behavior for the component.
+   */
   @property({
     type: Number
   })
   pivot?: number
 
+  /**
+   * Apply the requested interaction on the actual component while TRUE.
+   */
   @property({
     converter: Enlightenment.isBoolean,
     type: Boolean
   })
   static?: number
 
+  /**
+   * Apply the requested interaction on the defined target selector.
+   */
   @property({
     type: String
   })
   target?: string
 
+  /**
+   * Reference to the actual Element that is mutated during the interaction.
+   */
   currentTarget?: HTMLElement
+
+  /**
+   * Optional host reference
+   */
   currentHost?: ReturnType<typeof Enlightenment>
 
   constructor() {
@@ -57,10 +73,10 @@ class EnlightenmentDraggable extends Enlightenment {
       return this.currentTarget
     }
 
-    const host = this.useHost(this) as any
     const target = this.closest(this.target) as HTMLElement
+    const host = this.useHost(this) as any
 
-    if (this.preventEvent || host.preventEvent) {
+    if (this.preventEvent || (host && host.preventEvent)) {
       this.handleDragEnd()
 
       return false
@@ -70,7 +86,7 @@ class EnlightenmentDraggable extends Enlightenment {
       this.currentTarget = this as any
     }
 
-    if (!this.currentTarget && !target && host !== this) {
+    if (!this.currentTarget && !target && host && host !== this) {
       const context = host.useContext && host.useContext()
 
       if (context && context !== this) {
@@ -87,7 +103,14 @@ class EnlightenmentDraggable extends Enlightenment {
     if (!this.currentTarget && target) {
       this.currentTarget = target
     } else if (!this.currentTarget) {
-      this.currentTarget = this as any
+      const initialElement = this.useInitialElement()
+      this.currentTarget = initialElement
+
+      console.log('AAA', initialElement)
+
+      if (!this.currentTarget) {
+        this.currentTarget = this as any
+      }
     }
 
     this.log(['Draggable target defined:', this.currentTarget], 'log')
@@ -96,7 +119,7 @@ class EnlightenmentDraggable extends Enlightenment {
       this.applyCurrentTargetStyles()
     }
 
-    this.currentHost = this.useHost(this.currentTarget)
+    this.currentHost = this.currentTarget === this ? this : this.useHost(this.currentTarget)
 
     return this.currentTarget ? true : false
   }
@@ -661,14 +684,10 @@ class EnlightenmentDraggable extends Enlightenment {
     const stretch: boolean[] = this.useStretched(context)
     const host = this.useHost(context) || context
 
-    console.log('UPDATE STRETCH', host, stretch)
-
     stretch.forEach((value, index) => {
       const name = index
         ? Enlightenment.defaults.attr.stretchY
         : Enlightenment.defaults.attr.stretchX
-
-      console.log('set', name, value, stretch)
 
       if (value) {
         host.setAttribute(name, '')

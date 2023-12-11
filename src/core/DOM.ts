@@ -981,6 +981,30 @@ export class EnlightenmentDOM extends EnlightenmentParser {
   }
 
   /**
+   * Returns the first Slotted element from the assignedElements of the default
+   * Slot, or get the Element from the existing index.
+   *
+   * @param index Returns the index of the assigned Slotted Elements.
+   */
+  protected useInitialElement(index?: number) {
+    const slot = this.useSlot()
+
+    if (!slot) {
+      return
+    }
+
+    const [firstElement] = slot.assignedElements()
+
+    if (index) {
+      const selectedElement = slot.assignedElements()[index]
+
+      return selectedElement || firstElement
+    }
+
+    return firstElement
+  }
+
+  /**
    * Returns the initial created slot Element.
    *
    * @param name Returns the initial Slot with the defined name Attribute.
