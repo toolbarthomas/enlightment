@@ -428,6 +428,10 @@ class EnlightenmentDraggable extends Enlightenment {
     }
   }
 
+  /**
+   * Reize the current Context element while the Pointer is at one of the 4
+   * screen edges.
+   */
   protected handleDragEdge() {
     this.currentHost.removeAttribute(Enlightenment.defaults.attr.edgeX)
     this.currentHost.removeAttribute(Enlightenment.defaults.attr.edgeY)
@@ -436,7 +440,7 @@ class EnlightenmentDraggable extends Enlightenment {
       return
     }
 
-    if (!this.currentHost) {
+    if (!this.currentHost || this.currentInteractions > 1) {
       return
     }
 
@@ -448,28 +452,30 @@ class EnlightenmentDraggable extends Enlightenment {
     const viewport = this.useBoundingRect()
     const options: EnlightenmentDOMResizeOptions = {}
 
+    // Stretch the context in the X and/or Y axis from while the Pointer has
+    // reached an edge.
+    // This replicates an inverted result of the stretch behavior.
+    // @todo should implement seperate function?
     if (this.currentEdgeY) {
       options.width = viewport.width
       options.height = this.currentEdgeY === 1 ? Math.ceil(viewport.height / 2) : viewport.height
       options.x = viewport.left
       options.y = this.currentEdgeY === 1 ? Math.floor(viewport.height / 2) : viewport.top
-      console.log('ZOOM')
     } else if (this.currentEdgeX) {
       options.width = Math.ceil(viewport.width / 2)
       options.height = viewport.height
       options.x = this.currentEdgeX === 1 ? Math.floor(viewport.width / 2) : viewport.left
       options.y = viewport.top
-      console.log('SUSPEND')
     }
 
     if (!options.width || !options.height || !context) {
       return
     }
 
+    // Await the previous Interaction callback that was defined within a
+    // requestAnimationFrame and cache the adjusted size since the stretch
+    // method is replaced by the above logic.
     this.throttle(() => {
-      console.log(context.style.transform)
-
-      // Ensure the target element can be restored.
       this.assignContextCache({
         context,
         width: context.offsetWidth,
@@ -480,11 +486,16 @@ class EnlightenmentDraggable extends Enlightenment {
       })
 
       this.resize(context, options)
-
-      console.log('END', options, this.currentContext, context, this.contextCache)
     })
   }
 
+  /**
+   * Interaction callback handler that should cleanup the previous Drag
+   * interaction state.
+   *
+   * @param event Optional Event interface that exists while the initial
+   * handler was used in the context of a Mouse or Touch Event.
+   */
   protected handleDragEnd(event?: MouseEvent | TouchEvent) {
     if (!this.currentContext) {
       return
@@ -493,14 +504,18 @@ class EnlightenmentDraggable extends Enlightenment {
     super.handleDragEnd(event).then((result: boolean) => {
       if (this.currentTarget && this.currentHost) {
         const [stretchX, stretchY] = this.useStretched(this.currentTarget)
-        this.currentHost.omitGlobalEvent('resize', this.handleDragEndResizeCallback)
+        this.currentHost.omitGlobalEvent('resize', this.handleRestretch)
 
         if (stretchX || stretchY) {
-          this.currentHost.assignGlobalEvent('resize', this.handleDragEndResizeCallback, {
+          this.currentHost.assignGlobalEvent('resize', this.handleRestretch, {
             context: window,
             thisArg: this
           })
         }
+      }
+
+      if (this.currentInteractions <= 1) {
+        this.useContextCache(this.currentContext, true)
       }
 
       this.cleanupCurrentTarget()
@@ -534,6 +549,7 @@ class EnlightenmentDraggable extends Enlightenment {
     }
 
     this.handleCurrentElement(event.target)
+
     return this.handleDragEnd()
   }
 
@@ -593,14 +609,24 @@ class EnlightenmentDraggable extends Enlightenment {
     }
   }
 
-  protected handleDragEndResizeCallback(event?: Event) {
-    this.throttle(this.handleGlobalResize, Enlightenment.RPS, event)
+  /**
+   * Optional resize handler that should be be called for the stretched context
+   * elements.
+   */
+  protected handleRestretch() {
+    // Throttle the actual handler without any arguments to ensure it is called
+    // only once
+    this.throttle(this.handleGlobalResize, Enlightenment.RPS)
   }
 
+  /**
+   * Ensures the stretched Context elements are resized according to the new
+   * screen Size.
+   *
+   * @param event Defines the original resize Event Interface.
+   */
   protected handleGlobalResize(event: UIEvent) {
     super.handleGlobalResize(event)
-
-    console.log('resize', this)
 
     this.defineTarget()
 
@@ -621,22 +647,28 @@ class EnlightenmentDraggable extends Enlightenment {
     }
   }
 
+  /**
+   * Updates the edgeX and edgeY HTML Attributes for the defined context host.
+   *
+   * @param context Find the actual host component from the defined context
+   * or use the context itself otherwise.
+   */
   protected updateStretched(context?: HTMLElement) {
     if (!context) {
       return
     }
 
     const stretch: boolean[] = this.useStretched(context)
-    const host = this.useHost(context)
+    const host = this.useHost(context) || context
 
-    if (!host || host === context) {
-      return
-    }
+    console.log('UPDATE STRETCH', host, stretch)
 
     stretch.forEach((value, index) => {
       const name = index
         ? Enlightenment.defaults.attr.stretchY
         : Enlightenment.defaults.attr.stretchX
+
+      console.log('set', name, value, stretch)
 
       if (value) {
         host.setAttribute(name, '')

@@ -27,8 +27,8 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
       edgeY: 'edge-y',
       grabbed: 'aria-grabbed',
       pivot: 'data-pivot',
-      stretchX: 'stretch-y',
-      stretchY: 'stretch-x'
+      stretchX: 'stretch-x',
+      stretchY: 'stretch-y'
     },
     customEvents: {
       dragEnd: 'dragend',
@@ -45,7 +45,7 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
   static FPS = 1000 / 60
 
   // Defines the default interval for a frame refresh
-  static RPS = 1000 / 5
+  static RPS = 1000 / 2
 
   static webfontExtensions = ['.woff', '.woff2']
 

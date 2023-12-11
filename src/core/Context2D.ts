@@ -1,7 +1,8 @@
 import {
   EnlightenmentContext2DRect,
   EnlightenmentContext2DCacheEntry,
-  EnlightenmentDOMResizeOptions
+  EnlightenmentDOMResizeOptions,
+  EnlightenmentViewport
 } from 'src/_types/main'
 
 import { EnlightenmentAnimation } from 'src/core/Animation'
@@ -120,18 +121,68 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
   }
 
   /**
+   * Validates if the given context Element is not fully visible within the
+   * defined viewport.
+   *
+   * @param context The context Element to validate.
+   * @param viewport Check from the optional viewport Element instead.
+   */
+  protected isOutsideViewport(context: HTMLElement, viewport?: EnlightenmentViewport) {
+    const bounds = this.useBoundingRect(viewport)
+
+    if (!context) {
+      return
+    }
+
+    const [translateX, translateY] = EnlightenmentContext2D.parseMatrixValue(
+      context.style.transform
+    )
+    const x = context.offsetLeft + (translateX || 0)
+    const y = context.offsetTop + (translateY || 0)
+
+    if (y <= bounds.top) {
+      return true
+    }
+
+    if (x <= bounds.left) {
+      return true
+    }
+
+    if (x + context.offsetWidth > bounds.left + bounds.width) {
+      return true
+    }
+
+    if (y + context.offsetHeight > bounds.top + bounds.height) {
+      return true
+    }
+
+    return false
+  }
+
+  /**
+   * @TODO SHOULD RENAME?
+   *
    * Validates if the defined X & Y position values exists within the defined
    * viewport context.
+   *
    * @param x Validates the current X value.
    * @param y  Validates the current Y value.
    * @param viewport Validate from the optionally defined viewport context.
    */
-  protected isWithinViewport(x: number, y: number, viewport?: HTMLElement) {
-    const context = this.useBoundingRect(viewport)
+  protected isWithinViewport(x: number, y: number, viewport?: EnlightenmentViewport) {
+    const bounds = this.useBoundingRect(viewport)
 
-    return x >= context.left && x <= context.width && y >= context.top && y <= context.width
+    return x >= bounds.left && x <= bounds.width && y >= bounds.top && y <= bounds.width
   }
 
+  /**
+   * Validates if the defined context width and height is stretched to the
+   * defined viewport boundary.
+   *
+   * @param context Compares the context width and height values.
+   * @param viewport Compare with the optional viewport instead of the default
+   * window.
+   */
   protected useStretched(
     context: HTMLElement,
     viewport?: EnlightenmentDOMResizeOptions['viewport']
@@ -144,6 +195,13 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
     return [x, y]
   }
 
+  /**
+   * Remove the matching Context Cache entries from the defined context.
+   *
+   * @param context Checks for an existing cache reference.
+   * @param index Should contain the Array index values to remove from the
+   * current contextCache collection.
+   */
   protected omitContextCache(context: HTMLElement, index: number[]) {
     const cache = this.useContextCache(context)
 
@@ -156,6 +214,8 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
         this.contextCache[i] = undefined
       }
     })
+
+    this.contextCache = this.contextCache.filter((entry) => entry !== undefined)
   }
 
   /**
@@ -482,7 +542,7 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
    * @param viewport Returns the Box model properties from the defined viewport
    * as alternative.
    */
-  protected useBoundingRect(context?: HTMLElement | typeof globalThis): EnlightenmentContext2DRect {
+  protected useBoundingRect(context?: EnlightenmentViewport): EnlightenmentContext2DRect {
     const defaultViewport = {
       top: 0,
       left: 0,

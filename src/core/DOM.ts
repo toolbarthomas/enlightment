@@ -645,8 +645,8 @@ export class EnlightenmentDOM extends EnlightenmentParser {
   /**
    * Default resize handler while the document is resized.
    */
-  protected handleGlobalResize(event: UIEvent) {
-    this.throttle(this.handleCurrentViewport, EnlightenmentDOM.RPS, event)
+  protected handleGlobalResize(event?: UIEvent) {
+    this.throttle(this.handleCurrentViewport, EnlightenmentDOM.RPS)
   }
 
   /**

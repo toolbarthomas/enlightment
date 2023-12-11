@@ -111,6 +111,11 @@ export type EnlightenmentTarget = Element | HTMLElement | Node | SVGElement | un
 export type EnlightenmentThrottle = [Function, ReturnType<typeof setTimeout>, any[] | undefined]
 
 /**
+ * Type reference for the possible Context2D viewport Element.
+ */
+export type EnlightenmentViewport = HTMLElement | typeof globalThis
+
+/**
  * Contains the active document Event listeners that are created from the
  * constructed Class context.
  */
