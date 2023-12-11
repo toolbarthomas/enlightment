@@ -144,6 +144,20 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
     return [x, y]
   }
 
+  protected omitContextCache(context: HTMLElement, index: number[]) {
+    const cache = this.useContextCache(context)
+
+    if (!cache || !index.length) {
+      return this.log('Unable to omit undefined cache entry...', 'log')
+    }
+
+    index.forEach((i) => {
+      if (this.contextCache[i]) {
+        this.contextCache[i] = undefined
+      }
+    })
+  }
+
   /**
    * Resize the defined context element and apply the optional position values.
    *
@@ -214,6 +228,7 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
         EnlightenmentContext2D.filterPropertyValue(position || 'absolute', ['absolute', 'fixed']) ||
         ''
     }
+    console.log('THIS?', context.style.transform, options)
 
     // Remove any translate related values.
     context.style.transform = ''
@@ -315,10 +330,12 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
         break
     }
 
+    console.log('stretch')
+
     // Toggle between the previous state while the current pivot value matches
     // with the previous pivot value.
     if (EnlightenmentContext2D.compareValue(initial, commit)) {
-      const cache = this.useContextCache(context)
+      const cache = this.useContextCache(context, true)
 
       if (cache) {
         this.resize(context, { ...cache, viewport: window })
@@ -423,15 +440,28 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
    * Get the existing Context Cache from the defined Element context.
    *
    * @param context Get the Context Cache from the defined Element.
+   * @param context Clears the defined cache entry when TRUE.
    */
-  protected useContextCache(context: HTMLElement) {
+  protected useContextCache(context: HTMLElement, clear?: boolean) {
     if (!this.contextCache.length) {
       return
     }
 
-    const [cache] = this.contextCache.filter(
-      (contextCache) => contextCache && contextCache.context === context
-    )
+    const matches: number[] = []
+    const [cache] = this.contextCache.filter((contextCache, index) => {
+      if (contextCache && contextCache.context) {
+        matches.push(index)
+
+        return contextCache
+      }
+
+      return
+    })
+
+    if (clear) {
+      this.omitContextCache(context, matches)
+    }
+
     if (!cache) {
       return
     }

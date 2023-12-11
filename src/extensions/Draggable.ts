@@ -224,6 +224,7 @@ class EnlightenmentDraggable extends Enlightenment {
       this.currentContextWidth = context.offsetWidth
     }
 
+    console.log('HHH')
     if (!this.currentContextHeight) {
       this.currentContextHeight = context.offsetHeight
     }
@@ -324,6 +325,7 @@ class EnlightenmentDraggable extends Enlightenment {
 
     if (resizeY) {
       if (context.offsetTop + context.offsetHeight >= viewport.height && bounds.bottom) {
+        console.log('RESET?')
         height = viewport.height - context.offsetTop - (initialTranslateY || 0)
       } else {
         let btt = false
@@ -429,7 +431,6 @@ class EnlightenmentDraggable extends Enlightenment {
   protected handleDragEdge() {
     this.currentHost.removeAttribute(Enlightenment.defaults.attr.edgeX)
     this.currentHost.removeAttribute(Enlightenment.defaults.attr.edgeY)
-    console.log(this.currentPivot)
 
     if (!this.isCenterPivot(this.currentPivot)) {
       return
@@ -443,9 +444,45 @@ class EnlightenmentDraggable extends Enlightenment {
       return
     }
 
-    if (this.currentHost) {
-      console.log('End', this.currentEdgeX, this.currentEdgeY)
+    const context = this.currentTarget
+    const viewport = this.useBoundingRect()
+    const options: EnlightenmentDOMResizeOptions = {}
+
+    if (this.currentEdgeY) {
+      options.width = viewport.width
+      options.height = this.currentEdgeY === 1 ? Math.ceil(viewport.height / 2) : viewport.height
+      options.x = viewport.left
+      options.y = this.currentEdgeY === 1 ? Math.floor(viewport.height / 2) : viewport.top
+      console.log('ZOOM')
+    } else if (this.currentEdgeX) {
+      options.width = Math.ceil(viewport.width / 2)
+      options.height = viewport.height
+      options.x = this.currentEdgeX === 1 ? Math.floor(viewport.width / 2) : viewport.left
+      options.y = viewport.top
+      console.log('SUSPEND')
     }
+
+    if (!options.width || !options.height || !context) {
+      return
+    }
+
+    this.throttle(() => {
+      console.log(context.style.transform)
+
+      // Ensure the target element can be restored.
+      this.assignContextCache({
+        context,
+        width: context.offsetWidth,
+        height: context.offsetHeight,
+        x: context.offsetTop,
+        y: context.offsetLeft,
+        screen: viewport
+      })
+
+      this.resize(context, options)
+
+      console.log('END', options, this.currentContext, context, this.contextCache)
+    })
   }
 
   protected handleDragEnd(event?: MouseEvent | TouchEvent) {
@@ -474,6 +511,9 @@ class EnlightenmentDraggable extends Enlightenment {
 
       this.updateStretched(this.currentTarget)
 
+      // Remove the initial context height for the next possible interaction.
+      this.currentContextHeight = undefined
+      this.currentContextWidth = undefined
       this.currentTarget = undefined
 
       this.omitGlobalEvent('keydown', this.handleDragExit)

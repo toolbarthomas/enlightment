@@ -202,7 +202,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
 
     // Restore the stretched context to its original width & height.
     if (stretchX && stretcY && !this.currentInteractions) {
-      const cache = this.useContextCache(context)
+      const cache = this.useContextCache(context, true)
 
       if (cache) {
         this.resize(context, {
@@ -217,14 +217,24 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
       return
     }
 
+    // true false true false
+    const cache = this.useContextCache(context)
+    const inside = !bounds.top && !bounds.right && !bounds.bottom && !bounds.left
+
     if (fitX && bounds.right) {
       this.resize(context, { width: viewport.width - context.offsetLeft })
     } else if (fitX && bounds.left) {
       this.resize(context, { x: 0, width: context.offsetWidth + context.offsetLeft })
     } else if (this.useScreenBounds(context).right) {
       this.resize(context, { x: viewport.width - context.offsetWidth })
-    } else {
-      this.resize(context, { x: context.offsetLeft, viewport: window })
+    } else if (!this.currentEdgeX && !this.currentEdgeY) {
+      // console.log('end1', cache, inside)
+
+      // if (cache) {
+      //   this.resize(context, { x: context.offsetLeft, height: cache.height })
+      // } else {
+      this.resize(context, { x: context.offsetLeft })
+      // }
     }
 
     if (fitY && bounds.bottom) {
@@ -233,8 +243,14 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
       this.resize(context, { y: 0, height: context.offsetHeight + context.offsetTop })
     } else if (this.useScreenBounds(context).bottom) {
       this.resize(context, { y: viewport.height - context.offsetHeight })
-    } else {
-      this.resize(context, { y: context.offsetTop, viewport: window })
+    } else if (!this.currentEdgeX && !this.currentEdgeY) {
+      console.log('end2', cache)
+
+      // if (cache) {
+      // this.resize(context, { y: context.offsetTop, width: cache.width })
+      // } else {
+      this.resize(context, { y: context.offsetTop })
+      // }
     }
 
     const ariaTarget = this.currentContext || this.useContext() || this
@@ -485,8 +501,6 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
       } else if (clientY > viewport.height) {
         y = y + (clientY - viewport.height)
       }
-
-      console.log('DRAG', this.isGrabbed)
 
       this.handleDragUpdateCallback(this.currentContext || (this.useContext() as HTMLElement), {
         pivot: this.currentPivot,
