@@ -136,7 +136,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
    *
    * @param event Inherit the optional Mouse or Touch event interface.
    */
-  protected handleDragEnd(event?: MouseEvent | TouchEvent) {
+  protected handleDragEnd(event?: MouseEvent | TouchEvent, useViewport?: boolean) {
     return new Promise<boolean>((resolve) => {
       try {
         if (event) {
@@ -161,7 +161,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
             // visible viewport.
             this.clearAnimationFrame(this.currentInteractionRequest)
             this.currentInteractionResponse = this.useAnimationFrame(() =>
-              this.handleDragEndCallback(context, resolve)
+              this.handleDragEndCallback(context, resolve, useViewport)
             )
           }
         }
@@ -199,7 +199,8 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
    */
   protected handleDragEndCallback(
     context: HTMLElement,
-    resolve: EnlightenmentInteractionEndCallback
+    resolve: EnlightenmentInteractionEndCallback,
+    useViewport?: boolean
   ) {
     const bounds = this.useScreenBounds(context)
     const viewport = this.useBoundingRect()
@@ -211,12 +212,6 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
       })
     }
 
-    // Ensure the Dragged Element is placed within the visible viewport
-    // but ignore when the context element is larger than the viewport.
-    const fitX = viewport.width > context.offsetWidth
-    const fitY = viewport.height > context.offsetHeight
-    const [stretchX, stretcY] = this.useStretched(context)
-
     if (!this.currentEdgeX && !this.currentEdgeY) {
       const [translateX, translateY] = EnlightenmentInputController.parseMatrixValue(
         context.style.transform
@@ -226,6 +221,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
       const maxWidth = viewport.width - Math.abs(context.offsetLeft) - Math.abs(translateX || 0)
 
       const initial: EnlightenmentDOMResizeOptions = {
+        fit: useViewport,
         width: context.offsetWidth,
         height: context.offsetHeight,
         x: context.offsetLeft + (translateX || 0),
@@ -233,22 +229,24 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
       }
       const commit = { ...initial }
 
-      // Fit X Axis.
-      if (context.offsetWidth > maxWidth) {
-        commit.width = maxWidth
-      }
+      if (useViewport) {
+        // Fit X Axis.
+        if (context.offsetWidth > maxWidth) {
+          commit.width = maxWidth
+        }
 
-      // Fit Y Axis.
-      if (context.offsetHeight > maxHeight) {
-        commit.height = maxHeight
-      }
+        // Fit Y Axis.
+        if (context.offsetHeight > maxHeight) {
+          commit.height = maxHeight
+        }
 
-      if (initial.x && initial.x < 0) {
-        commit.x = 0
-      }
+        if (initial.x && initial.x < viewport.left) {
+          commit.x = 0
+        }
 
-      if (initial.y && initial.y < 0) {
-        commit.y = 0
+        if (initial.y && initial.y < viewport.top) {
+          commit.y = 0
+        }
       }
 
       if (!EnlightenmentInputController.compareValue(initial, commit)) {

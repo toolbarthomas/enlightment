@@ -229,7 +229,7 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
       context.style.transform
     )
 
-    let { width, height, position, viewport, x, y } = options || {}
+    let { fit, width, height, position, viewport, x, y } = options || {}
     const viewportProperties = this.useBoundingRect(viewport)
     if (x !== undefined) {
       x = Math.round((x || 0) + (translateX || 0))
@@ -243,39 +243,39 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
       y = context.offsetTop
     }
 
-    if (width !== undefined) {
+    if (fit && width !== undefined) {
       // Limit the resize to the visible viewport
       if (viewport && viewportProperties.width <= width + (x || 0)) {
         width = Math.round(viewportProperties.width - x)
       }
-
-      context.style.width = `${width}px`
     }
 
-    if (height !== undefined) {
+    context.style.width = `${width}px`
+
+    if (fit && height !== undefined) {
       // Limit the resize to the visible viewport
       if (viewport && viewportProperties.height <= height + (y || 0)) {
         height = Math.round(viewportProperties.height - y)
       }
-
-      context.style.height = `${height}px`
     }
 
-    if (x !== undefined) {
+    context.style.height = `${height}px`
+
+    if (fit && x !== undefined) {
       if (viewport && x < viewportProperties.left) {
         x = viewportProperties.left
       }
-
-      context.style.left = `${x}px`
     }
 
-    if (y !== undefined) {
+    context.style.left = `${x}px`
+
+    if (fit && y !== undefined) {
       if (viewport && y < viewportProperties.top) {
         y = viewportProperties.top
       }
-
-      context.style.top = `${y}px`
     }
+
+    context.style.top = `${y}px`
 
     // Ensure the required position value is assigned when a valid X and/or Y
     // position is defined.
@@ -284,7 +284,6 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
         EnlightenmentContext2D.filterPropertyValue(position || 'absolute', ['absolute', 'fixed']) ||
         ''
     }
-    console.log('THIS?', context.style.transform, options)
 
     // Remove any translate related values.
     context.style.transform = ''

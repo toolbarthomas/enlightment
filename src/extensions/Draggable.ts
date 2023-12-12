@@ -33,7 +33,16 @@ class EnlightenmentDraggable extends Enlightenment {
     converter: Enlightenment.isBoolean,
     type: Boolean
   })
-  static?: number
+  static?: boolean
+
+  /**
+   * Ignore the initial Screen limitation while TRUE.
+   */
+  @property({
+    converter: Enlightenment.isBoolean,
+    type: Boolean
+  })
+  fixed?: boolean
 
   /**
    * Apply the requested interaction on the defined target selector.
@@ -264,7 +273,7 @@ class EnlightenmentDraggable extends Enlightenment {
     }
 
     //@todo should inherit [fit] from actual modula
-    this.transform(context, left, top, window)
+    this.transform(context, left, top, !this.fixed && window)
   }
 
   /**
@@ -497,6 +506,10 @@ class EnlightenmentDraggable extends Enlightenment {
     this.currentHost.removeAttribute(Enlightenment.defaults.attr.edgeX)
     this.currentHost.removeAttribute(Enlightenment.defaults.attr.edgeY)
 
+    if (this.fixed) {
+      return
+    }
+
     if (!this.isCenterPivot(this.currentPivot)) {
       return
     }
@@ -562,8 +575,8 @@ class EnlightenmentDraggable extends Enlightenment {
       return
     }
 
-    super.handleDragEnd(event).then((result: boolean) => {
-      if (this.currentTarget && this.currentHost) {
+    super.handleDragEnd(event, !this.fixed).then((result: boolean) => {
+      if (this.currentTarget && this.currentHost && !this.fixed) {
         const [stretchX, stretchY] = this.useStretched(this.currentTarget)
         this.currentHost.omitGlobalEvent('resize', this.handleRestretch)
 
@@ -594,11 +607,7 @@ class EnlightenmentDraggable extends Enlightenment {
 
       this.omitGlobalEvent('keydown', this.handleDragExit)
 
-      if (this.currentHost && this.currentHost.hook) {
-        this.currentHost.hook(Enlightenment.defaults.customEvents.dragEnd)
-      } else {
-        this.hook(Enlightenment.defaults.customEvents.dragEnd)
-      }
+      this.hook(Enlightenment.defaults.customEvents.dragEnd, { context: this.currentHost || this })
     })
   }
 
@@ -724,6 +733,10 @@ class EnlightenmentDraggable extends Enlightenment {
    */
   protected updateStretched(context?: HTMLElement) {
     if (!context) {
+      return
+    }
+
+    if (this.fixed) {
       return
     }
 
