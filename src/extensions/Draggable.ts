@@ -745,6 +745,7 @@ class EnlightenmentDraggable extends Enlightenment {
 
   render() {
     return html`<slot
+      visually-hidden
       data-pivot="${this.pivot}"
       @touchstart=${this.handleDragStart}
       @mousedown=${this.handleDragStart}

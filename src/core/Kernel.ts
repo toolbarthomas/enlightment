@@ -399,7 +399,7 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
 
     const { verbose } = EnlightenmentKernel.globals
 
-    if (!verbose || t === 'error') {
+    if (verbose || t === 'error') {
       stdout(...output)
     }
   }

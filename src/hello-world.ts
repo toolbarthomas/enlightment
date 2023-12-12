@@ -13,15 +13,7 @@ import scssStyle from './hello-world.scss'
 
 @customElement('hello-world')
 class HelloWorld extends Enlightenment {
-  static styles = [
-    cssStyle,
-    scssStyle,
-    css`
-      slot {
-        background: red;
-      }
-    `
-  ]
+  static styles = [cssStyle, scssStyle]
 
   enableDocumentEvents = true
   enableFragments = true
@@ -85,7 +77,7 @@ class HelloWorld extends Enlightenment {
    * Toggles the optional defined Focus Trap instance.
    */
   public handleFocusTrap(event: Event) {
-    event.preventDefault && event.preventDefault()
+    // event.preventDefault && event.preventDefault()
 
     this.commit('hasActiveFocusTrap', !this.hasActiveFocusTrap)
 
@@ -182,13 +174,9 @@ class HelloWorld extends Enlightenment {
 
           ${Array.from({ length: 9 }).map((_, index) => {
             return html`
-              <button
-                data-pivot="${index + 1}"
-                @mousedown=${this.handleDragStart}
-                @touchstart=${this.handleDragStart}
-              >
-                ${index + 1}
-              </button>
+              <draggable-element pivot="${index + 1}">
+                <button>${index + 1}</button>
+              </draggable-element>
             `
           })}
 
