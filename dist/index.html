@@ -18,7 +18,9 @@
       You can ignore the workflow if your component will be bundled with the
       actual Enlightenment library within your working development.
   -->
+  <script src="ScrollableElement.extension.js" type="module"></script>
   <script src="Draggable.extension.js" type="module"></script>
+  <script src="FocusTrap.extension.js" type="module"></script>
   <script src="hello-world.js" type="module"></script>
 
   <script>
@@ -75,6 +77,8 @@
   <style>
     #bar {
       background: grey;
+      width: 600px;
+      height: 100px;
     }
 
     .square {
@@ -87,6 +91,28 @@
 </head>
 
 <body>
+  <focus-trap escape>
+    <button handle="click:activate()">Enable FocusTrap</button>
+    <button handle="click:deactivate()">Disable FocusTrap</button>
+  </focus-trap>
+
+  <scrollable-element mode="dark">
+    <img width="200px" height="2000px" />
+  </scrollable-element>
+
+  <scrollable-element>
+    <img width="200px" height="2000px" />
+  </scrollable-element>
+
+  <scrollable-element accent="blue">
+    <img width="200px" height="2000px" />
+  </scrollable-element>
+
+  <scrollable-element accent="red" mode="dark">
+    <img width="200px" height="2000px" />
+  </scrollable-element>
+
+
   <!-- <hello-world observe="hello-world">
     <a href="#href" id="bar">Some example link</a>
   </hello-world>
@@ -107,17 +133,14 @@
     </hello-world>
   </hello-world> -->
 
-
-  <div id="bar">
-    <hello-world accent="30" neutral="100" mode="dark" svg-sprite-source="/sprite.svg">
-      <!-- <hello-world></hello-world> -->
-      <!-- <hello-world handle="ready:start(),updated:hello()">
-      </hello-world> -->
-      <button handle="click:start()">Manual start</button>
-
-
-    </hello-world>
-  </div>
+  <!-- <draggable-element><button>Drag me</button></draggable-element> -->
+  <!-- <hello-world></hello-world> -->
+  <!-- <div id="bar"> -->
+  <!-- <draggable-element target="#bar"><button>Drag me</button></draggable-element> -->
+  <!--
+      <hello-world>
+    </hello-world> -->
+  <!-- </div> -->
   <!-- <hello-world>
     <hello-world></hello-world>
 

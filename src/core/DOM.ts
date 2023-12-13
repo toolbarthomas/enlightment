@@ -347,8 +347,6 @@ export class EnlightenmentDOM extends EnlightenmentParser {
 
     this.clearGlobalEvent('slotchange', slots)
 
-    console.log('Assign')
-
     this.commit('slots', () => {
       if (!slots || !slots.length) {
         this.slots = {}
@@ -510,6 +508,14 @@ export class EnlightenmentDOM extends EnlightenmentParser {
     }
 
     return context
+  }
+
+  /**
+   * Placeholder callback that should be used instead of the default
+   * attributeChangeCallback handler.
+   */
+  protected handleAttributeChange() {
+    return
   }
 
   /**

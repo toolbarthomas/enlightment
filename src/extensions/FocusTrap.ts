@@ -19,6 +19,13 @@ import { createRef, customElement, Enlightenment, html, property, ref } from 'sr
  * Enlightenment Component.
  */
 class EnlightenmentFocusTrap extends Enlightenment {
+  static defaults = {
+    attr: {
+      active: 'trapped',
+      escape: 'escape'
+    }
+  }
+
   /**
    * Returns the tabbable HTML elements that exist within the defined context.
    *
@@ -32,24 +39,45 @@ class EnlightenmentFocusTrap extends Enlightenment {
     )
   }
 
-  // Will hold the Focus Trap instance.
-  focusTrap?: FocusTrap
-  isActive?: boolean
-
+  /**
+   * Activate the Focus Trap during the initial render while TRUE.
+   */
   @property({
-    converter: Enlightenment.convertToSelectors,
-    type: Array
-  })
-  containers?: HTMLElement[]
-
-  // Flag that will activate or deactivate the created Focus Trap instance.
-  @property({
-    attribute: 'active',
+    attribute: EnlightenmentFocusTrap.defaults.attr.escape,
     converter: Enlightenment.isBoolean,
-    // reflect: true,
+    type: Boolean
+  })
+  escape?: boolean
+
+  /**
+   * Activate the Focus Trap during the initial render while TRUE.
+   */
+  @property({
+    attribute: EnlightenmentFocusTrap.defaults.attr.active,
+    converter: Enlightenment.isBoolean,
     type: Boolean
   })
   active?: boolean
+
+  /**
+   * Apply the actual Focus Trap within the existing slotted Elements from the
+   * defined selectors.
+   */
+  @property({
+    converter: (value) => Enlightenment.convertToSelector(value),
+    type: Array
+  })
+  containers: HTMLElement[] = []
+
+  /**
+   * Holds the constructed Focus Trap instance.
+   */
+  focusTrap?: FocusTrap
+
+  /**
+   * Internal boolean that is used to toggle the actual Attribute names.
+   */
+  isActive?: boolean
 
   constructor() {
     super()
@@ -60,7 +88,7 @@ class EnlightenmentFocusTrap extends Enlightenment {
    * The Focus Trap instance will not activate if the defined context is
    * disabled or the direct parent Enlightenment Element is disabled.
    *
-   * You need to update the attribute 'active' via setAttribute to call
+   * You need to update the attribute [trapped] via setAttribute to call
    * this method correctly.
    */
   protected activate() {
@@ -71,7 +99,7 @@ class EnlightenmentFocusTrap extends Enlightenment {
   /**
    * Notify the Component to deactivate the running Focus Trap instance.
    *
-   * You need to remove the attribute 'active' via setAttribute to call
+   * You need to remove the attribute [trapped] via setAttribute to call
    * this method correctly.
    */
   protected deactivate() {
@@ -138,17 +166,49 @@ class EnlightenmentFocusTrap extends Enlightenment {
    * during any component update.
    */
   protected refresh() {
-    if (this.getAttribute('active') === 'true' || this.getAttribute('active') === '') {
-      this.focusTrap?.activate()
+    if (!this.focusTrap) {
+      return
     }
 
-    if (this.focusTrap && this.focusTrap.active && this.useRef(this.context) !== this) {
+    const active = Enlightenment.isBoolean(
+      this.getAttribute(EnlightenmentFocusTrap.defaults.attr.active) || undefined
+    )
+
+    if (active) {
+      this.focusTrap.activate()
+    }
+
+    if (this.focusTrap.active && this.useContext() !== this && this.containers.length) {
       this.focusTrap.updateContainerElements &&
         this.throttle(this.focusTrap.updateContainerElements, Enlightenment.FPS, [
           this,
           ...(this.containers || [])
         ])
     }
+  }
+
+  /**
+   * Exit the active Focus Trap instance.
+   *
+   * @param event Should exit while using an exit keyCode.
+   */
+  protected handleExit(event?: KeyboardEvent) {
+    const { keyCode } = event || {}
+
+    if (!this.focusTrap || !this.focusTrap.active)
+      if (!keyCode) {
+        return
+      }
+
+    if (!Enlightenment.isBoolean(this.escape)) {
+      return
+    }
+
+    if (!Enlightenment.keyCodes.exit.includes(keyCode)) {
+      return
+    }
+
+    this.deactivate()
   }
 
   /**
@@ -165,7 +225,7 @@ class EnlightenmentFocusTrap extends Enlightenment {
   protected handleUpdate(name?: string | undefined): void {
     super.handleUpdate(name)
 
-    this.updateAttributeAlias('isActive', 'active')
+    this.updateAttributeAlias('isActive', EnlightenmentFocusTrap.defaults.attr.active)
 
     if (!this.slots) {
       return
@@ -184,16 +244,13 @@ class EnlightenmentFocusTrap extends Enlightenment {
     const component: any = this.parentNode
 
     let canContinue = true
+    const attrActive = this.getAttribute(EnlightenmentFocusTrap.defaults.attr.active) || undefined
 
     // Only activate the Focus Trap if the parent Component context is not
     // disabled.
-    let host: typeof Enlightenment
-    if (component && component.host instanceof Enlightenment) {
-      host = component.host
-
-      if (host.preventEvent || host.disabled || host.ariaDisabled) {
-        canContinue = false
-      }
+    const host = this.useHost(this) || this
+    if (host.preventEvent || host.disabled || host.ariaDisabled) {
+      canContinue = false
     }
 
     // Also check if the actual context is not disabled.
@@ -203,11 +260,7 @@ class EnlightenmentFocusTrap extends Enlightenment {
 
     // Toggle the actual Focus Trap instance.
     try {
-      if (
-        this.getAttribute('active') !== 'false' &&
-        this.getAttribute('active') != null &&
-        canContinue
-      ) {
+      if (Enlightenment.isBoolean(attrActive) && canContinue) {
         this.focusTrap.activate()
       } else if (this.focusTrap.active) {
         this.focusTrap.deactivate()
@@ -222,20 +275,26 @@ class EnlightenmentFocusTrap extends Enlightenment {
       if (
         host &&
         !host.hasActiveFocusTrap &&
-        this.focusTrap?.active &&
-        this.getAttribute('active') !== 'false' &&
-        this.getAttribute('active') != null
+        this.focusTrap &&
+        Enlightenment.isBoolean(attrActive)
       ) {
-        host.commit('hasActiveFocusTrap', this.focusTrap?.active || true)
+        host.commit('hasActiveFocusTrap', this.focusTrap.active || true)
       } else if (
         host &&
         host.hasActiveFocusTrap &&
-        !this.focusTrap?.active &&
-        (this.getAttribute('active') === 'false' || this.getAttribute('active') == null)
+        this.focusTrap &&
+        !this.focusTrap.active &&
+        !Enlightenment.isBoolean(attrActive)
       ) {
-        host.commit('hasActiveFocusTrap', this.focusTrap?.active || false)
+        host.commit('hasActiveFocusTrap', this.focusTrap.active || false)
       }
     })
+  }
+
+  public connectedCallback(): void {
+    super.connectedCallback()
+
+    this.assignGlobalEvent('keydown', this.handleExit)
   }
 
   /**
@@ -244,6 +303,8 @@ class EnlightenmentFocusTrap extends Enlightenment {
    */
   disconnectedCallback() {
     this.destroy()
+
+    this.omitGlobalEvent('updated', this.handleExit)
 
     super.disconnectedCallback()
   }

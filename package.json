@@ -48,18 +48,19 @@
   },
   "homepage": "https://github.com/toolbarthomas/enlightenment#readme",
   "dependencies": {
-    "focus-trap": "^7.5.4",
     "lit": "^2.8.0"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.15",
     "cssnano": "^6.0.1",
     "esbuild": "^0.19.2",
+    "focus-trap": "^7.5.4",
     "glob": "^10.3.10",
-    "postcss": "^8.4.29",
     "postcss-combine-duplicated-selectors": "^10.0.3",
+    "postcss": "^8.4.29",
     "prettier": "^3.0.3",
     "sass": "^1.66.1",
+    "simplebar": "^6.2.5",
     "typescript": "^5.2.2"
   }
 }

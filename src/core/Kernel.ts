@@ -597,6 +597,8 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
    * on the defined element.
    */
   public attributeChangedCallback(name: string, _old: string | null, value: string | null): void {
+    this.handleAttributeChange()
+
     if (this.once) {
       super.attributeChangedCallback(name, _old || null, value || null)
     } else {

@@ -71,7 +71,7 @@ export class EnlightenmentMixins extends LitElement {
    *
    * @param value Returns an Element Collection from the defined string value.
    */
-  static convertToSelector(value: string | undefined) {
+  static convertToSelector(value: string | null) {
     if (typeof value !== 'string') {
       return []
     }
@@ -94,7 +94,7 @@ export class EnlightenmentMixins extends LitElement {
    * @param options The options parameter to filter from.
    */
   static filterPropertyValue(value: string | null, options: string[]) {
-    if (!value || !options || !options.length) {
+    if (!options || !options.length) {
       return
     }
 
