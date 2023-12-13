@@ -93,6 +93,7 @@ export type EnlightenmentContext2DCacheEntry =
 export type EnlightenmentDOMResizeOptions = {
   height?: number
   position?: string
+  fit?: boolean
   viewport?: HTMLElement | typeof globalThis
   width?: number
   x?: number

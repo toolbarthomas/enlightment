@@ -24,10 +24,12 @@ import { stylePlugin } from './esbuild.style.plugin.mjs'
   }
   const watch = argv.w || argv.watch || false
 
+  const cwd = 'src/Enlightenment'
+
   const defaults = {
     bundle: true,
     entryPoints: ['./src/extensions/*.ts'],
-    external: ['@toolbarthomas/enlightenment'],
+    external: ['@toolbarthomas/enlightenment', cwd],
     format,
     keepNames: true,
     metafile: false,
@@ -35,7 +37,7 @@ import { stylePlugin } from './esbuild.style.plugin.mjs'
     outdir: 'dist',
     outExtension,
     platform: 'browser',
-    plugins: [resolvePlugin(), stylePlugin()]
+    plugins: [resolvePlugin({ name: /src\/Enlightenment$/ }), stylePlugin({ name: cwd })]
   }
 
   if (watch) {

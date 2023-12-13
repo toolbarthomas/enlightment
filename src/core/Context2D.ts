@@ -497,7 +497,11 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
    * @param context Get the Context Cache from the defined Element.
    * @param context Clears the defined cache entry when TRUE.
    */
-  protected useContextCache(context: HTMLElement, clear?: boolean) {
+  protected useContextCache(context?: HTMLElement, clear?: boolean) {
+    if (!context) {
+      return
+    }
+
     if (!this.contextCache.length) {
       return
     }

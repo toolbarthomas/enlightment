@@ -68,7 +68,7 @@ const optimize = (data, context) => {
  * cannot define all styles within a Shadow DOM ans should mainly be used for
  * defining body related properties like typography and inline element layouts.
  */
-export const stylePlugin = () => ({
+export const stylePlugin = (options) => ({
   name: 'Sass',
   setup(build) {
     build.onLoad({ filter: /\.scss|css$/ }, async (args) => {
@@ -90,15 +90,18 @@ export const stylePlugin = () => ({
       // the first CLI argument. This enables the usage of this Esbuild Plugin
       // outside the actual enlightenment package and will resolve Sass imports:
       // import { stylePlugin } from '@toolbarthomas/enlightenment'
-      const { r, resolve, s, split } = argv
-      const name = r || resolve || '@toolbarthomas/enlightenment'
+      const { s, split } = argv || {}
+      const { name } = options || {}
+      const packageName = name || '@toolbarthomas/enlightenment'
 
       // Enclose the rendered style as a Component stylesheet if the
       // defined stylesheet exists within the components directory.
       return s || split
         ? { contents: css, loader: 'css' }
         : {
-            contents: [`import { css } from '${name}'`, `export default css\`${css}\``].join('\n'),
+            contents: [`import { css } from '${packageName}'`, `export default css\`${css}\``].join(
+              '\n'
+            ),
             loader: 'js'
           }
     })

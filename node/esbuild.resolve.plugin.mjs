@@ -16,8 +16,9 @@ import { dirname, join, resolve } from 'node:path'
 export const resolvePlugin = (options) => ({
   name: 'resolve-plugin',
   setup: (build) => {
-    const { destination, minify, namespace } = options || {}
+    const { destination, minify, name, namespace } = options || {}
     const d = destination || '/Enlightenment.js'
+    const packageName = name || /@toolbarthomas\/enlightenment$/
     const n = namespace || 'Enlightenment'
     const { initialOptions } = build || {}
     const { outdir } = initialOptions
@@ -40,7 +41,7 @@ export const resolvePlugin = (options) => ({
 
     build.initialOptions
 
-    build.onResolve({ filter: /@toolbarthomas\/enlightenment$/ }, (args) => {
+    build.onResolve({ filter: packageName }, (args) => {
       return {
         path: d,
         external: true,

@@ -6,7 +6,8 @@ import {
   html,
   property,
   ref
-} from '@toolbarthomas/enlightenment'
+} from 'src/Enlightenment'
+
 import {
   EnlightenmentDOMResizeOptions,
   EnlightenmentInputControllerPointerData
@@ -60,7 +61,7 @@ class EnlightenmentDraggable extends Enlightenment {
   /**
    * Optional host reference
    */
-  currentHost?: ReturnType<typeof Enlightenment>
+  currentHost?: HTMLElement
 
   constructor() {
     super()
@@ -95,7 +96,7 @@ class EnlightenmentDraggable extends Enlightenment {
       return this.currentTarget
     }
 
-    const target = this.closest(this.target) || this.querySelector(this.target)
+    const target = this.closest(this.target || '') || this.querySelector(this.target || '')
     const host = this.useHost(this) as any
 
     if (this.preventEvent || (host && host.preventEvent)) {
@@ -126,12 +127,12 @@ class EnlightenmentDraggable extends Enlightenment {
 
     // Assign the existing parent target defined from the target attribute.
     if (!this.currentTarget && target) {
-      this.currentTarget = target
+      this.currentTarget = target as HTMLElement
     } else if (!this.currentTarget) {
       // Use the first slotted Element instead if the custom target is not
       // defined for this Component.
       const initialElement = this.useInitialElement()
-      this.currentTarget = initialElement
+      this.currentTarget = initialElement as HTMLElement
 
       if (!this.currentTarget) {
         this.currentTarget = this as any
@@ -192,6 +193,8 @@ class EnlightenmentDraggable extends Enlightenment {
     } else if (this.currentPivot) {
       this.handleDragUpdateResize(context, clientX, clientY, this.currentPivot)
     }
+
+    return [context, properties]
   }
 
   /**
@@ -273,7 +276,7 @@ class EnlightenmentDraggable extends Enlightenment {
     }
 
     //@todo should inherit [fit] from actual modula
-    this.transform(context, left, top, !this.fixed && window)
+    this.transform(context, left, top, !this.fixed ? window : undefined)
   }
 
   /**
@@ -503,8 +506,10 @@ class EnlightenmentDraggable extends Enlightenment {
    * screen edges.
    */
   protected handleDragEdge() {
-    this.currentHost.removeAttribute(Enlightenment.defaults.attr.edgeX)
-    this.currentHost.removeAttribute(Enlightenment.defaults.attr.edgeY)
+    if (this.currentHost) {
+      this.currentHost.removeAttribute(Enlightenment.defaults.attr.edgeX)
+      this.currentHost.removeAttribute(Enlightenment.defaults.attr.edgeY)
+    }
 
     if (this.fixed) {
       return
@@ -571,20 +576,25 @@ class EnlightenmentDraggable extends Enlightenment {
    * handler was used in the context of a Mouse or Touch Event.
    */
   protected handleDragEnd(event?: MouseEvent | TouchEvent) {
-    if (!this.currentContext) {
-      return
-    }
+    const job = super.handleDragEnd(event, !this.fixed)
 
-    super.handleDragEnd(event, !this.fixed).then((result: boolean) => {
+    job.then((result: boolean) => {
+      if (!this.currentContext) {
+        return
+      }
+
       if (this.currentTarget && this.currentHost && !this.fixed) {
         const [stretchX, stretchY] = this.useStretched(this.currentTarget)
-        this.currentHost.omitGlobalEvent('resize', this.handleRestretch)
+
+        this.omitGlobalEvent('resize', this.handleRestretch)
 
         if (stretchX || stretchY) {
-          this.currentHost.assignGlobalEvent('resize', this.handleRestretch, {
-            context: window,
-            thisArg: this
-          })
+          if (this.currentHost) {
+            this.assignGlobalEvent('resize', this.handleRestretch, {
+              context: window,
+              thisArg: this.currentHost
+            })
+          }
         }
       }
 
@@ -609,6 +619,8 @@ class EnlightenmentDraggable extends Enlightenment {
 
       this.hook(Enlightenment.defaults.customEvents.dragEnd, { context: this.currentHost || this })
     })
+
+    return job
   }
 
   /**
@@ -651,8 +663,10 @@ class EnlightenmentDraggable extends Enlightenment {
 
     this.assignGlobalEvent('keydown', this.handleDragExit, { once: true })
 
-    if (this.currentHost && this.currentHost.hook) {
-      this.currentHost.hook(Enlightenment.defaults.customEvents.dragStart)
+    const host = this.currentHost as Enlightenment
+
+    if (host && typeof host.hook === 'function') {
+      host.hook(Enlightenment.defaults.customEvents.dragStart)
     } else {
       this.hook(Enlightenment.defaults.customEvents.dragStart)
     }
@@ -669,15 +683,15 @@ class EnlightenmentDraggable extends Enlightenment {
     super.handleDragUpdate(event)
 
     if (this.currentEdgeX && this.currentHost) {
-      this.currentHost.setAttribute(Enlightenment.defaults.attrEdgeX, String(this.currentEdgeX))
-    } else {
-      this.currentHost.removeAttribute(Enlightenment.defaults.attrEdgeX)
+      this.currentHost.setAttribute(Enlightenment.defaults.attr.edgeX, String(this.currentEdgeX))
+    } else if (this.currentHost) {
+      this.currentHost.removeAttribute(Enlightenment.defaults.attr.edgeX)
     }
 
     if (this.currentEdgeY && this.currentHost) {
-      this.currentHost.setAttribute(Enlightenment.defaults.attrEdgeY, String(this.currentEdgeY))
-    } else {
-      this.currentHost.removeAttribute(Enlightenment.defaults.attrEdgeY)
+      this.currentHost.setAttribute(Enlightenment.defaults.attr.edgeY, String(this.currentEdgeY))
+    } else if (this.currentHost) {
+      this.currentHost.removeAttribute(Enlightenment.defaults.attr.edgeY)
     }
 
     // Prevent content from being selecting while preforming the drag
@@ -718,10 +732,16 @@ class EnlightenmentDraggable extends Enlightenment {
         ? bounds.height
         : undefined
 
-      const top = height ? 0 : undefined
-      const left = width ? 0 : undefined
+      const x = height ? 0 : undefined
+      const y = width ? 0 : undefined
 
-      this.resize(this.currentTarget, { width, height, top, left })
+      this.currentTarget &&
+        this.resize(this.currentTarget, {
+          width,
+          height,
+          x,
+          y
+        })
     }
   }
 

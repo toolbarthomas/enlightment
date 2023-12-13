@@ -21,11 +21,11 @@
   ],
   "scripts": {
     "prebuild": "npm run tsc",
-    "postbuild": "node node/esbuild.extensions.mjs & node node/esbuild.extensions.mjs -f=cjs",
-    "build": "node node/esbuild.enlightenment.mjs -r=src/enlightenment -s & node node/esbuild.enlightenment.mjs -r=src/enlightenment -s -f=cjs",
+    "postbuild": "node node/esbuild.extensions.mjs -n=src/enlightenment & node node/esbuild.extensions.mjs -f=cjs -n=src/enlightenment",
+    "build": "node node/esbuild.enlightenment.mjs -n=src/enlightenment -s & node node/esbuild.enlightenment.mjs -f=cjs -n=src/enlightenment -s",
     "postbuild:minify": "node node/esbuild.extensions.mjs -m& node node/esbuild.extensions.mjs -f=cjs -m",
-    "build:minify": "node node/esbuild.enlightenment.mjs -r=src/enlightenment -s -m & node node/esbuild.enlightenment.mjs -r=src/enlightenment -s -f=cjs -m",
-    "dev": "node node/esbuild.enlightenment.mjs -r=src/enlightenment -s -w & node node/esbuild.extensions.mjs -w & node node/esbuild.serve.mjs",
+    "build:minify": "node node/esbuild.enlightenment.mjs -n=src/enlightenment -s -m & node node/esbuild.enlightenment.mjs -n=src/enlightenment -s -f=cjs -m",
+    "dev": "node node/esbuild.enlightenment.mjs -n=src/enlightenment -s -w & node node/esbuild.extensions.mjs -w & node node/esbuild.serve.mjs",
     "prepublish": "npm run build && npm run build:minify",
     "test": "echo \"Error: no test specified\" && exit 1",
     "tsc": "tsc --noEmit"
@@ -48,13 +48,14 @@
   },
   "homepage": "https://github.com/toolbarthomas/enlightenment#readme",
   "dependencies": {
-    "glob": "^10.3.4",
+    "focus-trap": "^7.5.4",
     "lit": "^2.8.0"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.15",
     "cssnano": "^6.0.1",
     "esbuild": "^0.19.2",
+    "glob": "^10.3.10",
     "postcss": "^8.4.29",
     "postcss-combine-duplicated-selectors": "^10.0.3",
     "prettier": "^3.0.3",
