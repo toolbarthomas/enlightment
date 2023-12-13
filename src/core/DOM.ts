@@ -213,6 +213,8 @@ export class EnlightenmentDOM extends EnlightenmentParser {
    * @param Event Use the Event target as actual context.
    */
   private assignSlottedEvent(event: Event) {
+    this.clearSlottedEvents(event.target as HTMLSlotElement)
+
     const actions: HTMLElement[] = []
 
     actions.push(...(Object.values(this.querySelectorAll('[handle]')) as HTMLElement[]))
@@ -246,21 +248,9 @@ export class EnlightenmentDOM extends EnlightenmentParser {
         const fn: Function = this[name.split('(')[0]]
 
         if (typeof fn === 'function' && this.useHost(element) === this) {
-          this.assignGlobalEvent(
-            type,
-            () => {
-              try {
-                this.throttle(fn)
-              } catch (exception) {
-                if (exception) {
-                  this.log(exception, 'error')
-                }
-              }
-            },
-            {
-              context: element
-            }
-          )
+          this.assignGlobalEvent(type, fn, {
+            context: element
+          })
         }
       })
     })
@@ -357,6 +347,8 @@ export class EnlightenmentDOM extends EnlightenmentParser {
 
     this.clearGlobalEvent('slotchange', slots)
 
+    console.log('Assign')
+
     this.commit('slots', () => {
       if (!slots || !slots.length) {
         this.slots = {}
@@ -364,8 +356,6 @@ export class EnlightenmentDOM extends EnlightenmentParser {
         for (let i = 0; i < slots.length; i += 1) {
           const slot = slots[i]
           const name = slot.name || EnlightenmentDOM.defaults.slot
-
-          this.clearSlottedEvents(slot)
 
           if (!Object.values(this.slots).includes(slot)) {
             if (!this.slots[name]) {
@@ -676,6 +666,8 @@ export class EnlightenmentDOM extends EnlightenmentParser {
         this.dispatchUpdate('ready')
       })
     }
+
+    console.log('handle SLot change')
   }
 
   /**

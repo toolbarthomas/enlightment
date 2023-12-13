@@ -257,7 +257,11 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
       pv = true
     }
 
-    ctx && ctx.addEventListener(type, fn, { once, passive: pv })
+    if (type === 'click') {
+      console.log('ADD', this.listeners)
+    }
+
+    ctx.addEventListener(type, fn, { once, passive: pv })
 
     this.log(
       [`Global event assigned: ${ctx.constructor.name}@${type}`, { context: ctx, host: this }],
@@ -424,6 +428,9 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
 
     const [t, fn, ctx] = this.filterGlobalEvent(type, handler)
 
+    if (type === 'click') {
+      console.log('OMIT', type, handler.name, this.listeners)
+    }
     if (!t || !fn || !ctx) {
       this.log(`Unable to omit undefined global ${type} Event`, 'warning')
 

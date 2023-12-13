@@ -96,7 +96,10 @@ class EnlightenmentDraggable extends Enlightenment {
       return this.currentTarget
     }
 
-    const target = this.closest(this.target || '') || this.querySelector(this.target || '')
+    const target = this.target
+      ? this.closest(this.target) || this.querySelector(this.target || '')
+      : undefined
+
     const host = this.useHost(this) as any
 
     if (this.preventEvent || (host && host.preventEvent)) {
