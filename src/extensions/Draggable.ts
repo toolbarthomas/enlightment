@@ -63,10 +63,6 @@ class EnlightenmentDraggable extends Enlightenment {
    */
   currentHost?: HTMLElement
 
-  constructor() {
-    super()
-  }
-
   /**
    * Ignore the initial Context reference and us the custom target reference
    * instead. This should apply any DOM mutation on the selected target instead
@@ -174,6 +170,7 @@ class EnlightenmentDraggable extends Enlightenment {
   protected cleanupCurrentTarget() {
     if (this.currentTarget) {
       this.currentTarget.style.userSelect = ''
+      this.currentTarget.style.overflow = ''
     }
   }
 
@@ -701,6 +698,7 @@ class EnlightenmentDraggable extends Enlightenment {
     // interaction.
     if (this.currentTarget && !this.currentTarget.style.userSelect) {
       this.currentTarget.style.userSelect = 'none'
+      this.currentTarget.style.overflow = 'hidden'
     }
   }
 

@@ -85,10 +85,6 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
   previousPointerX?: number
   previousPointerY?: number
 
-  constructor() {
-    super()
-  }
-
   /**
    * Assigns a new Interaction response callback that should end the current
    * interaction. This should stop any interaction when the Pointer position

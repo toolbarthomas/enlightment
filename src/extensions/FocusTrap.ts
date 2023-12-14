@@ -81,10 +81,6 @@ class EnlightenmentFocusTrap extends Enlightenment {
    */
   isActive?: boolean
 
-  constructor() {
-    super()
-  }
-
   /**
    * Notify the Component to activate the running Focus Trap instance.
    * The Focus Trap instance will not activate if the defined context is
