@@ -72,6 +72,7 @@ export class Enlightenment extends EnlightenmentInputController {
     this.updateAttribute('mode', this.mode, true)
     this.updateAttribute('neutral', this.neutral)
     this.updateAttribute('viewport', this.viewport)
+    this.updateAttribute('direction', this.direction)
     this.updateAttributeAlias('currentElement', 'aria-current')
     this.updateAttributeAlias('isCollapsed', 'aria-collapsed')
     this.updateAttributeAlias('isExpanded', 'aria-expanded')

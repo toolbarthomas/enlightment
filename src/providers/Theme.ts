@@ -204,6 +204,11 @@ export class EnlightenmentTheme {
   static COLOR_MODES = ['light', 'dark']
 
   /**
+   * Display the Compponent in left-to-right or right-to-left direction.
+   */
+  static DIRECTIONS = ['ltr', 'rtl']
+
+  /**
    * Defines the default Device widths in pixels that are used within the
    * optional CSS Media query. Pixel value is expected to ensure full browser
    * support.

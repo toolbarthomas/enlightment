@@ -1179,7 +1179,7 @@ export class Enlightenment extends LitElement {
   private useMode(context?: Element) {
     const { mode } = Enlightenment.globals
     const target = (context || this) as Enlightenment
-    const host = Enlightenment.useHost(target) as Enlightenment
+    const host = this.useHost(target) as Enlightenment
 
     // Ensure a valid mode is always active since it can be mutated outside
     // the component context.

@@ -129,6 +129,15 @@ export class EnlightenmentDOM extends EnlightenmentParser {
   ariaDisabled: string | null = null
 
   /**
+   * Property reference for the actual ARIA disabled Attribute.
+   */
+  @property({
+    type: String,
+    converter: (value) => EnlightenmentDOM.filterPropertyValue(value, EnlightenmentTheme.DIRECTIONS)
+  })
+  direction: string = EnlightenmentTheme.DIRECTIONS[1]
+
+  /**
    * Boolean flag that should behave like the existing Input Element disabled
    * Attribute.
    */
