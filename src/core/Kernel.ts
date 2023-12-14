@@ -257,10 +257,6 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
       pv = true
     }
 
-    if (type === 'click') {
-      console.log('ADD', this.listeners)
-    }
-
     ctx.addEventListener(type, fn, { once, passive: pv })
 
     this.log(
@@ -381,6 +377,14 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
     })
 
     return entry.length ? entry[0] : []
+  }
+
+  /**
+   * Placeholder callback that should be used instead of the default
+   * attributeChangeCallback handler.
+   */
+  protected handleAttributeChange() {
+    return
   }
 
   /**

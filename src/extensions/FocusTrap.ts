@@ -20,7 +20,9 @@ import { createRef, customElement, Enlightenment, html, property, ref } from 'sr
  */
 class EnlightenmentFocusTrap extends Enlightenment {
   static defaults = {
+    ...Enlightenment.defaults,
     attr: {
+      ...Enlightenment.defaults.attr,
       active: 'trapped',
       escape: 'escape'
     }
@@ -195,10 +197,13 @@ class EnlightenmentFocusTrap extends Enlightenment {
   protected handleExit(event?: KeyboardEvent) {
     const { keyCode } = event || {}
 
-    if (!this.focusTrap || !this.focusTrap.active)
-      if (!keyCode) {
-        return
-      }
+    if (!keyCode) {
+      return
+    }
+
+    if (!this.focusTrap || !this.focusTrap.active) {
+      return
+    }
 
     if (!Enlightenment.isBoolean(this.escape)) {
       return

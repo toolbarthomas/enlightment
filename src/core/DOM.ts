@@ -511,14 +511,6 @@ export class EnlightenmentDOM extends EnlightenmentParser {
   }
 
   /**
-   * Placeholder callback that should be used instead of the default
-   * attributeChangeCallback handler.
-   */
-  protected handleAttributeChange() {
-    return
-  }
-
-  /**
    * Toggles the currentElement property within the defined element context.
    *
    * The expected attributes are updated directly without triggering a
@@ -672,8 +664,6 @@ export class EnlightenmentDOM extends EnlightenmentParser {
         this.dispatchUpdate('ready')
       })
     }
-
-    console.log('handle SLot change')
   }
 
   /**

@@ -197,7 +197,7 @@ class EnlightenmentDraggable extends Enlightenment {
       this.handleDragUpdateResize(context, clientX, clientY, this.currentPivot)
     }
 
-    return [context, properties]
+    return super.handleDragUpdateCallback(context, properties)
   }
 
   /**
@@ -258,7 +258,7 @@ class EnlightenmentDraggable extends Enlightenment {
     if (target) {
       const axis = Enlightenment.filterPropertyValue(
         target.getAttribute(Enlightenment.defaults.attr.axis),
-        ['x', 'y']
+        ['', 'x', 'y']
       )
 
       // Limit the current Drag interaction to the optional Axis

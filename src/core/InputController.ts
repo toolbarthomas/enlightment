@@ -499,6 +499,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
       } else if (clientX > viewport.width) {
         x = x + (clientX - viewport.width)
       }
+
       if (clientY < viewport.top) {
         y = viewport.top
       } else if (clientY > viewport.height) {
