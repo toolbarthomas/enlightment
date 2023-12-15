@@ -7,8 +7,15 @@ import styles from './ScrollableElement.scss'
 @customElement('scrollable-element')
 export class EnlightenmentScrollableElement extends Enlightenment {
   static styles = [styles]
+
+  /**
+   * Defines the available shape types for the [shape] property.
+   */
   static shapes = ['round', 'square']
 
+  /**
+   * Defines the corner radius for the custom Scrollbar handle.
+   */
   @property({
     converter: (value) =>
       Enlightenment.filterPropertyValue(value, EnlightenmentScrollableElement.shapes),
@@ -16,8 +23,63 @@ export class EnlightenmentScrollableElement extends Enlightenment {
   })
   shape: string = EnlightenmentScrollableElement.shapes[0]
 
+  /**
+   * Contains the constructed Simplebar instance that implement the custom
+   * scrollbar feature.
+   *
+   * @see https://github.com/Grsmto/simplebar
+   */
   simpleBar?: SimpleBar
 
+  /**
+   * Updates the SimpleBar instance and recalculate the initial context
+   * Element.
+   * @param event
+   */
+  protected handleSlotChange(event: Event): void {
+    this.throttle(this.updateScrollbar, Enlightenment.RPS)
+
+    super.handleSlotChange(event)
+  }
+
+  /**
+   * Updates the current SimpleBar instance.
+   */
+  protected updateScrollbar() {
+    if (this.simpleBar && this.simpleBar.recalculate) {
+      return this.simpleBar.recalculate()
+    }
+  }
+
+  /**
+   * Unmount the created Simplebar instance.
+   */
+  public destroy() {
+    if (!this.simpleBar) {
+      return
+    }
+
+    try {
+      this.simpleBar.unMount()
+    } catch (exception) {
+      exception && this.log(exception, 'error')
+    }
+  }
+
+  /**
+   * Cleanup the custom scrollbar instance.
+   */
+  public disconnectedCallback(): void {
+    this.destroy()
+
+    super.disconnectedCallback()
+  }
+
+  /**
+   * Setup the initial Simplebar instance that should mimic a custom scrollbar.
+   *
+   * @param properties Defines the changes properties within the firstUpdate.
+   */
   public firstUpdated(properties: any): void {
     const context = (this.useRef(this.context) as HTMLElement) || this
 
@@ -50,25 +112,12 @@ export class EnlightenmentScrollableElement extends Enlightenment {
     super.firstUpdated(properties)
   }
 
-  protected handleUpdate(name?: string | undefined): void {
-    super.handleUpdate(name)
-
-    if (this.simpleBar && this.simpleBar.recalculate) {
-      this.throttle(this.updateScrollbar, Enlightenment.RPS)
-    }
-  }
-
-  public connectedCallback(): void {
-    super.connectedCallback()
-  }
-
-  protected updateScrollbar() {
-    if (this.simpleBar && this.simpleBar.recalculate) {
-      return this.simpleBar.recalculate()
-    }
-  }
-
-  render() {
+  /**
+   * Render the initial context element that will be used as Element reference
+   *  by the Simplebar instance and wraps custom HTML around the defined Slot
+   * Element in order to display the custom scrollbar.
+   */
+  public render() {
     const classes = ['scrollable-element']
 
     if (this.shape) {

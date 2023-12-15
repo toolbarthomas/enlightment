@@ -90,7 +90,6 @@ class EnlightenmentFocusTrap extends Enlightenment {
    * this method correctly.
    */
   protected activate() {
-    console.log('CLICK')
     this.commit('isActive', true)
   }
 
@@ -150,7 +149,7 @@ class EnlightenmentFocusTrap extends Enlightenment {
       this.log(`Focus Trap defined from: ${context}`, 'info')
     }
 
-    const host: any = (this.parentNode as any).host
+    const host = this.useHost(this.parentNode)
 
     if (host && host !== this) {
       this.assignGlobalEvent('updated', this.refresh, { context: host })
@@ -210,6 +209,12 @@ class EnlightenmentFocusTrap extends Enlightenment {
     }
 
     this.deactivate()
+  }
+
+  protected handleSlotChange(event: Event): void {
+    this.throttle(this.refresh)
+
+    super.handleSlotChange(event)
   }
 
   /**
@@ -292,6 +297,10 @@ class EnlightenmentFocusTrap extends Enlightenment {
     })
   }
 
+  /**
+   * Setup the additional Keyboard interface that should exit the active
+   * FocusTrap instance.
+   */
   public connectedCallback(): void {
     super.connectedCallback()
 
@@ -302,7 +311,7 @@ class EnlightenmentFocusTrap extends Enlightenment {
    * Ensure the running Focus Trap instance is stopped when the Component is
    * removed.
    */
-  disconnectedCallback() {
+  public disconnectedCallback() {
     this.destroy()
 
     this.omitGlobalEvent('updated', this.handleExit)
@@ -313,9 +322,7 @@ class EnlightenmentFocusTrap extends Enlightenment {
   /**
    * Wraps the Focus Trap instance directly within the component.
    */
-  render() {
-    this.refresh()
-
+  public render() {
     return html`<slot ref=${ref(this.context)}></slot>`
   }
 }

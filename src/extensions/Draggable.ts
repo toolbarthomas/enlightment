@@ -15,9 +15,41 @@ import {
 
 import styles from './Draggable.scss'
 
+/**
+ * The Draggable Element interface enables the Drag interaction on the defined
+ * target selector, host Component or initial slotted Element.
+ *
+ * It enables position and resize transformation on the the actual context
+ * according to the defined pivot property.
+ *
+ * Created Element instances without any pivot will act as an overlay within the
+ * rendered context and should trigger the Element dragging for Touch & Mouse
+ * input. The actual parent element should defined it's actual position and
+ * size.
+ *
+ * The optional [pivot] property accepts the value 1 to 9 that should defined
+ * actual direction from North-west to Sout-east:
+ *
+ * [1][2][3]
+ * [4][5][6]
+ * [7][8][9]
+ *
+ * Any of these values will be positioned according to it's location and are
+ * used as resize handle. The center pivot (5) ignores the resize interaction
+ * and will use the drag behaviour.
+ *
+ * @TODO
+ *  - Implement Axis resize with optional key/method to resize in both directions
+ */
 @customElement('draggable-element')
 class EnlightenmentDraggable extends Enlightenment {
   static styles = [styles]
+
+  static defaults = {
+    ...Enlightenment.defaults,
+    minWidth: 300,
+    minHeight: 200
+  }
 
   /**
    * Defines the pivot position and interaction behavior for the component.
@@ -461,18 +493,9 @@ class EnlightenmentDraggable extends Enlightenment {
       }
     }
 
-    //@DEPRECATED
-    // if (!this.currentInteractionVelocityX && !bounds.left && !bounds.right) {
-    //   width = context.offsetWidth
-    // }
-
-    // if (!this.currentInteractionVelocityY && !bounds.top && !bounds.bottom) {
-    //   height = context.offsetHeight
-    // }
-
     if (width) {
-      if (width < 300) {
-        width = 300
+      if (width < EnlightenmentDraggable.defaults.minWidth) {
+        width = EnlightenmentDraggable.defaults.minWidth
       }
 
       if (context.offsetWidth === width && initialTranslateX) {
@@ -483,15 +506,9 @@ class EnlightenmentDraggable extends Enlightenment {
     }
 
     if (height) {
-      if (height < 200) {
-        height = 200
+      if (height < EnlightenmentDraggable.defaults.minHeight) {
+        height = EnlightenmentDraggable.defaults.minHeight
       }
-
-      //@DEPRECATED
-      // if (context.offsetHeight === height && initialTranslateY) {
-      //   console.log('fallback')
-      //   // translateY = initialTranslateY
-      // }
 
       context.style.height = `${height}px`
     }
@@ -777,6 +794,17 @@ class EnlightenmentDraggable extends Enlightenment {
     })
   }
 
+  /**
+   * Render the initial HTML that will apply the interaction no the existing
+   * host component or defined target selector (closest or childElement).
+   *
+   * Or render the intial Slot element that is the default context Element with
+   * a Draggable interaction if the [static] property is defined for the
+   * initial Component:
+   * <... static></...> Apply Drag interaction on the first slotted Element.
+   * <... static pivot=""></...> Apply pivot interaction on the first slotted
+   * Element.
+   */
   render() {
     return html`<slot
       visually-hidden
