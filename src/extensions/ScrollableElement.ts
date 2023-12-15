@@ -8,7 +8,6 @@ import styles from './ScrollableElement.scss'
 export class EnlightenmentScrollableElement extends Enlightenment {
   static styles = [styles]
   static shapes = ['round', 'square']
-  static direction = ['rtl', 'ltr']
 
   @property({
     converter: (value) =>
@@ -38,7 +37,8 @@ export class EnlightenmentScrollableElement extends Enlightenment {
           visible: 'scrollable-element__scrollbar--is-visible',
           horizontal: 'scrollable-element__track--is-horizontal',
           vertical: 'scrollable-element__track--is-vertical',
-          dragging: 'scrollable-element--is-grabbed'
+          dragging: 'scrollable-element--is-grabbed',
+          hover: 'scrollable-element--has-hover'
         },
         autoHide: false,
         forceVisible: true
@@ -81,10 +81,7 @@ export class EnlightenmentScrollableElement extends Enlightenment {
 
     return html`<div
       class="${classes.join(' ')}"
-      data-simplebar-direction="${Enlightenment.filterPropertyValue(this.direction, [
-        'rtl',
-        'ltr'
-      ])}"
+      data-simplebar-direction="${this.direction}"
       ref="${ref(this.context)}"
     >
       <slot></slot>

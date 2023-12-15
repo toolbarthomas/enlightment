@@ -135,7 +135,7 @@ export class EnlightenmentDOM extends EnlightenmentParser {
     type: String,
     converter: (value) => EnlightenmentDOM.filterPropertyValue(value, EnlightenmentTheme.DIRECTIONS)
   })
-  direction: string = EnlightenmentTheme.DIRECTIONS[1]
+  direction: string = EnlightenmentTheme.DIRECTIONS[0]
 
   /**
    * Boolean flag that should behave like the existing Input Element disabled
