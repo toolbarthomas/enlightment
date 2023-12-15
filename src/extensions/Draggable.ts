@@ -42,7 +42,7 @@ import styles from './Draggable.scss'
  *  - Implement Axis resize with optional key/method to resize in both directions
  */
 @customElement('draggable-element')
-class EnlightenmentDraggable extends Enlightenment {
+export class EnlightenmentDraggable extends Enlightenment {
   static styles = [styles]
 
   static defaults = {

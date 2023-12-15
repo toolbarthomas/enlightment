@@ -259,3 +259,7 @@ export class Enlightenment extends EnlightenmentInputController {
     return super.useHost(target) as Enlightenment
   }
 }
+
+export { EnlightenmentDraggable } from 'src/extensions/Draggable'
+export { EnlightenmentFocusTrap } from 'src/extensions/FocusTrap'
+export { EnlightenmentScrollable } from 'src/extensions/Scrollable'

@@ -2,10 +2,10 @@ import SimpleBar from 'simplebar'
 
 import { customElement, Enlightenment, html, property, ref } from 'src/Enlightenment'
 
-import styles from './ScrollableElement.scss'
+import styles from './Scrollable.scss'
 
 @customElement('scrollable-element')
-export class EnlightenmentScrollableElement extends Enlightenment {
+export class EnlightenmentScrollable extends Enlightenment {
   static styles = [styles]
 
   /**
@@ -17,11 +17,10 @@ export class EnlightenmentScrollableElement extends Enlightenment {
    * Defines the corner radius for the custom Scrollbar handle.
    */
   @property({
-    converter: (value) =>
-      Enlightenment.filterPropertyValue(value, EnlightenmentScrollableElement.shapes),
+    converter: (value) => Enlightenment.filterPropertyValue(value, EnlightenmentScrollable.shapes),
     type: String
   })
-  shape: string = EnlightenmentScrollableElement.shapes[0]
+  shape: string = EnlightenmentScrollable.shapes[0]
 
   /**
    * Contains the constructed Simplebar instance that implement the custom

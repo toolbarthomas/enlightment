@@ -18,7 +18,7 @@ import { createRef, customElement, Enlightenment, html, property, ref } from 'sr
  * component will try to update the focusTrap context from the optional parent
  * Enlightenment Component.
  */
-class EnlightenmentFocusTrap extends Enlightenment {
+export class EnlightenmentFocusTrap extends Enlightenment {
   static defaults = {
     ...Enlightenment.defaults,
     attr: {

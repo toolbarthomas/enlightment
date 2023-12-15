@@ -2,6 +2,7 @@ import esbuild from 'esbuild'
 import path from 'node:path'
 
 import { stylePlugin } from './esbuild.style.plugin.mjs'
+import { extensionPlugin } from './esbuild.extension.plugin.mjs'
 
 import { argv } from './argv.mjs'
 
@@ -26,6 +27,7 @@ import { argv } from './argv.mjs'
   const defaults = {
     bundle: true,
     entryPoints: ['./src/Enlightenment.ts'],
+    external: ['src/extensions/Draggable'],
     format,
     keepNames: true,
     metafile: false,
@@ -33,7 +35,7 @@ import { argv } from './argv.mjs'
     outdir: 'dist',
     outExtension,
     platform: 'node',
-    plugins: [stylePlugin()]
+    plugins: [extensionPlugin({ minify: argv.m || argv.minify || false }), stylePlugin()]
   }
 
   if (watch) {
