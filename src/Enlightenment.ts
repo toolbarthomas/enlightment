@@ -13,9 +13,9 @@ export {
   ref
 } from 'src/core/Mixins'
 
-import { EnlightenmentInputController } from 'src/core/InputController'
+import { EnlightenmentExtensionLoader } from 'src/core/ExtensionLoader'
 
-export class Enlightenment extends EnlightenmentInputController {
+export class Enlightenment extends EnlightenmentExtensionLoader {
   /**
    * Alias the Enlightment static methoeds to the main Enlightment class
    * instance.
@@ -268,11 +268,6 @@ export class Enlightenment extends EnlightenmentInputController {
  * the current URL query string will disable the default extension Interfaces
  * and prevents any automatic import from the default extension exports.
  */
-const disableExtensions = new URL(window.location as any).searchParams.has(
-  'disableEnlightenmentExtensions'
-)
-const includeExtensions = !disableExtensions
-
-export const EnlightenmentDraggable = includeExtensions && import('src/extensions/Draggable')
-export const EnlightenmentFocusTrap = includeExtensions && import('src/extensions/FocusTrap')
-export const EnlightenmentScrollable = includeExtensions && import('src/extensions/Scrollable')
+export const useDraggable = Enlightenment.importDraggable
+export const useScrollable = Enlightenment.importScrollable
+export const useFocusTrap = Enlightenment.importFocusTrap

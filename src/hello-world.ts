@@ -5,11 +5,15 @@ import {
   Enlightenment,
   html,
   property,
-  ref
+  ref,
+  useDraggable
 } from '@toolbarthomas/enlightenment'
+
+useDraggable()
 
 import cssStyle from './hello-world.css'
 import scssStyle from './hello-world.scss'
+import { useDraggable } from './Enlightenment'
 
 @customElement('hello-world')
 class HelloWorld extends Enlightenment {
