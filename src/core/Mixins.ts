@@ -12,9 +12,9 @@ import {
 import {
   customElement as _customElement,
   eventOptions as _eventOptions,
-  property as _property,
-  query
+  property as _property
 } from 'lit/decorators.js'
+
 import { createRef as _createRef, ref as _ref, Ref } from 'lit/directives/ref.js'
 
 export const createRef = _createRef

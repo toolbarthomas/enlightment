@@ -1,6 +1,6 @@
 import { existsSync, copyFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { dirname, join, resolve } from 'node:path'
+import { dirname, join, normalize, relative, resolve } from 'node:path'
 
 /**
  * Resolve the requested Enlightenment package from @toolbarthomas/enlightenment
@@ -16,7 +16,7 @@ import { dirname, join, resolve } from 'node:path'
 export const resolvePlugin = (options) => ({
   name: 'resolve-plugin',
   setup: (build) => {
-    const { destination, minify, name, namespace } = options || {}
+    const { destination, minify, name, namespace, cwd } = options || {}
     const d = destination || '/Enlightenment.js'
     const packageName = name || /@toolbarthomas\/enlightenment$/
     const n = namespace || 'Enlightenment'
@@ -39,11 +39,9 @@ export const resolvePlugin = (options) => ({
       }
     }
 
-    build.initialOptions
-
     build.onResolve({ filter: packageName }, (args) => {
       return {
-        path: d,
+        path: cwd ? `${cwd}${join(cwd, d)}` : d,
         external: true,
         namespace: n
       }

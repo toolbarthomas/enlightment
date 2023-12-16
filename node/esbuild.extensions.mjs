@@ -20,11 +20,12 @@ import { stylePlugin } from './esbuild.style.plugin.mjs'
   const format = argv.f || argv.format || 'esm'
   const suffix = argv.m || argv.minify ? '.min' : ''
   const outExtension = {
-    '.js': `.extension${suffix}${format === 'cjs' ? '.cjs' : '.js'}`
+    '.js': `${suffix}${format === 'cjs' ? '.cjs' : '.js'}`
   }
   const watch = argv.w || argv.watch || false
 
   const cwd = 'src/Enlightenment'
+  const dist = `./Enlightenment${suffix}${outExtension['.js']}`
 
   const defaults = {
     bundle: true,
@@ -35,9 +36,16 @@ import { stylePlugin } from './esbuild.style.plugin.mjs'
     metafile: false,
     minify: argv.m || argv.minify || false,
     outdir: 'dist',
-    outExtension,
+    outExtension: Object.entries(outExtension).reduce((previous, current) => {
+      previous[current[0]] = `.extension${current[1]}`
+
+      return previous
+    }, {}),
     platform: 'browser',
-    plugins: [resolvePlugin({ name: /src\/Enlightenment$/ }), stylePlugin({ name: cwd })]
+    plugins: [
+      resolvePlugin({ cwd: './', name: /src\/Enlightenment$/ }),
+      stylePlugin({ destination: `./Enlightenment${outExtension}`, name: cwd })
+    ]
   }
 
   if (watch) {

@@ -27,7 +27,6 @@ import { argv } from './argv.mjs'
   const defaults = {
     bundle: true,
     entryPoints: ['./src/Enlightenment.ts'],
-    external: ['src/extensions/Draggable'],
     format,
     keepNames: true,
     metafile: false,

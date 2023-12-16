@@ -260,6 +260,19 @@ export class Enlightenment extends EnlightenmentInputController {
   }
 }
 
-export { EnlightenmentDraggable } from 'src/extensions/Draggable'
-export { EnlightenmentFocusTrap } from 'src/extensions/FocusTrap'
-export { EnlightenmentScrollable } from 'src/extensions/Scrollable'
+/**
+ * Preload the required Enlightenment extensions that can be requested by any
+ * Enlightenment constructor.
+ *
+ * Using the [disableEnlightenmentExtension] within
+ * the current URL query string will disable the default extension Interfaces
+ * and prevents any automatic import from the default extension exports.
+ */
+const disableExtensions = new URL(window.location as any).searchParams.has(
+  'disableEnlightenmentExtensions'
+)
+const includeExtensions = !disableExtensions
+
+export const EnlightenmentDraggable = includeExtensions && import('src/extensions/Draggable')
+export const EnlightenmentFocusTrap = includeExtensions && import('src/extensions/FocusTrap')
+export const EnlightenmentScrollable = includeExtensions && import('src/extensions/Scrollable')

@@ -431,7 +431,6 @@ export class EnlightenmentDraggable extends Enlightenment {
 
     if (resizeY) {
       if (context.offsetTop + context.offsetHeight >= viewport.height && bounds.bottom) {
-        console.log('RESET?')
         height = viewport.height - context.offsetTop - (initialTranslateY || 0)
       } else {
         let btt = false
