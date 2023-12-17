@@ -1,6 +1,10 @@
+import { EnlightenmentExtensionImports } from 'src/_types/main'
 import { EnlightenmentInputController } from 'src/core/InputController'
 
 export class EnlightenmentExtensionLoader extends EnlightenmentInputController {
+  extensions: string[] = []
+  extensionInstances: EnlightenmentExtensionImports = {}
+
   /**
    * Disables the core Extension import while the Query URL parameter
    * [disableEnlightenmentExtensions] exists within the current URL.
@@ -29,4 +33,60 @@ export class EnlightenmentExtensionLoader extends EnlightenmentInputController {
     EnlightenmentExtensionLoader.canImportExtension() && import('src/extensions/FocusTrap')
   static importScrollable = () =>
     EnlightenmentExtensionLoader.canImportExtension() && import('src/extensions/Scrollable')
+
+  constructor() {
+    super()
+
+    this.throttle(this.preload)
+  }
+
+  /**
+   * Preloads the defined Enlightenment Extensions for the constructed
+   * Component.
+   */
+  protected preload() {
+    if (!this.extensions || !this.extensions.length) {
+      return
+    }
+
+    let completed = 0
+
+    this.extensions.forEach(async (extension, index) => {
+      const importer: any = (EnlightenmentExtensionLoader as any)[`import${extension}`]
+
+      if (typeof importer !== 'function') {
+        return
+      }
+
+      if (this.extensionInstances[extension] === importer) {
+        this.log(`Extension already preloaded: ${extension}`, 'log')
+        return
+      }
+
+      let abort = false
+
+      try {
+        this.extensionInstances[extension] = await importer()
+      } catch (exception) {
+        if (exception) {
+          this.log(exception, 'error')
+          abort = true
+        }
+      }
+
+      if (abort) {
+        delete this.extensionInstances[extension]
+      }
+
+      this.log('Extension loaded', 'info')
+
+      this.dispatchUpdate()
+
+      completed += 1
+
+      if (completed >= this.extensions.length) {
+        this.hook('preload')
+      }
+    })
+  }
 }

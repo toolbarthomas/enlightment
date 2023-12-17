@@ -18,6 +18,16 @@ export type EnlightenmentDataEntry =
     }
 
 /**
+ * Defines the Type definitions for the Extension import requests that are
+ * defined from the extensions Component's constructor property.
+ *
+ * The actual Extensions are loaded in non-blocking order and will dispatch
+ * callback hooks (updated & preload) when completed.
+ */
+export type EnlightmentExtensionImport = () => any
+export type EnlightenmentExtensionImports = { [key: string]: EnlightmentExtensionImport }
+
+/**
  * Definition for the callback function used within Enlightenment.process
  */
 export type EnlightenmentProcessHandler = (context: HTMLElement) => void
