@@ -243,9 +243,24 @@ export class EnlightenmentDraggable extends Enlightenment {
     context: HTMLElement,
     properties: EnlightenmentInputControllerPointerData
   ) {
-    const { clientX, clientY, pivot, x, y } = properties || {}
+    let { clientX, clientY, pivot, x, y } = properties || {}
 
     if (this.isCenterPivot()) {
+      if (this.fixed) {
+        // Calculate the delta value between the selected Pointer area and the
+        // initial offset to prevent janking of the element.
+        const initialDeltaX = (this.initialPointerX || clientX) - 0
+        const initialDeltaY = (this.initialPointerY || clientY) - 0
+
+        if (clientX < 0) {
+          x = clientX - initialDeltaX
+        }
+
+        if (clientY < 0) {
+          y = clientY - initialDeltaY
+        }
+      }
+
       this.handleDragUpdateMove(context, x, y)
     } else if (this.currentPivot) {
       this.handleDragUpdateResize(context, clientX, clientY, this.currentPivot)
@@ -322,12 +337,12 @@ export class EnlightenmentDraggable extends Enlightenment {
         left = 0
       }
     }
+    const [translateX, translateY] = Enlightenment.parseMatrixValue(context.style.transform)
 
     // Hold the previous translateX / translateY value while the current X / Y
     // position is outside the defined viewport.
     if (!this.fixed) {
       if (!x || !y) {
-        const [translateX, translateY] = Enlightenment.parseMatrixValue(context.style.transform)
         const bounds = this.useBoundingRect()
 
         if (!x || x < bounds.left || x + context.offsetWidth > bounds.left + bounds.width) {
@@ -338,13 +353,22 @@ export class EnlightenmentDraggable extends Enlightenment {
           top = translateY
         }
       }
+    } else {
+      // Continue the movement if the current interaction is defined as [fixed].
+      if (x === 0 && translateX) {
+        left = translateX
+      }
 
-      this.currentContextTranslateX = left
-      this.currentContextTranslateY = top
-
-      //@todo should inherit [fit] from actual modula
-      this.transform(context, left, top, !this.fixed ? window : undefined)
+      if (y === 0 && translateY) {
+        top = translateY
+      }
     }
+
+    this.currentContextTranslateX = translateX
+    this.currentContextTranslateY = translateY
+
+    //@todo should inherit [fit] from actual modula
+    this.transform(context, left, top, !this.fixed ? window : undefined)
   }
 
   /**
@@ -566,10 +590,6 @@ export class EnlightenmentDraggable extends Enlightenment {
       this.currentHost.removeAttribute(Enlightenment.defaults.attr.edgeY)
     }
 
-    if (this.fixed) {
-      return
-    }
-
     if (!this.isCenterPivot(this.currentPivot)) {
       return
     }
@@ -585,6 +605,10 @@ export class EnlightenmentDraggable extends Enlightenment {
     const context = this.currentTarget
     const viewport = this.useBoundingRect()
     const options: EnlightenmentDOMResizeOptions = {}
+
+    if (this.fixed || this.static) {
+      return
+    }
 
     // Stretch the context in the X and/or Y axis from while the Pointer has
     // reached an edge.
@@ -675,8 +699,6 @@ export class EnlightenmentDraggable extends Enlightenment {
           preventTresholdX = true
           preventTresholdY = true
         }
-
-        console.log('delta', preventTresholdX, preventTresholdY)
       }
 
       if (this.currentInteractions <= 1) {
@@ -688,6 +710,29 @@ export class EnlightenmentDraggable extends Enlightenment {
       // Resize the Interaction context when the Pointer has reached one of the
       // viewport edges.
       this.handleDragEdge()
+
+      // Ensure the moved Context is always placed within the visible viewport.
+      if (this.currentContext && this.fixed && this.isOutsideViewport(this.currentContext)) {
+        const viewport = this.useBoundingRect()
+
+        let x = this.currentContext.offsetLeft
+        if (this.currentEdgeX) {
+          x =
+            this.currentEdgeX === 1
+              ? viewport.left + viewport.width - this.currentContext.offsetWidth
+              : viewport.left
+        }
+
+        let y = this.currentContext.offsetTop
+        if (this.currentEdgeY) {
+          y =
+            this.currentEdgeY === 1
+              ? viewport.top + viewport.height - this.currentContext.offsetHeight
+              : viewport.top
+        }
+
+        this.resize(this.currentContext, { x, y })
+      }
 
       this.updateStretched(this.currentTarget)
 
