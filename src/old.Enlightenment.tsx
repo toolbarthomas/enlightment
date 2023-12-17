@@ -353,6 +353,7 @@ export class Enlightenment extends LitElement {
       isValid = true
     } catch (exception) {
       if (exception) {
+        console.log('this?')
         return []
 
         //@TODO use existing Console instead?
@@ -1521,20 +1522,20 @@ export class Enlightenment extends LitElement {
     const right = viewportWidth
 
     // Increase the drag precision instead of the a single pixel.
-    const treshhold = Math.ceil(devicePixelRatio * 2)
+    const treshold = Math.ceil(devicePixelRatio * 2)
 
     // Limit the Pointer boundary within the viewport only
-    if (clientY <= top + treshhold) {
+    if (clientY <= top + treshold) {
       this.currentEdgeY = 'top'
-    } else if (clientY >= bottom - treshhold) {
+    } else if (clientY >= bottom - treshold) {
       this.currentEdgeY = 'bottom'
     } else {
       this.currentEdgeY = undefined
     }
 
-    if (clientX <= left + treshhold) {
+    if (clientX <= left + treshold) {
       this.currentEdgeX = 'left'
-    } else if (clientX >= bottom - treshhold) {
+    } else if (clientX >= bottom - treshold) {
       this.currentEdgeX = 'right'
     } else {
       this.currentEdgeX = undefined

@@ -136,23 +136,25 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
     const x = context.offsetLeft + (translateX || 0)
     const y = context.offsetTop + (translateY || 0)
 
+    let result = false
+
     if (y <= bounds.top) {
-      return true
+      result = true
     }
 
     if (x <= bounds.left) {
-      return true
+      result = true
     }
 
     if (x + context.offsetWidth > bounds.left + bounds.width) {
-      return true
+      result = true
     }
 
     if (y + context.offsetHeight > bounds.top + bounds.height) {
-      return true
+      result = true
     }
 
-    return false
+    return result
   }
 
   /**

@@ -455,25 +455,25 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     const viewport = this.useBoundingRect()
 
     // Increase the drag precision instead of the a single pixel.
-    const treshhold = Math.ceil(devicePixelRatio * 2)
+    const treshold = Math.ceil(devicePixelRatio * 2)
 
-    // Assign the current edge for both X & Y axis with the defined treshhold.
+    // Assign the current edge for both X & Y axis with the defined treshold.
     //          [top]
     //          -1
     // [left] -1 0 1 [right]
     //           1
     //        [bottom]
-    if (clientY <= viewport.top + treshhold) {
+    if (clientY <= viewport.top + treshold) {
       this.currentEdgeY = -1
-    } else if (clientY >= viewport.height - treshhold) {
+    } else if (clientY >= viewport.height - treshold) {
       this.currentEdgeY = 1
     } else {
       this.currentEdgeY = 0
     }
 
-    if (clientX <= viewport.left + treshhold) {
+    if (clientX <= viewport.left + treshold) {
       this.currentEdgeX = -1
-    } else if (clientX >= viewport.width - treshhold) {
+    } else if (clientX >= viewport.width - treshold) {
       this.currentEdgeX = 1
     } else {
       this.currentEdgeX = 0

@@ -32,11 +32,9 @@ export class EnlightenmentParser extends EnlightenmentKernel {
       json = JSON.parse(escaped)
       isValid = true
     } catch (exception) {
+      //@TODO use existing Console instead?
       if (exception) {
-        return []
-
-        //@TODO use existing Console instead?
-        console.error(exception)
+        return value ? value.split(',').map(parseFloat || String) : []
       }
     }
 

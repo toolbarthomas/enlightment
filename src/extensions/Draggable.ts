@@ -51,6 +51,16 @@ export class EnlightenmentDraggable extends Enlightenment {
     minHeight: 200
   }
 
+  static isTreshold(value: string | null) {
+    if (!value) {
+      return []
+    }
+
+    const [x, y] = Enlightenment.parseJSON(value)
+
+    return [Math.abs(x), Math.abs(y)]
+  }
+
   /**
    * Defines the pivot position and interaction behavior for the component.
    */
@@ -67,6 +77,19 @@ export class EnlightenmentDraggable extends Enlightenment {
     type: Boolean
   })
   static?: boolean
+
+  /**
+   * Will dispatch additional Events to the host component when the defined
+   * X and/or Y delta values exceeds the optional treshold values that is
+   * assigned as comma separated value:
+   *  - 100 = x 100 & y 100
+   *  - 100,200 = x 100 & y 200
+   */
+  @property({
+    converter: (value) => EnlightenmentDraggable.isTreshold(value),
+    type: Array
+  })
+  treshold: number[] = []
 
   /**
    * Ignore the initial Screen limitation while TRUE.
@@ -136,6 +159,8 @@ export class EnlightenmentDraggable extends Enlightenment {
       return false
     }
 
+    // Use the initial slotted element when the current Component is defined
+    // with the [static] Attribute.
     if (this.static && !target) {
       this.currentTarget = this as any
     }
@@ -300,15 +325,26 @@ export class EnlightenmentDraggable extends Enlightenment {
 
     // Hold the previous translateX / translateY value while the current X / Y
     // position is outside the defined viewport.
-    if (!x || !y) {
-      const [translateX, translateY] = Enlightenment.parseMatrixValue(context.style.transform)
+    if (!this.fixed) {
+      if (!x || !y) {
+        const [translateX, translateY] = Enlightenment.parseMatrixValue(context.style.transform)
+        const bounds = this.useBoundingRect()
 
-      left = translateX
-      top = translateY
+        if (!x || x < bounds.left || x + context.offsetWidth > bounds.left + bounds.width) {
+          left = translateX
+        }
+
+        if (!y || y < bounds.top || y + context.offsetHeight > bounds.top + bounds.height) {
+          top = translateY
+        }
+      }
+
+      this.currentContextTranslateX = left
+      this.currentContextTranslateY = top
+
+      //@todo should inherit [fit] from actual modula
+      this.transform(context, left, top, !this.fixed ? window : undefined)
     }
-
-    //@todo should inherit [fit] from actual modula
-    this.transform(context, left, top, !this.fixed ? window : undefined)
   }
 
   /**
@@ -512,6 +548,9 @@ export class EnlightenmentDraggable extends Enlightenment {
       context.style.height = `${height}px`
     }
 
+    this.currentContextTranslateX = translateX
+    this.currentContextTranslateY = translateY
+
     if (translateX || translateY) {
       this.transform(context, translateX || initialTranslateX, translateY || initialTranslateY)
     }
@@ -614,6 +653,32 @@ export class EnlightenmentDraggable extends Enlightenment {
         }
       }
 
+      if (event) {
+        const [clientX, clientY] = this.usePointerPosition(event)
+        const deltaX = clientX - (this.initialPointerX || 0)
+        const deltaY = clientY - (this.initialPointerY || 0)
+        const delta = (deltaX + deltaY) / 2
+        const [tresholdX, tresholdY] = this.treshold
+
+        let preventTresholdX = false
+        let preventTresholdY = false
+
+        if (tresholdX && tresholdY) {
+          if (tresholdX <= Math.abs(deltaX)) {
+            preventTresholdX = true
+          }
+
+          if (tresholdY <= Math.abs(deltaY)) {
+            preventTresholdY = true
+          }
+        } else if (tresholdX && tresholdX <= Math.abs(delta)) {
+          preventTresholdX = true
+          preventTresholdY = true
+        }
+
+        console.log('delta', preventTresholdX, preventTresholdY)
+      }
+
       if (this.currentInteractions <= 1) {
         this.useContextCache(this.currentContext, true)
       }
@@ -629,6 +694,10 @@ export class EnlightenmentDraggable extends Enlightenment {
       // Remove the initial context height for the next possible interaction.
       this.currentContextHeight = undefined
       this.currentContextWidth = undefined
+      this.currentContextTranslateX = undefined
+      this.currentContextTranslateY = undefined
+      this.currentContextX = undefined
+      this.currentContextY = undefined
       this.currentTarget = undefined
 
       this.omitGlobalEvent('keydown', this.handleDragExit)
@@ -806,7 +875,7 @@ export class EnlightenmentDraggable extends Enlightenment {
    */
   render() {
     return html`<slot
-      visually-hidden
+      ?visually-hidden="${!this.static && this.currentTarget && this.pivot}"
       data-pivot="${this.pivot}"
       @touchstart=${this.handleDragStart}
       @mousedown=${this.handleDragStart}
