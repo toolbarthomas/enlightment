@@ -34,7 +34,10 @@ import { argv } from './argv.mjs'
     outdir: 'dist',
     outExtension,
     platform: 'node',
-    plugins: [extensionPlugin({ minify: argv.m || argv.minify || false }), stylePlugin()]
+    plugins: [
+      extensionPlugin({ extension: outExtension['.js'], minify: argv.m || argv.minify || false }),
+      stylePlugin()
+    ]
   }
 
   if (watch) {

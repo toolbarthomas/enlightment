@@ -409,6 +409,10 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
 
     if (verbose || t === 'error') {
       stdout(...output)
+
+      if (t === 'error') {
+        this.hook('error', { data: { message } })
+      }
     }
   }
 

@@ -29,11 +29,21 @@ export class EnlightenmentExtensionLoader extends EnlightenmentInputController {
    */
   static importDraggable = () =>
     EnlightenmentExtensionLoader.canImportExtension() && import('src/extensions/Draggable')
+
   static importFocusTrap = () =>
     EnlightenmentExtensionLoader.canImportExtension() && import('src/extensions/FocusTrap')
+
   static importScrollable = () =>
     EnlightenmentExtensionLoader.canImportExtension() && import('src/extensions/Scrollable')
 
+  /**
+   * Preload the required Enlightenment extensions that can be requested by any
+   * Enlightenment constructor.
+   *
+   * Using the [disableEnlightenmentExtension] within
+   * the current URL query string will disable the default extension Interfaces
+   * and prevents any automatic import from the default extension exports.
+   */
   constructor() {
     super()
 
@@ -49,44 +59,65 @@ export class EnlightenmentExtensionLoader extends EnlightenmentInputController {
       return
     }
 
-    let completed = 0
+    const queue = this.extensions.map(
+      (extension) =>
+        new Promise<boolean>((next) => {
+          const importer: any = (EnlightenmentExtensionLoader as any)[`import${extension}`]
 
-    this.extensions.forEach(async (extension, index) => {
-      const importer: any = (EnlightenmentExtensionLoader as any)[`import${extension}`]
+          if (typeof importer !== 'function') {
+            next(false)
 
-      if (typeof importer !== 'function') {
+            return
+          }
+
+          if (this.extensionInstances[extension] === importer) {
+            this.log(`Extension already preloaded: ${extension}`, 'log')
+
+            next(false)
+
+            return
+          }
+
+          this.extensionInstances[extension] = importer()
+
+          this.extensionInstances[extension].catch &&
+            this.extensionInstances[extension].catch((exception) => {
+              this.log(exception, 'error')
+
+              next(false)
+            })
+
+          this.extensionInstances[extension].then &&
+            this.extensionInstances[extension].then(() => {
+              this.log(`Extension imported: ${this.uuid}@${extension}`, 'info')
+
+              this.hook('preload', { data: { extension } })
+
+              next(true)
+            })
+        })
+    )
+
+    if (!queue.length) {
+      this.log(`Ignore initial preload from: ${this.uuid}`)
+
+      return
+    }
+
+    Promise.all(queue).then((result) => {
+      if (!result || !result.length) {
         return
       }
 
-      if (this.extensionInstances[extension] === importer) {
-        this.log(`Extension already preloaded: ${extension}`, 'log')
+      if (!result.filter((r) => !r).length) {
+        this.log(`Unable to import extension for ${this.uuid}`, 'warning')
+
         return
       }
 
-      let abort = false
+      this.dispatchUpdate('preloaded')
 
-      try {
-        this.extensionInstances[extension] = await importer()
-      } catch (exception) {
-        if (exception) {
-          this.log(exception, 'error')
-          abort = true
-        }
-      }
-
-      if (abort) {
-        delete this.extensionInstances[extension]
-      }
-
-      this.log('Extension loaded', 'info')
-
-      this.dispatchUpdate()
-
-      completed += 1
-
-      if (completed >= this.extensions.length) {
-        this.hook('preload')
-      }
+      this.throttle(this.requestUpdate)
     })
   }
 }

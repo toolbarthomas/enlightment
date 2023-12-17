@@ -24,7 +24,7 @@ export type EnlightenmentDataEntry =
  * The actual Extensions are loaded in non-blocking order and will dispatch
  * callback hooks (updated & preload) when completed.
  */
-export type EnlightmentExtensionImport = () => any
+export type EnlightmentExtensionImport = Promise<boolean>
 export type EnlightenmentExtensionImports = { [key: string]: EnlightmentExtensionImport }
 
 /**

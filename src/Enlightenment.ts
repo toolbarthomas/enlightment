@@ -259,15 +259,3 @@ export class Enlightenment extends EnlightenmentExtensionLoader {
     return super.useHost(target) as Enlightenment
   }
 }
-
-/**
- * Preload the required Enlightenment extensions that can be requested by any
- * Enlightenment constructor.
- *
- * Using the [disableEnlightenmentExtension] within
- * the current URL query string will disable the default extension Interfaces
- * and prevents any automatic import from the default extension exports.
- */
-export const useDraggable = Enlightenment.importDraggable
-export const useScrollable = Enlightenment.importScrollable
-export const useFocusTrap = Enlightenment.importFocusTrap

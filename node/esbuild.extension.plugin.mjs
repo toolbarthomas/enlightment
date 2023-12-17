@@ -10,11 +10,11 @@ export const extensionPlugin = (options) => ({
   name: 'extension-plugin',
   setup: (build) => {
     build.onResolve({ filter: /extensions\// }, (args) => {
-      const { destination, minify, namespace } = options || {}
+      const { destination, extension, minify, namespace } = options || {}
       const n = namespace || 'Enlightenment'
       const m = minify || false
       const filename = `${basename(args.path, extname(args.path))}.extension`
-      const file = m ? `./${filename}.min.js` : `./${filename}.js`
+      const file = `./${filename || args.path}${extension || '.js'}`
 
       return {
         path: file || args.path,
