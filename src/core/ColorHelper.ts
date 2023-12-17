@@ -80,6 +80,12 @@ export class EnlightenmentColorHelper extends EnlightenmentImageHelper {
     this.log(['Custom stylesheet assigned:', this.uuid], 'log')
   }
 
+  protected firstUpdated(properties: any): void {
+    super.firstUpdated(properties)
+
+    this.throttle(this.useMode)
+  }
+
   /**
    * Update callback for the defined custom StyleSheet of the rendered Element
    * that will update the currently defined Custom Stylesheet that has been

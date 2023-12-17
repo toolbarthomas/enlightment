@@ -37,8 +37,6 @@ export class Enlightenment extends EnlightenmentExtensionLoader {
   protected firstUpdated(properties: PropertyValueMap<any> | Map<PropertyKey, unknown>): void {
     super.firstUpdated(properties)
 
-    this.throttle(this.useMode)
-
     this.dispatchUpdate()
   }
 
@@ -158,17 +156,18 @@ export class Enlightenment extends EnlightenmentExtensionLoader {
       this.assignGlobalEvent('resize', this.handleGlobalResize, { context: window })
     }
 
-    this.throttle(this.assignListeners)
-    this.dispatchUpdate('connected')
-
     // Fallback to ensure the parent component is updated when the initial
     // component is connected.
-    const host = this.useHost(this)
-    if (host && typeof host.dispatchUpdate === 'function' && host !== this) {
-      host.dispatchUpdate()
-    }
+    const host = this.useHost(this) as HTMLElement
+    host && this.hook('updated', { context: host })
+
+    Enlightenment.globals.assignInstance(this)
+
+    this.dispatchUpdate('connected')
 
     this.assignGlobalEvent('ready', this.handleReady, { context: this })
+
+    this.throttle(this.assignListeners)
   }
 
   /**
@@ -177,6 +176,8 @@ export class Enlightenment extends EnlightenmentExtensionLoader {
   public disconnectedCallback(): void {
     try {
       this.clearThrottler()
+
+      Enlightenment.globals.omitInstance(this)
 
       this.omitGlobalEvent('click', this.handleGlobalClick)
       this.omitGlobalEvent('focus', this.handleGlobalFocus)
@@ -204,11 +205,8 @@ export class Enlightenment extends EnlightenmentExtensionLoader {
       this.hook('disconnected')
 
       super.disconnectedCallback()
-    } catch (error) {
-      if (error) {
-        // @log
-        // this.log(error as string, 'error')
-      }
+    } catch (exception) {
+      exception && this.log(exception, 'error')
     }
   }
 

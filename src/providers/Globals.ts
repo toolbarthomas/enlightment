@@ -1,9 +1,6 @@
-import {
-  ColorMode,
-  EnlightenmentProvider,
-  EnlightenmentProviders,
-  EnlightenmentTarget
-} from 'src/_types/main'
+import { ColorMode, EnlightenmentProvider, EnlightenmentProviders } from 'src/_types/main'
+
+import { Enlightenment } from 'src/Enlightenment'
 
 /**
  * The EnlightenmentGlobals implements the mandatory global variables and
@@ -14,27 +11,49 @@ import {
  * management and many more.
  */
 export class EnlightenmentGlobals {
-  // Keeps track of the selected components and optional child components.
-  // The current Element is attached and detached by the Global Event listeners.
+  /**
+   * Keeps track of the selected components and optional child components.
+   * The current Element is attached and detached by the Global Event listeners.
+   */
   currentElements: Element[] = []
 
-  // Defines the Attribute name to use when the initial component has been
-  // flagged as currentElement.
+  /**
+   * Defines the Attribute name to use when the initial component has been
+   * flagged as currentElement
+   */
   currentAttribute: string = 'aria-current'
 
-  // Use the accepted Color mode for all Components with undefined [mode]
-  // HTML Attributes.
+  /**
+   * Use the accepted Color mode for all Components with undefined [mode] HTML
+   * Attributes.
+   */
   mode?: ColorMode = 'light'
 
-  // Unique string identifier for running Enlightenment static context.
+  /**
+   * Unique string identifier for running Enlightenment static context.
+   */
   namespace: string
 
-  // Enables verbose logging and outputs all message types within the log()
-  // method.
+  /**
+   * Enables verbose logging and outputs all message types within the log()
+   * method.
+   */
   verbose?: boolean
 
-  // Reference array of the constructed Enlightenment Providers.
+  /**
+   * Reference array of the constructed Enlightenment Providers.
+   */
   providers: EnlightenmentProviders = []
+
+  /**
+   * Contains the assigned instances defined from assignInstance()
+   */
+  instances: (Enlightenment | HTMLElement | undefined)[] = []
+
+  /**
+   * Reference to the current Timeout ID that should cleanup the instance.
+   */
+  cleanupRequest?: number
 
   constructor(namespace: string) {
     this.namespace = namespace
@@ -65,6 +84,25 @@ export class EnlightenmentGlobals {
   }
 
   /**
+   * Assigns the defined Enlightenment instance to the instances Global.
+   * @param instance The instance to assign.
+   */
+  assignInstance(instance: HTMLElement | Enlightenment) {
+    if (!Array.isArray(this.instances)) {
+      return false
+    }
+
+    if (instance && this.instances.includes(instance)) {
+      return false
+    } else if (instance) {
+      this.instances.push(instance)
+      return true
+    }
+
+    return false
+  }
+
+  /**
    * Assigns the defined provider to the actual instance.
    *
    * @param provider The provider to assign.
@@ -79,6 +117,20 @@ export class EnlightenmentGlobals {
     }
 
     this.providers.push(provider)
+  }
+
+  /**
+   * Callback handler that removes undefined references.
+   */
+  cleanup() {
+    this.clearInstances()
+  }
+
+  /**
+   * Removes the cleared instance references.
+   */
+  clearInstances() {
+    this.instances = this.instances.filter((i) => i)
   }
 
   /**
@@ -114,5 +166,40 @@ export class EnlightenmentGlobals {
         context.setAttribute(this.currentAttribute, 'false')
       }
     }
+  }
+
+  /**
+   * Removes the defined instance subscription from the Global entry.
+   *
+   * @param instance The instance to omit.
+   */
+  omitInstance(instance: HTMLElement | Enlightenment) {
+    if (!instance || !this.instances) {
+      return false
+    }
+
+    if (!this.instances.includes(instance)) {
+      return false
+    }
+
+    const index = this.instances.indexOf(instance)
+
+    this.instances[index] = undefined
+
+    this.requestGlobalCleanup()
+
+    return true
+  }
+
+  /**
+   * Create a new cleanup request that will initiate after 60 seconds to ensure
+   * it is only called once.
+   */
+  requestGlobalCleanup() {
+    if (this.cleanupRequest) {
+      clearTimeout(this.cleanupRequest)
+    }
+
+    this.cleanupRequest = setTimeout(() => this.cleanup(), 1000 * 60)
   }
 }

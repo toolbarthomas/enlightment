@@ -104,20 +104,24 @@ export class EnlightenmentExtensionLoader extends EnlightenmentInputController {
       return
     }
 
-    Promise.all(queue).then((result) => {
-      if (!result || !result.length) {
-        return
-      }
+    try {
+      Promise.all(queue).then((result) => {
+        if (!result || !result.length) {
+          return
+        }
 
-      if (!result.filter((r) => !r).length) {
-        this.log(`Unable to import extension for ${this.uuid}`, 'warning')
+        if (!result.filter((r) => !r).length) {
+          this.log(`Unable to import extension for ${this.uuid}`, 'warning')
 
-        return
-      }
+          return
+        }
 
-      this.dispatchUpdate('preloaded')
+        this.dispatchUpdate('preloaded')
 
-      this.throttle(this.requestUpdate)
-    })
+        this.throttle(this.requestUpdate)
+      })
+    } catch (exception) {
+      exception && this.log(exception, 'error')
+    }
   }
 }

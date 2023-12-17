@@ -190,8 +190,8 @@ export class EnlightenmentDraggable extends Enlightenment {
   /**
    * Ensure the Interaction target is defined within the current DOM.
    */
-  handleUpdate() {
-    super.handleUpdate()
+  handleUpdate(name?: string) {
+    super.handleUpdate(name)
 
     this.defineTarget()
   }
