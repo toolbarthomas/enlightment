@@ -333,6 +333,28 @@ export class EnlightenmentDOM extends EnlightenmentParser {
   }
 
   /**
+   * Assign a new Global Event for each existing component context that is
+   * defined the listen property.
+   */
+  protected assignListeners() {
+    if (!this.observe || !this.observe.length) {
+      return
+    }
+
+    // Don't assign the actual Event Listener to the initial Component to
+    // prevent an update loop.
+    const queue = Array.from(this.observe).filter((l) => l !== this && document.contains(l))
+
+    if (!queue.length) {
+      return
+    }
+
+    for (let i = queue.length; i--; ) {
+      this.assignGlobalEvent('updated', this._process, { context: queue[i] })
+    }
+  }
+
+  /**
    * Assigns the defined rendered slot Elements within the current Component
    * instance.
    *

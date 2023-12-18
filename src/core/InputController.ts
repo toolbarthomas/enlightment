@@ -47,6 +47,16 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
   currentEdgeY?: number
 
   /**
+   * Optional host reference
+   */
+  currentHost?: HTMLElement
+
+  /**
+   * Reference to the actual Element that is mutated during the interaction.
+   */
+  currentTarget?: HTMLElement
+
+  /**
    * Keep track of the interaction amount within the selected duration.
    */
   currentInteractions = 0
@@ -106,25 +116,62 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
   }
 
   /**
-   * Assign a new Global Event for each existing component context that is
-   * defined the listen property.
+   * Defines the actual interaction target from the optional target Property
+   * attribute. The parent Web Component will be used as target fallback or use
+   * the initial Slotted Element or This Component as fallback targts.
    */
-  protected assignListeners() {
-    if (!this.observe || !this.observe.length) {
-      return
+  protected defineTarget(selector?: string) {
+    if (this.currentTarget) {
+      return true
     }
 
-    // Don't assign the actual Event Listener to the initial Component to
-    // prevent an update loop.
-    const queue = Array.from(this.observe).filter((l) => l !== this && document.contains(l))
+    const target = selector
+      ? this.closest(selector) || this.querySelector(selector || '')
+      : undefined
 
-    if (!queue.length) {
-      return
+    const host = this.useHost(this) as any
+
+    // Check if the current Component exists within another Enlightenment
+    // component and use the parent as context instead
+    if (!this.currentTarget && !target && host && host !== this) {
+      const context = host.useContext && host.useContext()
+
+      if (context && context !== this) {
+        this.currentTarget = context
+
+        this.log(['Current target defined from host context:', context], 'log')
+      } else {
+        this.currentTarget = host
+
+        this.log(['Current target defined from host:', context], 'log')
+      }
     }
 
-    for (let i = queue.length; i--; ) {
-      this.assignGlobalEvent('updated', this._process, { context: queue[i] })
+    // Assign the existing parent target defined from the target attribute.
+    if (!this.currentTarget && target) {
+      this.currentTarget = target as HTMLElement
+    } else if (!this.currentTarget) {
+      // Use the first slotted Element instead if the custom target is not
+      // defined for this Component.
+      const initialElement = this.useInitialElement()
+      this.currentTarget = initialElement as HTMLElement
+
+      if (!this.currentTarget) {
+        this.currentTarget = this as any
+      }
     }
+
+    this.log(['Current target defined:', this.currentTarget], 'log')
+
+    if ((this.currentTarget as any) !== this) {
+      this.currentHost = this.useHost(this.currentTarget)
+    }
+
+    if (!this.currentHost) {
+      this.currentHost = this
+    }
+
+    return this.currentTarget ? true : false
   }
 
   /**
@@ -156,6 +203,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
             // Validate the updated position and size and ensure it fits within the
             // visible viewport.
             this.clearAnimationFrame(this.currentInteractionRequest)
+
             this.currentInteractionResponse = this.useAnimationFrame(() =>
               this.handleDragEndCallback(context, resolve, useViewport)
             )
@@ -255,10 +303,13 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     const ariaTarget = this.currentContext || this.useContext() || this
     ariaTarget && ariaTarget.removeAttribute(EnlightenmentInputController.defaults.attr.grabbed)
 
+    this.clearAnimationFrame(this.currentInteractionResponse)
+
     this.currentInteractionRequest = undefined
     this.currentInteractionEvent &&
       this.throttle(() => {
         this.currentInteractionEvent = undefined
+        this.currentInteractionResponse = undefined
 
         resolve(true)
       })
@@ -365,9 +416,6 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     })
 
     this.assignGlobalEvent('mouseup', this.handleDragEnd, { once: true })
-
-    // Ensure the interaction is limited to the defined FPS.
-    this.assignAnimationTimestamp()
   }
 
   /**

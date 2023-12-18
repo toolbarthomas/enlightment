@@ -109,16 +109,6 @@ export class EnlightenmentDraggable extends Enlightenment {
   target?: string
 
   /**
-   * Reference to the actual Element that is mutated during the interaction.
-   */
-  currentTarget?: HTMLElement
-
-  /**
-   * Optional host reference
-   */
-  currentHost?: HTMLElement
-
-  /**
    * Ignore the initial Context reference and us the custom target reference
    * instead. This should apply any DOM mutation on the selected target instead
    * within the Component context.
@@ -138,81 +128,6 @@ export class EnlightenmentDraggable extends Enlightenment {
   }
 
   /**
-   * Defines the actual interaction target from the optional target Property
-   * attribute. The parent Web Component will be used as target fallback or use
-   * the initial Slotted Element or This Component as fallback targts.
-   */
-  protected defineTarget() {
-    if (this.currentTarget) {
-      return this.currentTarget
-    }
-
-    const target = this.target
-      ? this.closest(this.target) || this.querySelector(this.target || '')
-      : undefined
-
-    const host = this.useHost(this) as any
-
-    if (this.preventEvent || (host && host.preventEvent)) {
-      this.handleDragEnd()
-
-      return false
-    }
-
-    // Use the initial slotted element when the current Component is defined
-    // with the [static] Attribute.
-    if (this.static && !target) {
-      this.currentTarget = this as any
-    }
-
-    // Check if the current Component exists within another Enlightenment
-    // component and use the parent as context instead
-    if (!this.currentTarget && !target && host && host !== this) {
-      const context = host.useContext && host.useContext()
-
-      if (context && context !== this) {
-        this.currentTarget = context
-
-        this.log(['Draggable target defined from host context:', context], 'log')
-      } else {
-        this.currentTarget = host
-
-        this.log(['Draggable target defined from host:', context], 'log')
-      }
-    }
-
-    // Assign the existing parent target defined from the target attribute.
-    if (!this.currentTarget && target) {
-      this.currentTarget = target as HTMLElement
-    } else if (!this.currentTarget) {
-      // Use the first slotted Element instead if the custom target is not
-      // defined for this Component.
-      const initialElement = this.useInitialElement()
-      this.currentTarget = initialElement as HTMLElement
-
-      if (!this.currentTarget) {
-        this.currentTarget = this as any
-      }
-    }
-
-    this.log(['Draggable target defined:', this.currentTarget], 'log')
-
-    if (this.currentTarget) {
-      this.applyCurrentTargetStyles()
-    }
-
-    if ((this.currentTarget as any) !== this) {
-      this.currentHost = this.useHost(this.currentTarget)
-    }
-
-    if (!this.currentHost) {
-      this.currentHost = this
-    }
-
-    return this.currentTarget ? true : false
-  }
-
-  /**
    * Ensure the Interaction target is defined within the current DOM.
    */
   handleUpdate(name?: string) {
@@ -229,6 +144,20 @@ export class EnlightenmentDraggable extends Enlightenment {
       this.currentTarget.style.userSelect = ''
       this.currentTarget.style.overflow = ''
     }
+  }
+
+  protected defineTarget() {
+    const target = super.defineTarget()
+
+    this.applyCurrentTargetStyles()
+
+    // Use the initial slotted element when the current Component is defined
+    // with the [static] Attribute.
+    if (this.static && !this.target) {
+      this.currentTarget = this as any
+    }
+
+    return target
   }
 
   /**

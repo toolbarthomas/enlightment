@@ -1,19 +1,12 @@
 import { EnlightenmentDOM } from 'src/core/DOM'
 
+export type RAFRequestOptions = {
+  time?: number
+  frame?: number
+  args: any[]
+}
+
 export class EnlightenmentAnimation extends EnlightenmentDOM {
-  // Defines the initial start time in order to limit the callback with the
-  // defined FPS.
-  initialAnimationTimestamp?: number
-
-  // Should contain the current timestamp of the running callback.
-  currentAnimationTimestamp?: number
-
-  // Holds the current Request Animation Frame ID.
-  currentAnimationFrame?: number
-
-  // Keep track of the elapsed time since the instance was constructed.
-  currentAnimationDuration?: number
-
   /**
    * Returns the current timestamp integer value.
    *
@@ -23,17 +16,8 @@ export class EnlightenmentAnimation extends EnlightenmentDOM {
     return date ? Date.now() : window.performance.now()
   }
 
-  /**
-   * Defines the required timestamp values that are used to limit the RAF
-   * calback amount.
-   */
-  assignAnimationTimestamp() {
-    this.initialAnimationTimestamp = this.useTimestamp()
-    this.currentAnimationTimestamp = this.initialAnimationTimestamp
-  }
-
   clearAnimationFrame(id?: number) {
-    cancelAnimationFrame(id || this.currentAnimationFrame)
+    id && cancelAnimationFrame(id)
   }
 
   /**
@@ -41,34 +25,33 @@ export class EnlightenmentAnimation extends EnlightenmentDOM {
    * limit the defined callback with the defined FPS limit.
    *
    * @param handler The assigned requestAnimationFrame callback handler
+   * @param time Inherit the initial timestamp or create one, needs to be
+   * assigned if function arguments are
    * @param args Any optional arguments to use within the dynamic callback.
    */
-  useAnimationFrame(handler: Function, ...args: any) {
-    if (!this.initialAnimationTimestamp) {
-      this.assignAnimationTimestamp()
-    }
-
-    this.clearAnimationFrame()
-
+  useAnimationFrame(handler: Function, options?: RAFRequestOptions) {
     const limit = Math.round(EnlightenmentAnimation.FPS / devicePixelRatio)
+    const { time, frame, args } = options || {}
+    let a = args || []
 
-    this.currentAnimationFrame = requestAnimationFrame(() => {
-      this.currentAnimationTimestamp = this.useTimestamp()
-      this.currentAnimationDuration =
-        this.currentAnimationTimestamp - (this.initialAnimationTimestamp || this.useTimestamp())
-
-      if (this.currentAnimationDuration < limit) {
-        this.clearAnimationFrame()
-        this.useAnimationFrame(handler, ...args)
-        return
+    let t = time
+    let f = frame || -1
+    const request = requestAnimationFrame((timestamp) => {
+      if (!t) {
+        t = timestamp
       }
 
-      this.initialAnimationTimestamp =
-        this.currentAnimationTimestamp - (this.currentAnimationDuration % limit)
+      const index = Math.floor((timestamp - t) / limit)
 
-      handler.call(this, ...args)
+      if (index > f) {
+        f = index
+        handler.call(this, ...a)
+      } else {
+        this.clearAnimationFrame(request)
+        this.useAnimationFrame(handler, { args: a, time: t, frame: f })
+      }
     })
 
-    return this.currentAnimationFrame
+    return request
   }
 }
