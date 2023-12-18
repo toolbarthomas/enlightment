@@ -62,6 +62,15 @@ export class EnlightenmentDraggable extends Enlightenment {
   }
 
   /**
+   * Limit the interaction context to the defined X or Y axis.
+   */
+  @property({
+    converter: (value) => Enlightenment.filterProperty(value, ['x', 'y']),
+    type: String
+  })
+  axis?: number
+
+  /**
    * Defines the pivot position and interaction behavior for the component.
    */
   @property({
@@ -253,19 +262,6 @@ export class EnlightenmentDraggable extends Enlightenment {
     let left = x
     let top = y
 
-    if (target) {
-      const axis = Enlightenment.filterPropertyValue(
-        target.getAttribute(Enlightenment.defaults.attr.axis),
-        ['', 'x', 'y']
-      )
-
-      // Limit the current Drag interaction to the optional Axis
-      if (axis === 'x') {
-        top = 0
-      } else if (axis === 'y') {
-        left = 0
-      }
-    }
     const [translateX, translateY] = Enlightenment.parseMatrixValue(context.style.transform)
 
     // Hold the previous translateX / translateY value while the current X / Y
@@ -295,6 +291,15 @@ export class EnlightenmentDraggable extends Enlightenment {
 
     this.interactionContextTranslateX = translateX
     this.interactionContextTranslateY = translateY
+
+    if (this) {
+      // Limit the current Drag interaction to the optional Axis
+      if (this.axis === 'x') {
+        top = 0
+      } else if (this.axis === 'y') {
+        left = 0
+      }
+    }
 
     //@todo should inherit [fit] from actual modula
     this.transform(context, left, top, !this.fixed ? window : undefined)
