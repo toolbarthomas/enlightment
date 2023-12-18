@@ -32,13 +32,15 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
   /**
    * Should contain the updated Resize values for the selected Drag context.
    */
-  currentContext?: HTMLElement
-  currentContextX?: number
-  currentContextY?: number
-  currentContextWidth?: number
-  currentContextHeight?: number
-  currentContextTranslateX?: number
-  currentContextTranslateY?: number
+  interactionContext?: HTMLElement
+  interactionContextHeight?: number
+  interactionContextTranslateX?: number
+  interactionContextTranslateY?: number
+  interactionContextWidth?: number
+  interactionContextX?: number
+  interactionContextY?: number
+  interactionHost?: HTMLElement
+  interactionTarget?: HTMLElement
 
   /**
    * Should hold the current edge value while isGrabbed equals TRUE.
@@ -47,29 +49,24 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
   currentEdgeY?: number
 
   /**
-   * Optional host reference
-   */
-  currentHost?: HTMLElement
-
-  /**
    * Reference to the actual Element that is mutated during the interaction.
    */
-  currentTarget?: HTMLElement
 
   /**
    * Keep track of the interaction amount within the selected duration.
    */
   currentInteractions = 0
+  currentInteractionCount = 0
+  currentInteractionEvent?: MouseEvent | TouchEvent
   currentInteractionRequest?: number
   currentInteractionResponse?: number
   currentInteractionVelocityX?: number
   currentInteractionVelocityY?: number
-  currentInteractionEvent?: MouseEvent | TouchEvent
 
   /**
    * Keep track of the interaction trigger that is currently used.
    */
-  currentInteractionTarget?: Element
+  currentInteractionOrigin?: Element
 
   /**
    * Optional flag that should be used by the loaded FocusTrap custom Element to
@@ -82,6 +79,8 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
    */
   initialPointerX?: number
   initialPointerY?: number
+
+  interactionTolerance?: number
 
   /**
    * Enable the usage for the Aria grabbed Attribute so it can be used within
@@ -121,7 +120,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
    * the initial Slotted Element or This Component as fallback targts.
    */
   protected defineTarget(selector?: string) {
-    if (this.currentTarget) {
+    if (this.interactionTarget) {
       return true
     }
 
@@ -133,45 +132,45 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
 
     // Check if the current Component exists within another Enlightenment
     // component and use the parent as context instead
-    if (!this.currentTarget && !target && host && host !== this) {
+    if (!this.interactionTarget && !target && host && host !== this) {
       const context = host.useContext && host.useContext()
 
       if (context && context !== this) {
-        this.currentTarget = context
+        this.interactionTarget = context
 
         this.log(['Current target defined from host context:', context], 'log')
       } else {
-        this.currentTarget = host
+        this.interactionTarget = host
 
         this.log(['Current target defined from host:', context], 'log')
       }
     }
 
     // Assign the existing parent target defined from the target attribute.
-    if (!this.currentTarget && target) {
-      this.currentTarget = target as HTMLElement
-    } else if (!this.currentTarget) {
+    if (!this.interactionTarget && target) {
+      this.interactionTarget = target as HTMLElement
+    } else if (!this.interactionTarget) {
       // Use the first slotted Element instead if the custom target is not
       // defined for this Component.
       const initialElement = this.useInitialElement()
-      this.currentTarget = initialElement as HTMLElement
+      this.interactionTarget = initialElement as HTMLElement
 
-      if (!this.currentTarget) {
-        this.currentTarget = this as any
+      if (!this.interactionTarget) {
+        this.interactionTarget = this as any
       }
     }
 
-    this.log(['Current target defined:', this.currentTarget], 'log')
+    this.log(['Current target defined:', this.interactionTarget], 'log')
 
-    if ((this.currentTarget as any) !== this) {
-      this.currentHost = this.useHost(this.currentTarget)
+    if ((this.interactionTarget as any) !== this) {
+      this.interactionHost = this.useHost(this.interactionTarget)
     }
 
-    if (!this.currentHost) {
-      this.currentHost = this
+    if (!this.interactionHost) {
+      this.interactionHost = this
     }
 
-    return this.currentTarget ? true : false
+    return this.interactionTarget ? true : false
   }
 
   /**
@@ -223,6 +222,8 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
         this.omitGlobalEvent('touchmove', this.handleDragUpdate)
         this.omitGlobalEvent('touchend', this.handleDragEnd)
 
+        this.currentInteractionCount = 0
+
         if (!willRender) {
           resolve(false)
         }
@@ -237,7 +238,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
    * This method ensures the actual interaction target fit's within the visible
    * viewport.
    *
-   * @param context Use the actual currentTarget from the useContext method.
+   * @param context Use the actual interactionTarget from the useContext method.
    * @param resolve Resolver to ensure the callback is handled within the last
    * requested Animation Frame.
    */
@@ -251,8 +252,8 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
 
     if (this.currentInteractions <= 1) {
       this.resize(context, {
-        x: this.currentContextX,
-        y: this.currentContextY
+        x: this.interactionContextX,
+        y: this.interactionContextY
       })
     }
 
@@ -300,7 +301,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
 
     const cache = this.useContextCache(context)
 
-    const ariaTarget = this.currentContext || this.useContext() || this
+    const ariaTarget = this.interactionContext || this.useContext() || this
     ariaTarget && ariaTarget.removeAttribute(EnlightenmentInputController.defaults.attr.grabbed)
 
     this.clearAnimationFrame(this.currentInteractionResponse)
@@ -321,10 +322,9 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
    *
    * @param event The expected Mouse or Touch Event.
    * @param customTarget Use the defined HTMLElement
-   * currentInteractionTarget instead.
+   * currentInteractionOrigin instead.
    */
   protected handleDragStart(event: MouseEvent | TouchEvent, customTarget?: HTMLElement) {
-    // console.log('start', this.isGrabbed)
     if (!event || this.preventEvent) {
       return
     }
@@ -343,6 +343,8 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
       }
     }
 
+    this.currentInteractionCount = 0
+
     const target = customTarget || (event.target as HTMLElement)
 
     //@DEPRECATED
@@ -350,7 +352,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     // }
 
     if (target) {
-      this.currentInteractionTarget = target
+      this.currentInteractionOrigin = target
 
       // const interaction = target.getAttribute('data-interaction')
       const pivot = EnlightenmentInputController.isInteger(
@@ -369,7 +371,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     }
 
     if (!this.currentInteractions) {
-      this.currentContext = context
+      this.interactionContext = context
     }
 
     this.currentInteractions += 1
@@ -387,8 +389,8 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
 
     this.isGrabbed = true
 
-    this.currentContextX = context.offsetLeft
-    this.currentContextY = context.offsetTop
+    this.interactionContextX = context.offsetLeft
+    this.interactionContextY = context.offsetTop
 
     // Ensure the method is called only once since a MouseEvent a TouchEvent
     // can be called together.
@@ -459,6 +461,15 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
 
     const [clientX, clientY] = this.usePointerPosition(event)
 
+    this.currentInteractionCount += 1
+
+    if (this.interactionTolerance && this.interactionTolerance > this.currentInteractionCount) {
+      this.initialPointerX = clientX
+      this.initialPointerY = clientY
+
+      return
+    }
+
     if (this.preventEvent) {
       this.handleDragEnd(event)
       return
@@ -482,7 +493,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
 
     // if (this.inter)
     if (this.isCenterPivot()) {
-      const ariaTarget = this.currentContext || this.useContext() || this
+      const ariaTarget = this.interactionContext || this.useContext() || this
 
       !ariaTarget.hasAttribute(EnlightenmentInputController.defaults.attr.grabbed) &&
         ariaTarget.setAttribute(EnlightenmentInputController.defaults.attr.grabbed, 'true')
@@ -551,13 +562,15 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
         y = y + (clientY - viewport.height)
       }
 
-      this.handleDragUpdateCallback(this.currentContext || (this.useContext() as HTMLElement), {
+      this.handleDragUpdateCallback(this.interactionContext || (this.useContext() as HTMLElement), {
         pivot: this.currentPivot,
         clientX,
         clientY,
         x,
         y
       })
+
+      return true
     })
 
     // this.currentInteractionRequest = requestAnimationFrame(() => {

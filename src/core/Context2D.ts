@@ -185,6 +185,10 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
     context: HTMLElement,
     viewport?: EnlightenmentDOMResizeOptions['viewport']
   ) {
+    if (!context) {
+      return []
+    }
+
     const viewportProperties = this.useBoundingRect(viewport)
 
     const x = viewportProperties.width <= context.offsetWidth

@@ -116,15 +116,15 @@ export class EnlightenmentDraggable extends Enlightenment {
   protected useContext() {
     const context = super.useContext()
 
-    if (!this.currentTarget) {
+    if (!this.interactionTarget) {
       return context
     }
 
-    if (context !== this.currentTarget) {
+    if (context !== this.interactionTarget) {
       this.log('Using defined [target] instead of initial context...', 'log')
     }
 
-    return this.currentTarget
+    return this.interactionTarget
   }
 
   /**
@@ -139,22 +139,22 @@ export class EnlightenmentDraggable extends Enlightenment {
   /**
    * Removes the required interaction styles on the current target.
    */
-  protected cleanupCurrentTarget() {
-    if (this.currentTarget) {
-      this.currentTarget.style.userSelect = ''
-      this.currentTarget.style.overflow = ''
+  protected cleanupinteractionTarget() {
+    if (this.interactionTarget) {
+      this.interactionTarget.style.userSelect = ''
+      this.interactionTarget.style.overflow = ''
     }
   }
 
   protected defineTarget() {
     const target = super.defineTarget()
 
-    this.applyCurrentTargetStyles()
+    this.applyinteractionTargetStyles()
 
     // Use the initial slotted element when the current Component is defined
     // with the [static] Attribute.
     if (this.static && !this.target) {
-      this.currentTarget = this as any
+      this.interactionTarget = this as any
     }
 
     return target
@@ -202,36 +202,36 @@ export class EnlightenmentDraggable extends Enlightenment {
    * Assign the required position styles for the actual target context to ensure
    * the interaction is displayed correctly.
    */
-  protected applyCurrentTargetStyles() {
-    if (this.currentTarget) {
-      const { position, top, left, width, height } = this.currentTarget.style
+  protected applyinteractionTargetStyles() {
+    if (this.interactionTarget) {
+      const { position, top, left, width, height } = this.interactionTarget.style
 
       if (!top) {
-        this.currentTarget.style.top = `${this.currentTarget.offsetTop}px`
+        this.interactionTarget.style.top = `${this.interactionTarget.offsetTop}px`
       }
 
       if (!left) {
-        this.currentTarget.style.left = `${this.currentTarget.offsetLeft}px`
+        this.interactionTarget.style.left = `${this.interactionTarget.offsetLeft}px`
       }
 
       if (!position) {
-        this.currentTarget.style.position = 'absolute'
+        this.interactionTarget.style.position = 'absolute'
       }
 
       const viewport = this.useBoundingRect()
 
-      if (!this.currentTarget.clientWidth && !width) {
-        const minWidth = this.currentTarget.scrollWidth
+      if (!this.interactionTarget.clientWidth && !width) {
+        const minWidth = this.interactionTarget.scrollWidth
         const maxWidth = minWidth > viewport.width ? viewport.width : minWidth
 
-        this.currentTarget.style.width = `${maxWidth}px`
+        this.interactionTarget.style.width = `${maxWidth}px`
       }
 
-      if (!this.currentTarget.clientHeight && !height) {
-        const minHeight = this.currentTarget.scrollHeight
+      if (!this.interactionTarget.clientHeight && !height) {
+        const minHeight = this.interactionTarget.scrollHeight
         const maxHeight = minHeight > viewport.height ? viewport.height : minHeight
 
-        this.currentTarget.style.height = `${maxHeight}px`
+        this.interactionTarget.style.height = `${maxHeight}px`
       }
     }
   }
@@ -248,7 +248,7 @@ export class EnlightenmentDraggable extends Enlightenment {
    * parameter.
    */
   protected handleDragUpdateMove(context: HTMLElement, x: number, y: number) {
-    const target = this.currentInteractionTarget
+    const target = this.currentInteractionOrigin
 
     let left = x
     let top = y
@@ -293,8 +293,8 @@ export class EnlightenmentDraggable extends Enlightenment {
       }
     }
 
-    this.currentContextTranslateX = translateX
-    this.currentContextTranslateY = translateY
+    this.interactionContextTranslateX = translateX
+    this.interactionContextTranslateY = translateY
 
     //@todo should inherit [fit] from actual modula
     this.transform(context, left, top, !this.fixed ? window : undefined)
@@ -316,12 +316,12 @@ export class EnlightenmentDraggable extends Enlightenment {
       return
     }
 
-    if (!this.currentContextWidth) {
-      this.currentContextWidth = context.offsetWidth
+    if (!this.interactionContextWidth) {
+      this.interactionContextWidth = context.offsetWidth
     }
 
-    if (!this.currentContextHeight) {
-      this.currentContextHeight = context.offsetHeight
+    if (!this.interactionContextHeight) {
+      this.interactionContextHeight = context.offsetHeight
     }
 
     // Check the movement for both X & Y axis.
@@ -393,9 +393,9 @@ export class EnlightenmentDraggable extends Enlightenment {
         }
 
         if (rtl) {
-          width = this.currentContextWidth + left
+          width = this.interactionContextWidth + left
         } else if (!rtl) {
-          width = this.currentContextWidth - left
+          width = this.interactionContextWidth - left
         } else {
           width = context.offsetWidth
         }
@@ -410,7 +410,7 @@ export class EnlightenmentDraggable extends Enlightenment {
         }
 
         // Prevent the resize to flip while the context width is mirrored.
-        if (width && width <= 200) {
+        if (width && width <= EnlightenmentDraggable.defaults.minWidth) {
           translateX = translateX
         } else if (width <= viewport.left) {
           return this.assignCurrentDragTimeout()
@@ -456,9 +456,9 @@ export class EnlightenmentDraggable extends Enlightenment {
         }
 
         if (btt && !bounds.bottom) {
-          height = this.currentContextHeight + top
+          height = this.interactionContextHeight + top
         } else if (!bounds.top && y >= 0 && y <= viewport.height) {
-          height = this.currentContextHeight - top
+          height = this.interactionContextHeight - top
         } else {
           height = context.offsetHeight
         }
@@ -473,7 +473,7 @@ export class EnlightenmentDraggable extends Enlightenment {
         }
 
         // Prevent the resize to flip while the context height is mirrored.
-        if (height && height <= 200) {
+        if (height && height <= EnlightenmentDraggable.defaults.minHeight) {
           translateY = initialTranslateY
         } else if (height <= viewport.top) {
           return this.assignCurrentDragTimeout()
@@ -501,8 +501,8 @@ export class EnlightenmentDraggable extends Enlightenment {
       context.style.height = `${height}px`
     }
 
-    this.currentContextTranslateX = translateX
-    this.currentContextTranslateY = translateY
+    this.interactionContextTranslateX = translateX
+    this.interactionContextTranslateY = translateY
 
     if (translateX || translateY) {
       this.transform(context, translateX || initialTranslateX, translateY || initialTranslateY)
@@ -514,16 +514,16 @@ export class EnlightenmentDraggable extends Enlightenment {
    * screen edges.
    */
   protected handleDragEdge() {
-    if (this.currentHost) {
-      this.currentHost.removeAttribute(Enlightenment.defaults.attr.edgeX)
-      this.currentHost.removeAttribute(Enlightenment.defaults.attr.edgeY)
+    if (this.interactionHost) {
+      this.interactionHost.removeAttribute(Enlightenment.defaults.attr.edgeX)
+      this.interactionHost.removeAttribute(Enlightenment.defaults.attr.edgeY)
     }
 
     if (!this.isCenterPivot(this.currentPivot)) {
       return
     }
 
-    if (!this.currentHost || this.currentInteractions > 1) {
+    if (!this.interactionHost || this.currentInteractions > 1) {
       return
     }
 
@@ -531,11 +531,11 @@ export class EnlightenmentDraggable extends Enlightenment {
       return
     }
 
-    const context = this.currentTarget
+    const context = this.interactionTarget
     const viewport = this.useBoundingRect()
     const options: EnlightenmentDOMResizeOptions = {}
 
-    if (this.fixed || this.static) {
+    if (this.fixed) {
       return
     }
 
@@ -587,20 +587,20 @@ export class EnlightenmentDraggable extends Enlightenment {
     const job = super.handleDragEnd(event, !this.fixed)
 
     job.then((result: boolean) => {
-      if (!this.currentContext) {
+      if (!this.interactionContext) {
         return
       }
 
-      if (this.currentTarget && this.currentHost && !this.fixed) {
-        const [stretchX, stretchY] = this.useStretched(this.currentTarget)
+      if (this.interactionTarget && this.interactionHost && !this.fixed) {
+        const [stretchX, stretchY] = this.useStretched(this.interactionTarget)
 
         this.omitGlobalEvent('resize', this.handleRestretch)
 
         if (stretchX || stretchY) {
-          if (this.currentHost) {
+          if (this.interactionHost) {
             this.assignGlobalEvent('resize', this.handleRestretch, {
               context: window,
-              thisArg: this.currentHost
+              thisArg: this.interactionHost
             })
           }
         }
@@ -631,54 +631,60 @@ export class EnlightenmentDraggable extends Enlightenment {
       }
 
       if (this.currentInteractions <= 1) {
-        this.useContextCache(this.currentContext, true)
+        this.useContextCache(this.interactionContext, true)
       }
 
-      this.cleanupCurrentTarget()
+      this.cleanupinteractionTarget()
 
       // Resize the Interaction context when the Pointer has reached one of the
       // viewport edges.
       this.handleDragEdge()
 
       // Ensure the moved Context is always placed within the visible viewport.
-      if (this.currentContext && this.fixed && this.isOutsideViewport(this.currentContext)) {
+      if (
+        this.interactionContext &&
+        this.fixed &&
+        this.isOutsideViewport(this.interactionContext)
+      ) {
         const viewport = this.useBoundingRect()
 
-        let x = this.currentContext.offsetLeft
+        let x = this.interactionContext.offsetLeft
         if (this.currentEdgeX) {
           x =
             this.currentEdgeX === 1
-              ? viewport.left + viewport.width - this.currentContext.offsetWidth
+              ? viewport.left + viewport.width - this.interactionContext.offsetWidth
               : viewport.left
         }
 
-        let y = this.currentContext.offsetTop
+        let y = this.interactionContext.offsetTop
         if (this.currentEdgeY) {
           y =
             this.currentEdgeY === 1
-              ? viewport.top + viewport.height - this.currentContext.offsetHeight
+              ? viewport.top + viewport.height - this.interactionContext.offsetHeight
               : viewport.top
         }
 
-        this.resize(this.currentContext, { x, y })
+        this.resize(this.interactionContext, { x, y })
       }
 
-      this.updateStretched(this.currentTarget)
+      this.updateStretched(this.interactionTarget)
 
-      let t = this.currentTarget
+      let t = this.interactionTarget
 
       // Remove the initial context height for the next possible interaction.
-      this.currentContextHeight = undefined
-      this.currentContextWidth = undefined
-      this.currentContextTranslateX = undefined
-      this.currentContextTranslateY = undefined
-      this.currentContextX = undefined
-      this.currentContextY = undefined
-      this.currentTarget = undefined
+      this.interactionContextHeight = undefined
+      this.interactionContextWidth = undefined
+      this.interactionContextTranslateX = undefined
+      this.interactionContextTranslateY = undefined
+      this.interactionContextX = undefined
+      this.interactionContextY = undefined
+      this.interactionTarget = undefined
 
       this.omitGlobalEvent('keydown', this.handleDragExit)
 
-      this.hook(Enlightenment.defaults.customEvents.dragEnd, { context: this.currentHost || this })
+      this.hook(Enlightenment.defaults.customEvents.dragEnd, {
+        context: this.interactionHost || this
+      })
     })
 
     return job
@@ -707,9 +713,9 @@ export class EnlightenmentDraggable extends Enlightenment {
   protected handleDragStart(event: MouseEvent | TouchEvent) {
     this.defineTarget()
 
-    // The currentTarget could be undefined when the context element is
+    // The interactionTarget could be undefined when the context element is
     // disabled.
-    if (!this.currentTarget) {
+    if (!this.interactionTarget) {
       return
     }
 
@@ -723,7 +729,15 @@ export class EnlightenmentDraggable extends Enlightenment {
 
     this.assignGlobalEvent('keydown', this.handleDragExit, { once: true })
 
-    const host = this.currentHost as Enlightenment
+    const host = this.interactionHost as Enlightenment
+
+    const [stretchX, stretchY] = this.useStretched(this.interactionContext)
+
+    if (stretchX && stretchY) {
+      this.interactionTolerance = Math.ceil(Enlightenment.FPS)
+    } else {
+      this.interactionTolerance = 0
+    }
 
     if (host && typeof host.hook === 'function') {
       host.hook(Enlightenment.defaults.customEvents.dragStart)
@@ -740,25 +754,35 @@ export class EnlightenmentDraggable extends Enlightenment {
    * @param event The inherited Mouse or Touch event.
    */
   protected handleDragUpdate(event: MouseEvent | TouchEvent) {
-    super.handleDragUpdate(event)
+    const update = super.handleDragUpdate(event)
 
-    if (this.currentEdgeX && this.currentHost) {
-      this.currentHost.setAttribute(Enlightenment.defaults.attr.edgeX, String(this.currentEdgeX))
-    } else if (this.currentHost) {
-      this.currentHost.removeAttribute(Enlightenment.defaults.attr.edgeX)
+    if (!update) {
+      return
     }
 
-    if (this.currentEdgeY && this.currentHost) {
-      this.currentHost.setAttribute(Enlightenment.defaults.attr.edgeY, String(this.currentEdgeY))
-    } else if (this.currentHost) {
-      this.currentHost.removeAttribute(Enlightenment.defaults.attr.edgeY)
+    if (this.currentEdgeX && this.interactionHost) {
+      this.interactionHost.setAttribute(
+        Enlightenment.defaults.attr.edgeX,
+        String(this.currentEdgeX)
+      )
+    } else if (this.interactionHost) {
+      this.interactionHost.removeAttribute(Enlightenment.defaults.attr.edgeX)
+    }
+
+    if (this.currentEdgeY && this.interactionHost) {
+      this.interactionHost.setAttribute(
+        Enlightenment.defaults.attr.edgeY,
+        String(this.currentEdgeY)
+      )
+    } else if (this.interactionHost) {
+      this.interactionHost.removeAttribute(Enlightenment.defaults.attr.edgeY)
     }
 
     // Prevent content from being selecting while preforming the drag
     // interaction.
-    if (this.currentTarget && !this.currentTarget.style.userSelect) {
-      this.currentTarget.style.userSelect = 'none'
-      this.currentTarget.style.overflow = 'hidden'
+    if (this.interactionTarget && !this.interactionTarget.style.userSelect) {
+      this.interactionTarget.style.userSelect = 'none'
+      this.interactionTarget.style.overflow = 'hidden'
     }
   }
 
@@ -783,7 +807,7 @@ export class EnlightenmentDraggable extends Enlightenment {
 
     this.defineTarget()
 
-    const host = this.useHost(this.currentTarget)
+    const host = this.useHost(this.interactionTarget)
     if (host) {
       const bounds = this.useBoundingRect()
       const width = host.hasAttribute(Enlightenment.defaults.attr.stretchX)
@@ -796,8 +820,8 @@ export class EnlightenmentDraggable extends Enlightenment {
       const x = height ? 0 : undefined
       const y = width ? 0 : undefined
 
-      this.currentTarget &&
-        this.resize(this.currentTarget, {
+      this.interactionTarget &&
+        this.resize(this.interactionTarget, {
           width,
           height,
           x,
@@ -850,7 +874,7 @@ export class EnlightenmentDraggable extends Enlightenment {
    */
   render() {
     return html`<slot
-      ?visually-hidden="${!this.static && this.currentTarget && this.pivot}"
+      ?visually-hidden="${!this.static && this.interactionTarget && this.pivot}"
       data-pivot="${this.pivot}"
       @touchstart=${this.handleDragStart}
       @mousedown=${this.handleDragStart}
