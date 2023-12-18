@@ -33,11 +33,7 @@ export class EnlightenmentAnimation extends EnlightenmentDOM {
   }
 
   clearAnimationFrame(id?: number) {
-    if (id && id !== this.currentAnimationFrame) {
-      cancelAnimationFrame(id)
-    } else {
-      this.currentAnimationFrame && cancelAnimationFrame(this.currentAnimationFrame)
-    }
+    cancelAnimationFrame(id || this.currentAnimationFrame)
   }
 
   /**
@@ -54,8 +50,9 @@ export class EnlightenmentAnimation extends EnlightenmentDOM {
 
     this.clearAnimationFrame()
 
+    const limit = Math.round(EnlightenmentAnimation.FPS / devicePixelRatio)
+
     this.currentAnimationFrame = requestAnimationFrame(() => {
-      const limit = Math.round(EnlightenmentAnimation.FPS / devicePixelRatio)
       this.currentAnimationTimestamp = this.useTimestamp()
       this.currentAnimationDuration =
         this.currentAnimationTimestamp - (this.initialAnimationTimestamp || this.useTimestamp())

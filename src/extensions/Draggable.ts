@@ -736,6 +736,8 @@ export class EnlightenmentDraggable extends Enlightenment {
 
       this.updateStretched(this.currentTarget)
 
+      let t = this.currentTarget
+
       // Remove the initial context height for the next possible interaction.
       this.currentContextHeight = undefined
       this.currentContextWidth = undefined
@@ -773,7 +775,6 @@ export class EnlightenmentDraggable extends Enlightenment {
    * Use the rendered Slot Element for the actual Drag Event target value.
    * @param event
    */
-  @eventOptions({ passive: true })
   protected handleDragStart(event: MouseEvent | TouchEvent) {
     this.defineTarget()
 

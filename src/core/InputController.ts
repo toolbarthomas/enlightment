@@ -272,12 +272,13 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
    * @param customTarget Use the defined HTMLElement
    * currentInteractionTarget instead.
    */
-  @eventOptions({ passive: true })
   protected handleDragStart(event: MouseEvent | TouchEvent, customTarget?: HTMLElement) {
     // console.log('start', this.isGrabbed)
     if (!event || this.preventEvent) {
       return
     }
+
+    event.preventDefault && event.preventDefault()
 
     // Ensures to only use the initial Pointer Mouse or Touch Event.
     if (!this.isCurrentInteractionEvent(event)) {

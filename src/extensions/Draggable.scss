@@ -16,10 +16,18 @@
 
 :host(:not([pivot])) {
   pointer-events: none;
+  will-change: transform;
 
   slot {
     pointer-events: auto;
   }
+}
+
+:host([aria-grabbed]) {
+  backface-visibility: hidden; // Resolves ghost-trace during interaction movement
+  // background-color: red;
+  // visibility: hidden;
+  // user-select: none;
 }
 
 slot {
