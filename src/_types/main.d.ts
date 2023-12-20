@@ -67,7 +67,45 @@ export type EnlightenmentInputControllerPointerData = {
   y: number
 }
 
+export type EnlightenmentInteractionData = {
+  context?: HTMLElement
+  count?: number
+  edgeX?: number
+  edgeY?: number
+  event?: MouseEvent | TouchEvent
+  height?: number
+  host?: HTMLElement
+  left?: number
+  origin?: HTMLElement
+  pivot?: number
+  pointerX?: number
+  pointerY?: number
+  previousPointerX?: number
+  previousPointerY?: number
+  request?: number
+  response?: number
+  top?: number
+  updates?: number
+  velocityX?: number
+  velocityY?: number
+  width?: number
+  x?: number
+  y?: number
+}
+
 export type EnlightenmentInteractionEndCallback = (value: boolean | PromiseLike<boolean>) => void
+
+export type EnlightenmentInputControllerCallbackOptions = {
+  useTranslate?: boolean
+  useViewport?: boolean
+}
+
+export type EnlightenmentContext2DBounds = {
+  top?: boolean
+  left?: boolean
+  bottom?: boolean
+  right?: boolean
+}
 
 /**
  * Defines the Object Interface for a Context2D viewport reference: Window or

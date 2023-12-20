@@ -2,7 +2,8 @@ import {
   EnlightenmentContext2DRect,
   EnlightenmentContext2DCacheEntry,
   EnlightenmentDOMResizeOptions,
-  EnlightenmentViewport
+  EnlightenmentViewport,
+  EnlightenmentContext2DBounds
 } from 'src/_types/main'
 
 import { EnlightenmentAnimation } from 'src/core/Animation'
@@ -25,12 +26,6 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
    * Transformation properties.
    */
   contextCache: EnlightenmentContext2DCacheEntry[] = []
-
-  /**
-   * Defines the current selected pivot from 1 to 9 that should use the defined
-   * Drag interaction.
-   */
-  currentPivot?: number
 
   /**
    * Assign or update the defined Context Cache Object.
@@ -107,12 +102,10 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
    * @param value Validate the optional value instead.
    */
   protected isCenterPivot(value?: number) {
-    const pivot = value || this.currentPivot
-
     return (
-      !pivot ||
-      (!EnlightenmentContext2D.pivots.x.includes(pivot) &&
-        !EnlightenmentContext2D.pivots.y.includes(pivot))
+      !value ||
+      (!EnlightenmentContext2D.pivots.x.includes(value) &&
+        !EnlightenmentContext2D.pivots.y.includes(value))
     )
   }
 
@@ -136,25 +129,25 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
     const x = context.offsetLeft + (translateX || 0)
     const y = context.offsetTop + (translateY || 0)
 
-    let result = false
+    const result: EnlightenmentContext2DBounds = {}
 
     if (y <= bounds.top) {
-      result = true
+      result.top = true
     }
 
     if (x <= bounds.left) {
-      result = true
+      result.left = true
     }
 
     if (x + context.offsetWidth > bounds.left + bounds.width) {
-      result = true
+      result.right = true
     }
 
     if (y + context.offsetHeight > bounds.top + bounds.height) {
-      result = true
+      result.bottom = true
     }
 
-    return result
+    return Object.keys(result).length ? result : undefined
   }
 
   /**
@@ -231,68 +224,23 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
       return
     }
 
-    const [translateX, translateY] = EnlightenmentContext2D.parseMatrixValue(
-      context.style.transform
-    )
+    const { width, height, x, y } = options || {}
 
-    let { fit, width, height, position, viewport, x, y } = options || {}
-    const viewportProperties = this.useBoundingRect(viewport)
+    if (width !== undefined) {
+      context.style.width = `${Math.round(width)}px`
+    }
+
+    if (height !== undefined) {
+      context.style.height = `${Math.round(height)}px`
+    }
+
     if (x !== undefined) {
-      x = Math.round((x || 0) + (translateX || 0))
-    } else {
-      x = context.offsetLeft
+      context.style.left = `${Math.round(x)}px`
     }
 
     if (y !== undefined) {
-      y = Math.round((y || 0) + (translateY || 0))
-    } else {
-      y = context.offsetTop
+      context.style.top = `${Math.round(y)}px`
     }
-
-    if (fit && width !== undefined) {
-      // Limit the resize to the visible viewport
-      if (viewport && viewportProperties.width <= width + (x || 0)) {
-        width = Math.round(viewportProperties.width - x)
-      }
-    }
-
-    context.style.width = `${width}px`
-
-    if (fit && height !== undefined) {
-      // Limit the resize to the visible viewport
-      if (viewport && viewportProperties.height <= height + (y || 0)) {
-        height = Math.round(viewportProperties.height - y)
-      }
-    }
-
-    context.style.height = `${height}px`
-
-    if (fit && x !== undefined) {
-      if (viewport && x < viewportProperties.left) {
-        x = viewportProperties.left
-      }
-    }
-
-    context.style.left = `${x}px`
-
-    if (fit && y !== undefined) {
-      if (viewport && y < viewportProperties.top) {
-        y = viewportProperties.top
-      }
-    }
-
-    context.style.top = `${y}px`
-
-    // Ensure the required position value is assigned when a valid X and/or Y
-    // position is defined.
-    if (x !== undefined && y !== undefined) {
-      context.style.position =
-        EnlightenmentContext2D.filterPropertyValue(position || 'absolute', ['absolute', 'fixed']) ||
-        ''
-    }
-
-    // Remove any translate related values.
-    context.style.transform = ''
   }
 
   /**
@@ -316,6 +264,10 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
     }
 
     const viewport = this.useBoundingRect()
+
+    // Remove any optional transform position that can conflict with the current
+    // offset position.
+    context.style.transform = ''
 
     // Override the initial defined values from the given currentPivot value.
     const initial = {
@@ -391,8 +343,6 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
         break
     }
 
-    console.log('stretch')
-
     // Toggle between the previous state while the current pivot value matches
     // with the previous pivot value.
     if (EnlightenmentContext2D.compareValue(initial, commit)) {
@@ -424,60 +374,73 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
    */
   protected transform(
     context: HTMLElement,
-    offsetX: number,
-    offsetY: number,
+    x: number,
+    y: number,
     viewport?: HTMLElement | typeof globalThis
   ) {
     if (!context || !context.style) {
       return
     }
+    // }
 
-    let translateX = offsetX || 0
-    let translateY = offsetY || 0
+    // let x = offsetX || 0
+    // let y = offsetY || 0
 
-    const bounds = this.useScreenBounds(context, translateX, translateY)
+    // const [translateX, translateY] = EnlightenmentContext2D.parseMatrixValue(
+    //   context.style.transform
+    // )
 
-    // Limit the position update within the visible viewport.
-    if (viewport) {
-      const viewportProperties = this.useBoundingRect(viewport)
+    // console.log('TRANSFORM', x, y)
+    // const left = context.offsetLeft + (translateX || 0)
+    // const top = context.offsetTop + (translateY || 0)
 
-      if (!viewportProperties.width || viewportProperties.width > context.offsetWidth) {
-        if (translateX + context.offsetLeft + context.offsetWidth > viewportProperties.width) {
-          const leftover =
-            context.offsetLeft + translateX + context.offsetWidth - viewportProperties.width
+    // const bounds = this.useScreenBounds(context, translateX, translateY)
 
-          translateX = translateX - leftover
-        } else if (bounds.left) {
-          const leftover = context.offsetLeft + translateX
+    // // Limit the position update within the visible viewport.
+    // if (viewport) {
+    //   const viewportProperties = this.useBoundingRect(viewport)
 
-          translateX = translateX - leftover
-        } else if (translateX - context.offsetLeft <= viewportProperties.left) {
-          // if (bounds.left || !offsetX) {
-          //   console.log('BOO', translateX, offsetX)
-          //   translateX = -context.offsetLeft
-          // }
-        }
-      }
+    //   if (!viewportProperties.width || viewportProperties.width > context.offsetWidth) {
+    //     if (x + left + context.offsetWidth > viewportProperties.width) {
+    //       const leftover = left + x + context.offsetWidth - viewportProperties.width
 
-      if (!viewportProperties.height || viewportProperties.height > context.offsetHeight) {
-        if (translateY + context.offsetTop + context.offsetHeight > viewportProperties.height) {
-          const leftover =
-            context.offsetTop + translateY + context.offsetHeight - viewportProperties.height
+    //       x = x - leftover
+    //     } else if (bounds.left) {
+    //       const leftover = left + x
 
-          translateY = translateY - leftover
-        } else if (bounds.top) {
-          const leftover = context.offsetTop + translateY
+    //       x = x - leftover
+    //     } else if (x - left <= viewportProperties.left) {
+    //       // if (bounds.left || !offsetX) {
+    //       //   console.log('BOO', translateX, offsetX)
+    //       //   translateX = -context.offsetLeft
+    //       // }
+    //     }
+    //   }
 
-          translateY = translateY - leftover
-        } else if (translateX - context.offsetTop <= viewportProperties.top) {
-          // if (bounds.top || !offsetY) {
-          //   translateY = -context.offsetTop
-          // }
-        }
-      }
-    }
+    //   if (!viewportProperties.height || viewportProperties.height > context.offsetHeight) {
+    //     if (y + top + context.offsetHeight > viewportProperties.height) {
+    //       const leftover = top + y + context.offsetHeight - viewportProperties.height
 
-    context.style.transform = `translate(${translateX}px, ${translateY}px)`
+    //       y = y - leftover
+    //     } else if (bounds.top) {
+    //       const leftover = top + y
+
+    //       y = y - leftover
+    //     } else if (translateX - top <= viewportProperties.top) {
+    //       // if (bounds.top || !offsetY) {
+    //       //   y = -context.offsetTop
+    //       // }
+    //     }
+    //   }
+    // }
+    const [translateX, translateY] = EnlightenmentContext2D.parseMatrixValue(
+      context.style.transform
+    )
+
+    const axisX = Math.round(x !== undefined ? x : translateX || 0)
+    const axisY = Math.round(y !== undefined ? y : translateY || 0)
+
+    context.style.transform = `translate(${axisX}px, ${axisY}px)`
   }
 
   /**
@@ -538,6 +501,40 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
     }
 
     return { width, height, x, y }
+  }
+
+  /**
+   * Restores the current position of the defined context element to ensure
+   * it is visible within the visible viewport.
+   * @param context Restores the defined context Element position.
+   * @param viewport Restores from the optional viewport Element instead.
+   * @returns
+   */
+  protected restorePosition(context: HTMLElement, viewport?: HTMLElement) {
+    const { offsetLeft, offsetHeight, offsetTop, offsetWidth } = context || {}
+    const [translateX, translateY] = EnlightenmentContext2D.parseMatrixValue(
+      context.style.transform
+    )
+
+    const bounds = this.useBoundingRect(viewport)
+    let x: number = offsetLeft + (translateX || 0)
+    let y: number = offsetTop + (translateY || 0)
+
+    // Limit the final horizontal position within the visible viewport.
+    if (x < bounds.left) {
+      x = 0
+    } else if (x + offsetWidth > bounds.width) {
+      x = bounds.width - offsetWidth
+    }
+
+    // Limit the final vertical position within the visible bounds.
+    if (y < bounds.top) {
+      y = 0
+    } else if (y + offsetHeight > bounds.height) {
+      y = bounds.height - offsetHeight
+    }
+
+    return { x, y }
   }
 
   /**
