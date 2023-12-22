@@ -23,7 +23,8 @@
   }
 }
 
-:host([aria-grabbed]) {
+:host([aria-grabbed]),
+[aria-grabbed] :host(*) {
   backface-visibility: hidden; // Resolves ghost-trace during interaction movement
   // background-color: red;
   // visibility: hidden;

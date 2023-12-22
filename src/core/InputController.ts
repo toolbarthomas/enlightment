@@ -131,7 +131,11 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     }
 
     this.currentInteraction = keys.reduce((previous, current) => {
-      previous[current] = undefined
+      if (current === 'count') {
+        return previous
+      } else {
+        previous[current] = undefined
+      }
 
       return previous
     }, {})
@@ -221,6 +225,8 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
 
         this.clearAnimationFrame(this.currentInteraction.request)
         let willRender = false
+
+        console.log('End', this.isGrabbed, this.currentInteraction.count)
 
         if (this.isGrabbed) {
           if (this.currentInteraction.context) {
@@ -419,7 +425,8 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     // Enable single & double click interactions
     if (this.currentInteraction.count === 1) {
       this.throttle(() => {
-        this.currentInteraction.count = undefined
+        console.log('CLEAR')
+        this.currentInteraction.count = 0
       }, EnlightenmentInputController.RPS)
     }
 

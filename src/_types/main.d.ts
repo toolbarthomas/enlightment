@@ -82,6 +82,8 @@ export type EnlightenmentInteractionData = {
   pointerY?: number
   previousPointerX?: number
   previousPointerY?: number
+  initialPointerX?: number
+  initialPointerY?: number
   request?: number
   response?: number
   top?: number
