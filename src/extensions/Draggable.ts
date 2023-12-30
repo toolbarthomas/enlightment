@@ -60,7 +60,7 @@ export class EnlightenmentDraggable extends Enlightenment {
 
     const [x, y] = Enlightenment.parseJSON(value)
 
-    return [Math.abs(x), Math.abs(y)]
+    return [Math.abs(x), Math.abs(y)].filter((v) => !isNaN(v))
   }
 
   /**
@@ -287,24 +287,28 @@ export class EnlightenmentDraggable extends Enlightenment {
     const bounds = this.isOutsideViewport(context) || {}
     const viewport = this.useBoundingRect()
 
-    // Limit the context transformation within the visible viewport.
-    if (bounds.left) {
-      if (x + context.offsetLeft < viewport.left) {
-        x = undefined
-      }
-    } else if (bounds.right) {
-      if (x + context.offsetLeft + context.offsetWidth > viewport.width) {
-        x = undefined
-      }
-    }
+    console.log(this.type)
 
-    if (bounds.top) {
-      if (y + context.offsetTop < viewport.top) {
-        y = undefined
+    if (this.type !== 'fixed') {
+      // Limit the context transformation within the visible viewport.
+      if (bounds.left) {
+        if (x + context.offsetLeft < viewport.left) {
+          x = undefined
+        }
+      } else if (bounds.right) {
+        if (x + context.offsetLeft + context.offsetWidth > viewport.width) {
+          x = undefined
+        }
       }
-    } else if (bounds.bottom) {
-      if (y + context.offsetTop + context.offsetHeight > viewport.height) {
-        y = undefined
+
+      if (bounds.top) {
+        if (y + context.offsetTop < viewport.top) {
+          y = undefined
+        }
+      } else if (bounds.bottom) {
+        if (y + context.offsetTop + context.offsetHeight > viewport.height) {
+          y = undefined
+        }
       }
     }
 
@@ -559,31 +563,76 @@ export class EnlightenmentDraggable extends Enlightenment {
         return
       }
 
-      // Convert the Transform position values to the initial absolute or
-      // fixed values.
-      if (this.isCenterPivot(interactionCache.pivot)) {
-        if (this.type !== EnlightenmentDraggable.defaults.type[0]) {
-          //@TODO HANDLEDRAGEDGE
-          this.handleDragEdge(interactionCache)
-        } else {
-          const { x, y } = this.restorePosition(interactionCache.context)
+      const [translateX, translateY] = Enlightenment.parseMatrixValue(
+        interactionCache.context.style.transform
+      )
 
-          this.transform(interactionCache.context, x, y)
+      const [tresholdX, tresholdY] = this.treshold
+
+      let reset = false
+      // Reset the current interaction if the current transformation value
+      // is not higher than the optional X & Y treshold values.
+      // @TODO Should test support for [static & inline]
+      if (this.isCenterPivot(interactionCache.pivot) && (tresholdX || tresholdY)) {
+        if (
+          tresholdX !== undefined &&
+          tresholdY !== undefined &&
+          Math.abs(translateX) <= tresholdX &&
+          Math.abs(translateY) <= tresholdY
+        ) {
+          reset = true
+        } else if (
+          tresholdX !== undefined &&
+          Math.abs(translateX) <= tresholdX &&
+          Math.abs(translateY) <= tresholdX
+        ) {
+          reset = true
+        }
+
+        if (reset) {
+          interactionCache.context.addEventListener(
+            'transitionend',
+            () => {
+              interactionCache.context.style.transition = ''
+            },
+            { once: true }
+          )
+
+          interactionCache.context.style.transition = 'transform 200ms ease-in-out'
+          interactionCache.context.style.transform = 'none'
+        } else {
+          interactionCache.context.style.transition = ''
         }
       } else {
-        const [translateX, translateY] = Enlightenment.parseMatrixValue(
-          interactionCache.context.style.transform
-        )
+        interactionCache.context.style.transition = ''
+      }
 
-        this.resize(interactionCache.context, {
-          x: interactionCache.context.offsetLeft + (translateX || 0),
-          y: interactionCache.context.offsetTop + (translateY || 0)
-        })
+      // Convert the Transform position values to the initial absolute or
+      // fixed values.
+      if (!reset) {
+        if (this.isCenterPivot(interactionCache.pivot)) {
+          if (this.type !== EnlightenmentDraggable.defaults.type[0]) {
+            //@TODO HANDLEDRAGEDGE
+            this.handleDragEdge(interactionCache)
+          } else {
+            // Ensure the final position is within the visible viewport
+            // regardless of the position type.
+            const { x, y } = this.restorePosition(interactionCache.context)
 
-        if (this.type === EnlightenmentDraggable.defaults.type[0]) {
-          interactionCache.context.removeAttribute('style')
+            this.transform(interactionCache.context, x, y)
+          }
         } else {
-          interactionCache.context.style.transform = ''
+          this.resize(interactionCache.context, {
+            x: interactionCache.context.offsetLeft + (translateX || 0),
+            y: interactionCache.context.offsetTop + (translateY || 0)
+          })
+
+          if (this.type === EnlightenmentDraggable.defaults.type[0]) {
+            interactionCache.context.style.top = ''
+            interactionCache.context.style.left = ''
+          } else {
+            interactionCache.context.style.transform = ''
+          }
         }
       }
 
@@ -643,9 +692,9 @@ export class EnlightenmentDraggable extends Enlightenment {
     // const [stretchX, stretchY] = this.useStretched(this.interactionContext)
 
     // if (stretchX && stretchY) {
-    //   this.interactionTolerance = Math.ceil(Enlightenment.FPS)
+    //   this.currentInteractionTolerance = Math.ceil(Enlightenment.FPS)
     // } else {
-    //   this.interactionTolerance = 0
+    //   this.currentInteractionTolerance = 0
     // }
 
     this.hook(Enlightenment.defaults.customEvents.dragStart, {

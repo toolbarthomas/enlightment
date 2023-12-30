@@ -53,18 +53,9 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
   /**
    * Reference to the actual Element that is mutated during the interaction.
    */
-
   currentInteraction: EnlightenmentInteractionData = {}
-  /**
-   * Keep track of the interaction amount within the selected duration.
-   */
-  currentInteractions = 0
   currentInteractionCount = 0
-  currentInteractionEvent?: MouseEvent | TouchEvent
-  currentInteractionRequest?: number
-  currentInteractionResponse?: number
-  currentInteractionVelocityX?: number
-  currentInteractionVelocityY?: number
+  currentInteractionTolerance?: number
 
   /**
    * Keep track of the interaction trigger that is currently used.
@@ -82,8 +73,6 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
    */
   initialPointerX?: number
   initialPointerY?: number
-
-  interactionTolerance?: number
 
   /**
    * Enable the usage for the Aria grabbed Attribute so it can be used within
@@ -131,11 +120,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     }
 
     this.currentInteraction = keys.reduce((previous, current) => {
-      if (current === 'count') {
-        return previous
-      } else {
-        previous[current] = undefined
-      }
+      previous[current] = undefined
 
       return previous
     }, {})
@@ -226,8 +211,6 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
         this.clearAnimationFrame(this.currentInteraction.request)
         let willRender = false
 
-        console.log('End', this.isGrabbed, this.currentInteraction.count)
-
         if (this.isGrabbed) {
           if (this.currentInteraction.context) {
             willRender = true
@@ -279,60 +262,6 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     resolve: EnlightenmentInteractionEndCallback,
     options?: EnlightenmentInputControllerCallbackOptions
   ) {
-    // const { useTranslate, useViewport } = options || {}
-    // const bounds = this.useScreenBounds(context)
-    // const viewport = this.useBoundingRect()
-
-    // if (this.currentInteraction.count <= 1) {
-    //   !useTranslate &&
-    //     this.resize(context, {
-    //       x: this.interactionContextX,
-    //       y: this.interactionContextY
-    //     })
-    // }
-
-    // if (!this.currentInteraction.edgeX && !this.currentInteraction.edgeY) {
-    //   const [translateX, translateY] = EnlightenmentInputController.parseMatrixValue(
-    //     context.style.transform
-    //   )
-
-    //   const maxHeight = viewport.height - Math.abs(context.offsetTop) - Math.abs(translateY || 0)
-    //   const maxWidth = viewport.width - Math.abs(context.offsetLeft) - Math.abs(translateX || 0)
-
-    //   const initial: EnlightenmentDOMResizeOptions = {
-    //     fit: useViewport,
-    //     width: context.offsetWidth,
-    //     height: context.offsetHeight,
-    //     x: context.offsetLeft + (translateX || 0),
-    //     y: context.offsetTop + (translateY || 0)
-    //   }
-    //   const commit = { ...initial }
-
-    //   if (useViewport) {
-    //     // Fit X Axis.
-    //     if (context.offsetWidth > maxWidth) {
-    //       commit.width = maxWidth
-    //     }
-
-    //     // Fit Y Axis.
-    //     if (context.offsetHeight > maxHeight) {
-    //       commit.height = maxHeight
-    //     }
-
-    //     if (initial.x && initial.x < viewport.left) {
-    //       commit.x = 0
-    //     }
-
-    //     if (initial.y && initial.y < viewport.top) {
-    //       commit.y = 0
-    //     }
-    //   }
-
-    //   if (!EnlightenmentInputController.compareValue(initial, commit)) {
-    //     !useTranslate && this.resize(context, commit)
-    //   }
-    // }
-
     const cache = this.useContextCache(context)
 
     const ariaTarget = this.currentInteraction.context
@@ -340,7 +269,6 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
 
     this.clearAnimationFrame(this.currentInteraction.response)
 
-    // this.currentInteractionRequest = undefined
     this.currentInteraction.event &&
       this.throttle(() => {
         resolve(true)
@@ -379,8 +307,8 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
 
     // Keep track of the interction count that enables the usage of secondary
     // interction callbacks.
-    if (this.currentInteraction.count === undefined) {
-      this.currentInteraction.count = 0
+    if (this.currentInteractionCount === undefined) {
+      this.currentInteractionCount = 0
     }
 
     // Keep track of the amount of interaction updates that is triggered since
@@ -415,22 +343,22 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
       return
     }
 
-    if (!this.currentInteraction.count) {
+    if (!this.currentInteractionCount) {
       this.currentInteraction.context = context
       this.currentInteraction.host = this.interactionHost
     }
 
-    this.currentInteraction.count += 1
+    this.currentInteractionCount += 1
 
     // Enable single & double click interactions
-    if (this.currentInteraction.count === 1) {
+    if (this.currentInteractionCount === 1) {
       this.throttle(() => {
         console.log('CLEAR')
-        this.currentInteraction.count = 0
+        this.currentInteractionCount = 0
       }, EnlightenmentInputController.RPS)
     }
 
-    if (this.currentInteraction.count > 1) {
+    if (this.currentInteractionCount > 1) {
       return this.handleDragSecondary(event)
     }
 
@@ -439,15 +367,6 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     const [translateX, translateY] = EnlightenmentInputController.parseMatrixValue(
       context.style.transform
     )
-
-    // this.interactionContextX = context.offsetLeft
-    // this.interactionContextY = context.offsetTop
-    // this.interactionContextTranslateX = translateX
-    // this.interactionContextTranslateY = translateY
-
-    // if (!this.currentInteractionEvent) {
-    //   this.currentInteractionEvent = event
-    // }
 
     const [clientX, clientY] = this.usePointerPosition(event)
 
@@ -497,10 +416,11 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
    * @returns
    */
   protected handleDragSecondary(event: MouseEvent | TouchEvent) {
-    this.isGrabbed = false
     // Ensure the previous DragEnd method is canceled to ensure it does not
     // interfere with this callback.
-    // this.currentInteractionResponse && cancelAnimationFrame(this.currentInteractionResponse)
+    this.currentInteraction.request && cancelAnimationFrame(this.currentInteraction.request)
+
+    this.isGrabbed = false
 
     const context = this.useContext() as HTMLElement
 
@@ -536,10 +456,10 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
 
     // Overrides the initial Pointer position values when the tolerance is
     // defined.
-    if (this.interactionTolerance && this.interactionTolerance > this.currentInteraction.updates) {
-      // this.initialPointerX = clientX
-      // this.initialPointerY = clientY
-
+    if (
+      this.currentInteractionTolerance &&
+      this.currentInteractionTolerance > this.currentInteraction.updates
+    ) {
       this.currentInteraction.pointerX = clientX
       this.currentInteraction.pointerY = clientY
 
@@ -572,7 +492,6 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
       this.currentInteraction.velocityY = 0
     }
 
-    // if (this.inter)
     if (this.isCenterPivot()) {
       const ariaTarget = this.currentInteraction.context
 
@@ -585,12 +504,10 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     }
 
     if (clientX !== undefined) {
-      // this.previousPointerX = clientX
       this.currentInteraction.previousPointerX = clientX
     }
 
     if (clientY !== undefined) {
-      // this.previousPointerY = clientY
       this.currentInteraction.previousPointerY = clientY
     }
 
@@ -634,50 +551,10 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
       const x = clientX - (this.currentInteraction.pointerX || 0)
       const y = clientY - (this.currentInteraction.pointerY || 0)
 
-      // if (clientX < viewport.left) {
-      //   x = viewport.left
-      // } else if (clientX > viewport.width) {
-      //   x = x + (clientX - viewport.width)
-      // }
-
-      // if (clientY < viewport.top) {
-      //   y = viewport.top
-      // } else if (clientY > viewport.height) {
-      //   y = y + (clientY - viewport.height)
-      // }
-
       this.handleDragUpdateCallback(x, y)
     })
 
     return true
-
-    // this.currentInteractionRequest = requestAnimationFrame(() => {
-    //   let x = clientX - (this.initialPointerX || 0)
-    //   let y = clientY - (this.initialPointerY || 0)
-
-    //   if (clientX < viewport.left) {
-    //     x = viewport.left
-    //   } else if (clientX > viewport.width) {
-    //     x = x + (clientX - viewport.width)
-    //   }
-
-    //   if (clientY < viewport.top) {
-    //     y = viewport.top
-    //   } else if (clientY > viewport.height) {
-    //     y = y + (clientY - viewport.height)
-    //   }
-
-    //   if (this.isCenterPivot()) {
-    //     this.handleDragUpdateMove(this.useContext() as HTMLElement, x, y)
-    //   } else if (this.currentPivot) {
-    //     this.handleDragUpdateResize(
-    //       this.useContext() as HTMLElement,
-    //       clientX,
-    //       clientY,
-    //       this.currentPivot
-    //     )
-    //   }
-    // })
   }
 
   /**

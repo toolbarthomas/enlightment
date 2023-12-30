@@ -69,7 +69,6 @@ export type EnlightenmentInputControllerPointerData = {
 
 export type EnlightenmentInteractionData = {
   context?: HTMLElement
-  count?: number
   edgeX?: number
   edgeY?: number
   event?: MouseEvent | TouchEvent
