@@ -119,7 +119,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
       return false
     }
 
-    this.currentInteraction = keys.reduce((previous, current) => {
+    this.currentInteraction = keys.reduce((previous: any, current) => {
       previous[current] = undefined
 
       return previous
@@ -197,7 +197,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
    */
   protected handleDragEnd(
     event?: MouseEvent | TouchEvent,
-    options: EnlightenmentInputControllerCallbackOptions
+    options?: EnlightenmentInputControllerCallbackOptions
   ) {
     return new Promise<boolean>((resolve) => {
       try {
@@ -222,8 +222,10 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
             // visible viewport.
             this.clearAnimationFrame(this.currentInteraction.response)
 
-            this.currentInteraction.response = this.useAnimationFrame(() =>
-              this.handleDragEndCallback(this.currentInteraction.context, resolve, options)
+            this.currentInteraction.response = this.useAnimationFrame(
+              () =>
+                this.currentInteraction.context &&
+                this.handleDragEndCallback(this.currentInteraction.context, resolve, options)
             )
           }
         }
@@ -445,20 +447,22 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
 
     // Don't continue if the initial Event instance does not match with the
     // current Event parameter value.
-    if (!this.isCurrentInteractionEvent(event, this.currentInteraction.event)) {
+    if (!this.isCurrentInteractionEvent(event, this.currentInteraction.event as any)) {
       return
     }
 
     const [clientX, clientY] = this.usePointerPosition(event)
 
     // this.currentInteractionCount += 1
-    this.currentInteraction.updates += 1
+    if (this.currentInteraction.updates !== undefined) {
+      this.currentInteraction.updates += 1
+    }
 
     // Overrides the initial Pointer position values when the tolerance is
     // defined.
     if (
       this.currentInteractionTolerance &&
-      this.currentInteractionTolerance > this.currentInteraction.updates
+      this.currentInteractionTolerance > (this.currentInteraction.updates || 0)
     ) {
       this.currentInteraction.pointerX = clientX
       this.currentInteraction.pointerY = clientY
@@ -495,7 +499,8 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     if (this.isCenterPivot()) {
       const ariaTarget = this.currentInteraction.context
 
-      !ariaTarget.hasAttribute(EnlightenmentInputController.defaults.attr.grabbed) &&
+      ariaTarget &&
+        !ariaTarget.hasAttribute(EnlightenmentInputController.defaults.attr.grabbed) &&
         ariaTarget.setAttribute(EnlightenmentInputController.defaults.attr.grabbed, 'true')
 
       if (ariaTarget !== this) {
@@ -617,7 +622,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
    *
    * @param event The Event object to compare.
    */
-  protected isCurrentInteractionEvent(event: Event, initialEvent: Event) {
+  protected isCurrentInteractionEvent(event: Event, initialEvent?: Event) {
     if (!event || !initialEvent) {
       return false
     }

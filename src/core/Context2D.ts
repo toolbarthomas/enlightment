@@ -374,8 +374,8 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
    */
   protected transform(
     context: HTMLElement,
-    x: number,
-    y: number,
+    x?: number,
+    y?: number,
     viewport?: HTMLElement | typeof globalThis
   ) {
     if (!context || !context.style) {

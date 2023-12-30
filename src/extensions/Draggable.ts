@@ -48,11 +48,15 @@ export class EnlightenmentDraggable extends Enlightenment {
 
   static defaults = {
     ...Enlightenment.defaults,
-    minWidth: 300,
-    minHeight: 200,
-    type: ['inline', 'absolute', 'fixed', 'static']
+    Draggable: {
+      type: ['inline', 'absolute', 'fixed', 'static']
+    }
   }
 
+  /**
+   * Converts the defined value to a valid X and optional Y treshold.
+   * @param value
+   */
   static isTreshold(value: string | null) {
     if (!value) {
       return []
@@ -106,10 +110,11 @@ export class EnlightenmentDraggable extends Enlightenment {
    * Apply the requested interaction on the actual component while TRUE.
    */
   @property({
-    converter: (value) => Enlightenment.filterProperty(value, EnlightenmentDraggable.defaults.type),
+    converter: (value) =>
+      Enlightenment.filterProperty(value, EnlightenmentDraggable.defaults.Draggable.type),
     type: String
   })
-  type: string = EnlightenmentDraggable.defaults.type[0]
+  type: string = EnlightenmentDraggable.defaults.Draggable.type[0]
 
   /**
    * Ignore the initial Screen limitation while TRUE.
@@ -175,7 +180,7 @@ export class EnlightenmentDraggable extends Enlightenment {
     // Use the initial slotted element when the current Component is defined
     // with the [static] Attribute.
     if (this.static && !this.target) {
-      this.interactionTarget = this.useInitialElement()
+      this.interactionTarget = this.useInitialElement() as HTMLElement
     }
 
     return target
@@ -190,28 +195,29 @@ export class EnlightenmentDraggable extends Enlightenment {
    * @param properties Defines the required Pointer data to use.
    */
   protected handleDragUpdateCallback(deltaX: number, deltaY: number) {
-    if (this.isCenterPivot(this.currentInteraction.pivot)) {
-      // if (this.fixed) {
-      //   // Calculate the delta value between the selected Pointer area and the
-      //   // initial offset to prevent janking of the element.
-      //   // const initialDeltaX = (this.initialPointerX || clientX) - 0
-      //   // const initialDeltaY = (this.initialPointerY || clientY) - 0
-      //   // if (clientX < 0) {
-      //   //   x = clientX - initialDeltaX
-      //   // }
-      //   // if (clientY < 0) {
-      //   //   y = clientY - initialDeltaY
-      //   // }
-      // }
-
-      this.handleDragUpdateMove(this.currentInteraction.context, deltaX, deltaY)
-    } else if (['absolute', 'fixed'].includes(this.type)) {
-      this.handleDragUpdateResize(
-        this.currentInteraction.context,
-        deltaX,
-        deltaY,
-        this.currentInteraction.pivot
-      )
+    if (this.currentInteraction.context) {
+      if (this.isCenterPivot(this.currentInteraction.pivot)) {
+        // if (this.fixed) {
+        //   // Calculate the delta value between the selected Pointer area and the
+        //   // initial offset to prevent janking of the element.
+        //   // const initialDeltaX = (this.initialPointerX || clientX) - 0
+        //   // const initialDeltaY = (this.initialPointerY || clientY) - 0
+        //   // if (clientX < 0) {
+        //   //   x = clientX - initialDeltaX
+        //   // }
+        //   // if (clientY < 0) {
+        //   //   y = clientY - initialDeltaY
+        //   // }
+        // }
+        this.handleDragUpdateMove(this.currentInteraction.context, deltaX, deltaY)
+      } else if (['absolute', 'fixed'].includes(this.type)) {
+        this.handleDragUpdateResize(
+          this.currentInteraction.context,
+          deltaX,
+          deltaY,
+          this.currentInteraction.pivot || this.pivot
+        )
+      }
     }
 
     return super.handleDragUpdateCallback(deltaX, deltaY)
@@ -225,15 +231,15 @@ export class EnlightenmentDraggable extends Enlightenment {
     if (this.interactionTarget) {
       const { position, top, left, width, height } = this.interactionTarget.style
 
-      if (!top && this.type !== EnlightenmentDraggable.defaults.type[0]) {
+      if (!top && this.type !== EnlightenmentDraggable.defaults.Draggable.type[0]) {
         this.interactionTarget.style.top = `${this.interactionTarget.offsetTop}px`
       }
 
-      if (!left && this.type !== EnlightenmentDraggable.defaults.type[0]) {
+      if (!left && this.type !== EnlightenmentDraggable.defaults.Draggable.type[0]) {
         this.interactionTarget.style.left = `${this.interactionTarget.offsetLeft}px`
       }
 
-      if (!position && this.type !== EnlightenmentDraggable.defaults.type[0]) {
+      if (!position && this.type !== EnlightenmentDraggable.defaults.Draggable.type[0]) {
         this.interactionTarget.style.position = this.type === 'fixed' ? 'fixed' : 'absolute'
       }
 
@@ -268,7 +274,7 @@ export class EnlightenmentDraggable extends Enlightenment {
    */
   protected handleDragUpdateMove(context: HTMLElement, deltaX: number, deltaY: number) {
     let { x, y } = this.currentInteraction || {}
-    const { edgeX, edgeY, previousPointerX, previousPointerY, velocityY } =
+    const { edgeX, edgeY, pointerX, pointerY, previousPointerX, previousPointerY, velocityY } =
       this.currentInteraction || {}
 
     const axis = String(this.axis).toLowerCase()
@@ -286,8 +292,6 @@ export class EnlightenmentDraggable extends Enlightenment {
 
     const bounds = this.isOutsideViewport(context) || {}
     const viewport = this.useBoundingRect()
-
-    console.log(this.type)
 
     if (this.type !== 'fixed') {
       // Limit the context transformation within the visible viewport.
@@ -319,8 +323,8 @@ export class EnlightenmentDraggable extends Enlightenment {
       // Calculate the relative offset values from the initial Pointer position
       // to ensure the Interaction context element is reset within the Pointer
       // area.
-      const deltaX = (this.currentInteraction.pointerX - context.offsetLeft) / context.offsetWidth
-      const deltaY = (this.currentInteraction.pointerY - context.offsetTop) / context.offsetHeight
+      const deltaX = ((pointerX || 0) - context.offsetLeft) / context.offsetWidth
+      const deltaY = ((pointerY || 0) - context.offsetTop) / context.offsetHeight
       const offsetX = cache.width * deltaX
       const offsetY = cache.height * deltaY
 
@@ -328,8 +332,8 @@ export class EnlightenmentDraggable extends Enlightenment {
       this.resize(context, {
         width: cache.width,
         height: cache.height,
-        x: previousPointerX - Math.round(offsetX),
-        y: previousPointerY - Math.round(offsetY)
+        x: (previousPointerX || 0) - Math.round(offsetX),
+        y: (previousPointerY || 0) - Math.round(offsetY)
       })
     } else {
       this.transform(context, x, y)
@@ -347,18 +351,12 @@ export class EnlightenmentDraggable extends Enlightenment {
    * current defined 2D position will updated while the size is increased or
    * decreased from the selected pivot position.
    */
-  protected handleDragUpdateResize(context: HTMLElement, x: number, y: number, pivot: number) {
+  protected handleDragUpdateResize(context: HTMLElement, x: number, y: number, pivot?: number) {
     if (!context || !pivot) {
       return
     }
 
-    // if (!this.interactionContextWidth) {
-    //   this.interactionContextWidth = context.offsetWidth
-    // }
-
-    // if (!this.interactionContextHeight) {
-    //   this.interactionContextHeight = context.offsetHeight
-    // }
+    const { previousPointerX, previousPointerY, velocityX, velocityY } = this.currentInteraction
 
     // Check the movement for both X & Y axis.
     const resizeX = Enlightenment.pivots.x.includes(pivot)
@@ -372,15 +370,15 @@ export class EnlightenmentDraggable extends Enlightenment {
     // Validate the Resize interaction within the defined viewport.
     const viewport = this.useBoundingRect()
 
-    let height = 0
-    let width = 0
+    let height: number | undefined = 0
+    let width: number | undefined = 0
 
     const [initialTranslateX, initialTranslateY] = Enlightenment.parseMatrixValue(
       context.style.transform
     )
 
-    let translateX = initialTranslateX || 0
-    let translateY = initialTranslateY || 0
+    let translateX: number | undefined = initialTranslateX || 0
+    let translateY: number | undefined = initialTranslateY || 0
 
     const bounds = this.useScreenBounds(context, initialTranslateX, initialTranslateY)
 
@@ -390,8 +388,8 @@ export class EnlightenmentDraggable extends Enlightenment {
       this.clearCurrentDragTimeout()
     }
 
-    const flipX = resizeX && this.currentInteraction.velocityX && [1, 4, 7].includes(pivot)
-    const flipY = resizeY && this.currentInteraction.velocityY && [1, 2, 3].includes(pivot)
+    const flipX = resizeX && velocityX && [1, 4, 7].includes(pivot)
+    const flipY = resizeY && velocityY && [1, 2, 3].includes(pivot)
 
     if (flipX) {
       width = (this.currentInteraction.width || context.offsetWidth) - (resizeX ? x : 0)
@@ -415,12 +413,12 @@ export class EnlightenmentDraggable extends Enlightenment {
 
     // Prevent the width and/or height update when the Pointer has not moved
     // between the current and previous frame.
-    if (!this.currentInteraction.velocityX) {
+    if (!velocityX) {
       width = undefined
       translateX = undefined
     }
 
-    if (!this.currentInteraction.velocityY) {
+    if (!velocityY) {
       height = undefined
       translateY = undefined
     }
@@ -433,25 +431,22 @@ export class EnlightenmentDraggable extends Enlightenment {
       translateY = undefined
     }
 
+    const tX = translateX || 0
+    const tY = translateY || 0
+
     // Don't update the next X/Y interaction if the Transformation exceeds the
     // base X & Y position.
     const resetX =
-      (this.currentInteraction.velocityX &&
-        !flipX &&
-        this.currentInteraction.previousPointerX <= context.offsetLeft + translateX) ||
-      (this.currentInteraction.velocityX &&
+      (velocityX && !flipX && (previousPointerX || 0) <= context.offsetLeft + tX) ||
+      (velocityX &&
         flipX &&
-        this.currentInteraction.previousPointerX >=
-          context.offsetLeft + translateX + context.offsetWidth)
+        (previousPointerX || 0) >= context.offsetLeft + tX + context.offsetWidth)
 
     const resetY =
-      (this.currentInteraction.velocityY &&
-        !flipY &&
-        this.currentInteraction.previousPointerY <= context.offsetTop + translateY) ||
-      (this.currentInteraction.velocityX &&
+      (velocityY && !flipY && (previousPointerY || 0) <= context.offsetTop + tY) ||
+      (velocityY &&
         flipY &&
-        this.currentInteraction.previousPointerY >=
-          context.offsetTop + translateY + context.offsetHeight)
+        (previousPointerY || 0) >= context.offsetTop + tY + context.offsetHeight)
 
     let reset = false
     if (resetX && this.currentInteraction.velocityX) {
@@ -589,11 +584,13 @@ export class EnlightenmentDraggable extends Enlightenment {
           reset = true
         }
 
-        if (reset) {
+        if (reset && interactionCache.context) {
           interactionCache.context.addEventListener(
             'transitionend',
             () => {
-              interactionCache.context.style.transition = ''
+              if (interactionCache.context) {
+                interactionCache.context.style.transition = ''
+              }
             },
             { once: true }
           )
@@ -611,7 +608,7 @@ export class EnlightenmentDraggable extends Enlightenment {
       // fixed values.
       if (!reset) {
         if (this.isCenterPivot(interactionCache.pivot)) {
-          if (this.type !== EnlightenmentDraggable.defaults.type[0]) {
+          if (this.type !== EnlightenmentDraggable.defaults.Draggable.type[0]) {
             //@TODO HANDLEDRAGEDGE
             this.handleDragEdge(interactionCache)
           } else {
@@ -627,7 +624,7 @@ export class EnlightenmentDraggable extends Enlightenment {
             y: interactionCache.context.offsetTop + (translateY || 0)
           })
 
-          if (this.type === EnlightenmentDraggable.defaults.type[0]) {
+          if (this.type === EnlightenmentDraggable.defaults.Draggable.type[0]) {
             interactionCache.context.style.top = ''
             interactionCache.context.style.left = ''
           } else {
@@ -737,6 +734,8 @@ export class EnlightenmentDraggable extends Enlightenment {
       this.interactionTarget.style.overflow = 'hidden'
       this.interactionTarget.style.backfaceVisibility = 'hidden'
     }
+
+    return update
   }
 
   /**
@@ -826,8 +825,11 @@ export class EnlightenmentDraggable extends Enlightenment {
    * Element.
    */
   render() {
+    const useContent =
+      this.type !== 'static' && this.interactionTarget && this.pivot ? false : false
+
     return html`<slot
-      ?visually-hidden="${!this.type !== 'static' && this.interactionTarget && this.pivot}"
+      ?visually-hidden="${!useContent}"
       data-pivot="${this.pivot}"
       @touchstart=${this.handleDragStart}
       @mousedown=${this.handleDragStart}
