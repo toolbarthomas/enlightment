@@ -369,8 +369,8 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
    * @param context Transforms the defined Elemenet.
    * @param x The actual translateX value to use.
    * @param x The actual translateY value to use.
-   * @param fit Ensure the current Transformation fits within the visible
-   * viewport.
+   * @param viewport Ensure the current Transformation fits within the existing
+   * viewport Element.
    */
   protected transform(
     context: HTMLElement,
@@ -381,58 +381,7 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
     if (!context || !context.style) {
       return
     }
-    // }
 
-    // let x = offsetX || 0
-    // let y = offsetY || 0
-
-    // const [translateX, translateY] = EnlightenmentContext2D.parseMatrixValue(
-    //   context.style.transform
-    // )
-
-    // console.log('TRANSFORM', x, y)
-    // const left = context.offsetLeft + (translateX || 0)
-    // const top = context.offsetTop + (translateY || 0)
-
-    // const bounds = this.useScreenBounds(context, translateX, translateY)
-
-    // // Limit the position update within the visible viewport.
-    // if (viewport) {
-    //   const viewportProperties = this.useBoundingRect(viewport)
-
-    //   if (!viewportProperties.width || viewportProperties.width > context.offsetWidth) {
-    //     if (x + left + context.offsetWidth > viewportProperties.width) {
-    //       const leftover = left + x + context.offsetWidth - viewportProperties.width
-
-    //       x = x - leftover
-    //     } else if (bounds.left) {
-    //       const leftover = left + x
-
-    //       x = x - leftover
-    //     } else if (x - left <= viewportProperties.left) {
-    //       // if (bounds.left || !offsetX) {
-    //       //   console.log('BOO', translateX, offsetX)
-    //       //   translateX = -context.offsetLeft
-    //       // }
-    //     }
-    //   }
-
-    //   if (!viewportProperties.height || viewportProperties.height > context.offsetHeight) {
-    //     if (y + top + context.offsetHeight > viewportProperties.height) {
-    //       const leftover = top + y + context.offsetHeight - viewportProperties.height
-
-    //       y = y - leftover
-    //     } else if (bounds.top) {
-    //       const leftover = top + y
-
-    //       y = y - leftover
-    //     } else if (translateX - top <= viewportProperties.top) {
-    //       // if (bounds.top || !offsetY) {
-    //       //   y = -context.offsetTop
-    //       // }
-    //     }
-    //   }
-    // }
     const [translateX, translateY] = EnlightenmentContext2D.parseMatrixValue(
       context.style.transform
     )
@@ -448,6 +397,9 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
    * bounds.
    *
    * @param context Use the defined Context element position, width & height.
+   * @param translateX Includes the initial TranslateX tranformation value.
+   * @param translateY Includes the initial TranslateY tranformation value.
+   *
    */
   protected useScreenBounds(context: HTMLElement, translateX?: number, translateY?: number) {
     const viewport = this.useBoundingRect()

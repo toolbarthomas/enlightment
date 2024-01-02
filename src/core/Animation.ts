@@ -16,6 +16,10 @@ export class EnlightenmentAnimation extends EnlightenmentDOM {
     return date ? Date.now() : window.performance.now()
   }
 
+  /**
+   * Removes the currently defined Animation Request.
+   * @param id
+   */
   clearAnimationFrame(id?: number) {
     id && cancelAnimationFrame(id)
   }

@@ -680,14 +680,6 @@ export class EnlightenmentDraggable extends Enlightenment {
 
     this.assignGlobalEvent('keydown', this.handleDragExit, { once: true })
 
-    // const [stretchX, stretchY] = this.useStretched(this.interactionContext)
-
-    // if (stretchX && stretchY) {
-    //   this.currentInteractionTolerance = Math.ceil(Enlightenment.FPS)
-    // } else {
-    //   this.currentInteractionTolerance = 0
-    // }
-
     this.hook(Enlightenment.defaults.customEvents.dragStart, {
       context: this.interactionHost || this
     })

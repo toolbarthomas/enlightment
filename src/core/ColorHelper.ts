@@ -28,6 +28,9 @@ export class EnlightenmentColorHelper extends EnlightenmentImageHelper {
   })
   accent?: string
 
+  /**
+   * Defines the lightning mode (DARK/LIGHT) for the initial Component.
+   */
   @property({
     converter: (value) => EnlightenmentColorHelper.isMode(value),
     type: String
@@ -80,6 +83,11 @@ export class EnlightenmentColorHelper extends EnlightenmentImageHelper {
     this.log(['Custom stylesheet assigned:', this.uuid], 'log')
   }
 
+  /**
+   * Ensures the Component Theme can be updated from Host components.
+   *
+   * @param properties
+   */
   protected firstUpdated(properties: any): void {
     super.firstUpdated(properties)
 
