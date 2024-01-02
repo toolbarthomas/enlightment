@@ -511,6 +511,17 @@ export class EnlightenmentDraggable extends Enlightenment {
       })
     }
 
+    // Maintain the final position for a fixed Drag interaction that has not
+    // reached any viewport corner.
+    if (this.type === 'fixed' && !interaction.edgeX && !interaction.edgeY) {
+      const [translateX, translateY] = EnlightenmentDraggable.parseMatrix(
+        interaction.context.style.transform
+      )
+
+      x = interaction.context.offsetLeft + (translateX || 0)
+      y = interaction.context.offsetTop + (translateY || 0)
+    }
+
     this.resize(interaction.context, {
       x,
       y,
@@ -598,7 +609,6 @@ export class EnlightenmentDraggable extends Enlightenment {
             // Ensure the final position is within the visible viewport
             // regardless of the position type.
             const { x, y } = this.restorePosition(interactionCache.context)
-            console.log('do', x, y, this.type)
 
             this.transform(interactionCache.context, x, y)
           }
