@@ -5,15 +5,11 @@ import {
   Enlightenment,
   html,
   property,
-  ref,
-  useDraggable
+  ref
 } from '@toolbarthomas/enlightenment'
-
-useDraggable()
 
 import cssStyle from './hello-world.css'
 import scssStyle from './hello-world.scss'
-import { useDraggable } from './Enlightenment'
 
 @customElement('hello-world')
 class HelloWorld extends Enlightenment {
@@ -21,6 +17,7 @@ class HelloWorld extends Enlightenment {
 
   enableDocumentEvents = true
   enableFragments = true
+  extensions = ['Draggable', 'TresholdDrag']
 
   // @property({
   //   attribute: '@callback',
@@ -156,9 +153,9 @@ class HelloWorld extends Enlightenment {
           <h1>Hello ${this.name}</h1>
           <button @click=${this.start}>Start</button>
 
-          <button @mousedown=${this.handleDragStart} @touchstart=${this.handleDragStart}>
-            Drag
-          </button>
+          <draggable-element static>
+            <button>Drag</button>
+          </draggable-element>
 
           <button
             data-axis="x"
@@ -178,7 +175,7 @@ class HelloWorld extends Enlightenment {
 
           ${Array.from({ length: 9 }).map((_, index) => {
             return html`
-              <draggable-element pivot="${index + 1}">
+              <draggable-element pivot="${index + 1}" type="fixed">
                 <button>${index + 1}</button>
               </draggable-element>
             `
@@ -204,7 +201,6 @@ class HelloWorld extends Enlightenment {
             Default fragment text
           </div>
           <div fragment="optional"></div>
-          ${this.renderColors()}
         </div>
         <slot name="optional"></slot>
       </focus-trap>

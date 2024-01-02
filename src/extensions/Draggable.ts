@@ -117,15 +117,6 @@ export class EnlightenmentDraggable extends Enlightenment {
   type: string = EnlightenmentDraggable.defaults.Draggable.type[0]
 
   /**
-   * Ignore the initial Screen limitation while TRUE.
-   */
-  @property({
-    converter: Enlightenment.isBoolean,
-    type: Boolean
-  })
-  fixed?: boolean
-
-  /**
    * Apply the requested interaction on the defined target selector.
    */
   @property({
@@ -155,7 +146,7 @@ export class EnlightenmentDraggable extends Enlightenment {
   /**
    * Ensure the Interaction target is defined within the current DOM.
    */
-  handleUpdate(name?: string) {
+  protected handleUpdate(name?: string) {
     super.handleUpdate(name)
 
     this.defineTarget()
@@ -189,7 +180,7 @@ export class EnlightenmentDraggable extends Enlightenment {
   /**
    * Validates the updated interaction after the last requested Animation Frame
    * that was defined in the InputController. This callback defines the
-   * requested interaction from the given target pivot.
+   * requested interaction from  the given target pivot.
    *
    * @param context Validate from the defined context.
    * @param properties Defines the required Pointer data to use.
@@ -197,18 +188,6 @@ export class EnlightenmentDraggable extends Enlightenment {
   protected handleDragUpdateCallback(deltaX: number, deltaY: number) {
     if (this.currentInteraction.context) {
       if (this.isCenterPivot(this.currentInteraction.pivot)) {
-        // if (this.fixed) {
-        //   // Calculate the delta value between the selected Pointer area and the
-        //   // initial offset to prevent janking of the element.
-        //   // const initialDeltaX = (this.initialPointerX || clientX) - 0
-        //   // const initialDeltaY = (this.initialPointerY || clientY) - 0
-        //   // if (clientX < 0) {
-        //   //   x = clientX - initialDeltaX
-        //   // }
-        //   // if (clientY < 0) {
-        //   //   y = clientY - initialDeltaY
-        //   // }
-        // }
         this.handleDragUpdateMove(this.currentInteraction.context, deltaX, deltaY)
       } else if (['absolute', 'fixed'].includes(this.type)) {
         this.handleDragUpdateResize(
@@ -250,6 +229,8 @@ export class EnlightenmentDraggable extends Enlightenment {
         const maxWidth = minWidth > viewport.width ? viewport.width : minWidth
 
         this.interactionTarget.style.width = `${maxWidth}px`
+      } else if (!width) {
+        this.interactionTarget.style.width = `${this.interactionTarget.offsetWidth}px`
       }
 
       if (!this.interactionTarget.clientHeight && !height) {
@@ -257,6 +238,8 @@ export class EnlightenmentDraggable extends Enlightenment {
         const maxHeight = minHeight > viewport.height ? viewport.height : minHeight
 
         this.interactionTarget.style.height = `${maxHeight}px`
+      } else if (!height) {
+        this.interactionTarget.style.height = `${this.interactionTarget.offsetHeight}px`
       }
     }
   }
@@ -615,6 +598,7 @@ export class EnlightenmentDraggable extends Enlightenment {
             // Ensure the final position is within the visible viewport
             // regardless of the position type.
             const { x, y } = this.restorePosition(interactionCache.context)
+            console.log('do', x, y, this.type)
 
             this.transform(interactionCache.context, x, y)
           }
@@ -790,10 +774,6 @@ export class EnlightenmentDraggable extends Enlightenment {
    */
   protected updateStretched(context?: HTMLElement) {
     if (!context) {
-      return
-    }
-
-    if (this.fixed) {
       return
     }
 

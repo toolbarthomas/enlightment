@@ -145,7 +145,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
       ? this.closest(selector) || this.querySelector(selector || '')
       : undefined
 
-    const host = this.useHost(target) as any
+    const host = this.useHost(target || this) as any
 
     // Check if the current Component exists within another Enlightenment
     // component and use the parent as context instead
@@ -355,7 +355,6 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     // Enable single & double click interactions
     if (this.currentInteractionCount === 1) {
       this.throttle(() => {
-        console.log('CLEAR')
         this.currentInteractionCount = 0
       }, EnlightenmentInputController.RPS)
     }

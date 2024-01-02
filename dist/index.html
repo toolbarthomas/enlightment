@@ -18,10 +18,8 @@
       You can ignore the workflow if your component will be bundled with the
       actual Enlightenment library within your working development.
   -->
-  <script src="Scrollable.extension.js" type="module"></script>
-  <script src="Draggable.extension.js" type="module"></script>
-  <script src="FocusTrap.extension.js" type="module"></script>
   <script src="hello-world.js" type="module"></script>
+  <script src="Draggable.extension.js" type="module"></script>
 
   <script>
     // Test if the slot is updated from isEmpty slotchange event.
@@ -97,7 +95,7 @@
 </head>
 
 <body>
-  <focus-trap escape>
+  <!-- <focus-trap escape>
     <button handle="click:activate()">Enable FocusTrap</button>
     <button handle="click:deactivate()">Disable FocusTrap</button>
   </focus-trap>
@@ -105,7 +103,17 @@
 
   <scrollable-element mode="dark">
     <img width="2000px" height="2000px" />
-  </scrollable-element>
+  </scrollable-element> -->
+  <!-- <div>
+    <draggable-element type="absolute" pivot="1" target="div"></draggable-element>
+    <draggable-element type="absolute" pivot="2" target="div"></draggable-element>
+    <draggable-element type="absolute" pivot="4" target="div"></draggable-element>
+    <draggable-element type="absolute" pivot="6" target="div"></draggable-element>
+    <draggable-element type="absolute" pivot="5" treshold="300" target="div"></draggable-element>
+    <draggable-element type="absolute" pivot="8" target="div"></draggable-element>
+    <img width="100px" height="100px" src="data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=" />
+  </div> -->
+  <hello-world></hello-world>
   <!-- <hello-world></hello-world> -->
   <!--
   <scrollable-element>
