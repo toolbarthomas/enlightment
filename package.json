@@ -1,23 +1,34 @@
 {
   "name": "@toolbarthomas/enlightenment",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Web component workflow with Sass & Lit Element",
   "main": "dist/enlightenment.js",
   "type": "module",
   "files": [
     ".browserlistrc",
+    "dist/Draggable.extension.cjs",
+    "dist/Draggable.extension.js",
+    "dist/Draggable.extension.min.cjs",
+    "dist/Draggable.extension.min.js",
     "dist/Enlightenment.cjs",
     "dist/Enlightenment.js",
     "dist/Enlightenment.min.cjs",
     "dist/Enlightenment.min.js",
+    "dist/FocusTrap.extension.cjs",
+    "dist/FocusTrap.extension.js",
+    "dist/FocusTrap.extension.min.cjs",
+    "dist/FocusTrap.extension.min.js",
+    "dist/Scrollable.extension.cjs",
+    "dist/Scrollable.extension.js",
+    "dist/Scrollable.extension.min.cjs",
+    "dist/Scrollable.extension.min.js",
     "index.cjs",
     "index.mjs",
     "index.ts",
     "LICENSE.md",
     "node/",
     "README.md",
-    "src/enlightenment.ts",
-    "src/mixins/"
+    "src/"
   ],
   "scripts": {
     "prebuild": "npm run tsc",
@@ -51,17 +62,17 @@
     "lit": "^2.8.0"
   },
   "devDependencies": {
-    "autoprefixer": "^10.4.15",
-    "cssnano": "^6.0.1",
-    "esbuild": "^0.19.2",
+    "autoprefixer": "^10.4.16",
+    "cssnano": "^6.0.3",
+    "esbuild": "^0.19.11",
     "focus-trap": "^7.5.4",
     "glob": "^10.3.10",
     "mkdirp": "^3.0.1",
-    "postcss": "^8.4.29",
+    "postcss": "^8.4.32",
     "postcss-combine-duplicated-selectors": "^10.0.3",
-    "prettier": "^3.0.3",
-    "sass": "^1.66.1",
+    "prettier": "^3.1.1",
+    "sass": "^1.69.7",
     "simplebar": "^6.2.5",
-    "typescript": "^5.2.2"
+    "typescript": "^5.3.3"
   }
 }

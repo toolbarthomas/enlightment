@@ -47,6 +47,8 @@ export const resolvePlugin = (options) => ({
           copyFileSync(from, to)
         }
 
+        // @TODO Should resolve extensions from plugin instead of expecting it
+        // from the NPM package
         // Resolve the optional Framework Extensions as well.
         // extensions.forEach((e) => {
         //   const clone = join(finalDir, basename(e))
