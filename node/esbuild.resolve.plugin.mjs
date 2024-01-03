@@ -39,7 +39,7 @@ export const resolvePlugin = (options) => ({
 
       const baseDir = dirname(from)
       const finalDir = dirname(to)
-      const extensions = includeExtensions ? glob.sync(join(baseDir, `*.extension${suffix}`)) : []
+      // const extensions = includeExtensions ? glob.sync(join(baseDir, `*.extension${suffix}`)) : []
 
       try {
         if (existsSync(from)) {
@@ -48,14 +48,14 @@ export const resolvePlugin = (options) => ({
         }
 
         // Resolve the optional Framework Extensions as well.
-        extensions.forEach((e) => {
-          const clone = join(finalDir, basename(e))
-          const data = readFileSync(e)
-            .toString()
-            .replace(new RegExp(basename(from), 'g'), basename(to))
+        // extensions.forEach((e) => {
+        //   const clone = join(finalDir, basename(e))
+        //   const data = readFileSync(e)
+        //     .toString()
+        //     .replace(new RegExp(basename(from), 'g'), basename(to))
 
-          data && writeFileSync(clone, data)
-        })
+        //   data && writeFileSync(clone, data)
+        // })
       } catch (exception) {
         exception && Error(exception)
       }
