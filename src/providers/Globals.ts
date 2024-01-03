@@ -1,6 +1,6 @@
-import { ColorMode, EnlightenmentProvider, EnlightenmentProviders } from 'src/_types/main'
+import { ColorMode, EnlightenmentProvider, EnlightenmentProviders } from '../_types/main'
 
-import { Enlightenment } from 'src/Enlightenment'
+import { Enlightenment } from '../Enlightenment'
 
 /**
  * The EnlightenmentGlobals implements the mandatory global variables and
@@ -200,6 +200,6 @@ export class EnlightenmentGlobals {
       clearTimeout(this.cleanupRequest)
     }
 
-    this.cleanupRequest = setTimeout(() => this.cleanup(), 1000 * 60)
+    this.cleanupRequest = setTimeout(() => this.cleanup(), 1000 * 60) as unknown as number
   }
 }

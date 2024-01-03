@@ -1,4 +1,5 @@
-import { Enlightenment } from 'src/Enlightenment'
+import { Enlightenment } from '../Enlightenment'
+
 import {
   EnlightenmentProcessHandler,
   EnlightenmentThrottle,
@@ -7,12 +8,12 @@ import {
   GlobalEventOptions,
   GlobalEventType,
   HookOptions
-} from 'src/_types/main'
+} from '../_types/main'
 
-import { EnlightenmentMixins, property } from 'src/core/Mixins'
+import { EnlightenmentMixins, property } from './Mixins'
 
-import { EnlightenmentGlobals } from 'src/providers/Globals'
-import { EnlightenmentTheme } from 'src/providers/Theme'
+import { EnlightenmentGlobals } from '../providers/Globals'
+import { EnlightenmentTheme } from '../providers/Theme'
 
 /**
  * Defines the actual Enlightenment Class entry point with the required
@@ -100,7 +101,7 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
    * Holds the current cleanup timeout ID that will cleanup the obsolete
    * throttlers and temporary values.
    */
-  cid?: number
+  cid?: ReturnType<typeof setTimeout>
 
   /**
    * Boolean flag that should mutate only once to indicate the Component has

@@ -1,6 +1,6 @@
 import SimpleBar from 'simplebar'
 
-import { customElement, Enlightenment, html, property, ref } from 'src/Enlightenment'
+import { customElement, Enlightenment, html, property, ref } from '../Enlightenment'
 
 import styles from './Scrollable.scss'
 

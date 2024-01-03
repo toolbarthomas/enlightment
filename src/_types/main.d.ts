@@ -1,5 +1,5 @@
-import { EnlightenmentGlobals } from 'src/providers/Globals'
-import { EnlightenmentTheme } from 'src/providers/Theme'
+import { EnlightenmentGlobals } from '../providers/Globals'
+import { EnlightenmentTheme } from '../providers/Theme'
 
 /**
  * Defines a single entry of the parsed json data form the

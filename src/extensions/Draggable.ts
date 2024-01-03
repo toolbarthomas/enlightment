@@ -6,13 +6,13 @@ import {
   html,
   property,
   ref
-} from 'src/Enlightenment'
+} from '../Enlightenment'
 
 import {
   EnlightenmentDOMResizeOptions,
   EnlightenmentInputControllerPointerData,
   EnlightenmentInteractionData
-} from 'src/_types/main'
+} from '../_types/main'
 
 import styles from './Draggable.scss'
 

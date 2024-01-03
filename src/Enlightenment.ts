@@ -1,6 +1,6 @@
 import { PropertyValueMap, PropertyValues } from 'lit'
 
-import { EnlightenmentTheme } from 'src/providers/Theme'
+import { EnlightenmentTheme } from './providers/Theme'
 
 export {
   createRef,
@@ -11,9 +11,9 @@ export {
   nothing,
   property,
   ref
-} from 'src/core/Mixins'
+} from './core/Mixins'
 
-import { EnlightenmentExtensionLoader } from 'src/core/ExtensionLoader'
+import { EnlightenmentExtensionLoader } from './core/ExtensionLoader'
 
 export class Enlightenment extends EnlightenmentExtensionLoader {
   /**
@@ -215,7 +215,7 @@ export class Enlightenment extends EnlightenmentExtensionLoader {
    *
    * @param context The existing context Element to traverse from.
    */
-  public useHost(context: any) {
+  public useHost(context: any): undefined | Enlightenment {
     if (!context) {
       return
     }

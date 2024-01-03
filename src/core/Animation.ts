@@ -1,4 +1,4 @@
-import { EnlightenmentDOM } from 'src/core/DOM'
+import { EnlightenmentDOM } from './DOM'
 
 export type RAFRequestOptions = {
   time?: number

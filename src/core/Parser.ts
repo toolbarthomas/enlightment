@@ -5,9 +5,9 @@ import {
   EnlightenmentJSONResponseObject,
   EnlightenmentJSONResponseValue,
   EnlightenmentJSONResponseTransformer
-} from 'src/_types/main'
+} from '../_types/main'
 
-import { EnlightenmentKernel } from 'src/core/Kernel'
+import { EnlightenmentKernel } from './Kernel'
 
 export class EnlightenmentParser extends EnlightenmentKernel {
   /**

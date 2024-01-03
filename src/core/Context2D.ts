@@ -4,9 +4,9 @@ import {
   EnlightenmentDOMResizeOptions,
   EnlightenmentViewport,
   EnlightenmentContext2DBounds
-} from 'src/_types/main'
+} from '../_types/main'
 
-import { EnlightenmentAnimation } from 'src/core/Animation'
+import { EnlightenmentAnimation } from './Animation'
 
 export class EnlightenmentContext2D extends EnlightenmentAnimation {
   /**

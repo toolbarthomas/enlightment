@@ -1,5 +1,5 @@
-import { EnlightenmentExtensionImports } from 'src/_types/main'
-import { EnlightenmentInputController } from 'src/core/InputController'
+import { EnlightenmentExtensionImports } from '../_types/main'
+import { EnlightenmentInputController } from '../core/InputController'
 
 export class EnlightenmentExtensionLoader extends EnlightenmentInputController {
   extensions: string[] = []
@@ -28,16 +28,16 @@ export class EnlightenmentExtensionLoader extends EnlightenmentInputController {
    * @see /src/Enlightenment.ts
    */
   static importDraggable = () =>
-    EnlightenmentExtensionLoader.canImportExtension() && import('src/extensions/Draggable')
+    EnlightenmentExtensionLoader.canImportExtension() && import('../extensions/Draggable')
 
   static importFocusTrap = () =>
-    EnlightenmentExtensionLoader.canImportExtension() && import('src/extensions/FocusTrap')
+    EnlightenmentExtensionLoader.canImportExtension() && import('../extensions/FocusTrap')
 
   static importScrollable = () =>
-    EnlightenmentExtensionLoader.canImportExtension() && import('src/extensions/Scrollable')
+    EnlightenmentExtensionLoader.canImportExtension() && import('../extensions/Scrollable')
 
   static importTresholdDrag = () =>
-    EnlightenmentExtensionLoader.canImportExtension() && import('src/extensions/TresholdDrag')
+    EnlightenmentExtensionLoader.canImportExtension() && import('../extensions/TresholdDrag')
 
   /**
    * Preload the required Enlightenment extensions that can be requested by any

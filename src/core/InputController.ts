@@ -4,12 +4,12 @@ import {
   EnlightenmentInputControllerPointerData,
   EnlightenmentInteractionData,
   EnlightenmentInteractionEndCallback
-} from 'src/_types/main'
+} from '../_types/main'
 
-import { eventOptions } from 'src/core/Mixins'
+import { eventOptions } from './Mixins'
 
-import { EnlightenmentColorHelper } from 'src/core/ColorHelper'
-import { Enlightenment } from 'src/Enlightenment'
+import { EnlightenmentColorHelper } from './ColorHelper'
+import { Enlightenment } from '../Enlightenment'
 
 export class EnlightenmentInputController extends EnlightenmentColorHelper {
   /**
@@ -93,7 +93,10 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
    */
   protected assignCurrentDragTimeout() {
     if (this.currentInteraction.response === undefined) {
-      this.currentInteraction.response = setTimeout(() => this.handleDragEnd(), 3000)
+      this.currentInteraction.response = setTimeout(
+        () => this.handleDragEnd(),
+        3000
+      ) as unknown as number
     }
   }
 

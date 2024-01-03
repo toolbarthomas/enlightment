@@ -1,9 +1,9 @@
-import { EnlightenmentDOMResizeOptions, EnlightenmentTarget } from 'src/_types/main'
+import { EnlightenmentDOMResizeOptions, EnlightenmentTarget } from '../_types/main'
 
-import { createRef, property } from 'src/core/Mixins'
-import { EnlightenmentParser } from 'src/core/Parser'
+import { createRef, property } from './Mixins'
+import { EnlightenmentParser } from './Parser'
 
-import { EnlightenmentTheme } from 'src/providers/Theme'
+import { EnlightenmentTheme } from '../providers/Theme'
 
 export class EnlightenmentDOM extends EnlightenmentParser {
   static getElements(context: Element, tags: string[]) {
