@@ -1,4 +1,4 @@
-import { Enlightenment } from '../Enlightenment'
+import { Enlightenment } from 'src/Enlightenment'
 
 import {
   EnlightenmentProcessHandler,

@@ -1,6 +1,6 @@
 import { ColorMode, EnlightenmentProvider, EnlightenmentProviders } from '../_types/main'
 
-import { Enlightenment } from '../Enlightenment'
+import { Enlightenment } from 'src/Enlightenment'
 
 /**
  * The EnlightenmentGlobals implements the mandatory global variables and
