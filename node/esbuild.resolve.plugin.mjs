@@ -1,7 +1,8 @@
-import { existsSync, copyFileSync } from 'node:fs'
+import { existsSync, copyFileSync, writeFile, readFileSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
+import { mkdirpSync } from 'mkdirp'
 import { basename, dirname, join, normalize, relative, resolve } from 'node:path'
-import { sync } from 'glob'
+import glob from 'glob'
 
 /**
  * Resolve the requested Enlightenment package from @toolbarthomas/enlightenment
@@ -38,15 +39,22 @@ export const resolvePlugin = (options) => ({
 
       const baseDir = dirname(from)
       const finalDir = dirname(to)
-      const extensions = includeExtensions ? sync(join(baseDir, `*.extension${suffix}`)) : []
+      const extensions = includeExtensions ? glob.sync(join(baseDir, `*.extension${suffix}`)) : []
 
       try {
-        existsSync(from) && copyFileSync(from, to)
+        if (existsSync(from)) {
+          mkdirpSync(dirname(from))
+          copyFileSync(from, to)
+        }
 
         // Resolve the optional Framework Extensions as well.
         extensions.forEach((e) => {
           const clone = join(finalDir, basename(e))
-          existsSync(e) && copyFileSync(e, clone)
+          const data = readFileSync(e)
+            .toString()
+            .replace(new RegExp(basename(from), 'g'), basename(to))
+
+          data && writeFileSync(clone, data)
         })
       } catch (exception) {
         exception && Error(exception)
