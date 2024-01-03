@@ -8,14 +8,14 @@ import cssnano from 'cssnano'
 import postcss from 'postcss'
 
 import { argv } from './argv.mjs'
-import { globSync } from 'glob'
+import * as glob from 'glob'
 import { fileURLToPath } from 'node:url'
 
 /**
  * Load the required BrowserList configuration from the Node context or this
  * package as fallback.
  */
-const [browserlistCustomConfig] = globSync('.browserlistrc*')
+const [browserlistCustomConfig] = glob.sync('.browserlistrc*')
 const browserlistDefaultConfig = resolve(
   dirname(fileURLToPath(import.meta.url)),
   '../.browserlistrc'

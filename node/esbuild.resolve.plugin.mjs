@@ -2,7 +2,7 @@ import { existsSync, copyFileSync, writeFile, readFileSync, writeFileSync } from
 import { fileURLToPath } from 'node:url'
 import { mkdirpSync } from 'mkdirp'
 import { basename, dirname, join, normalize, relative, resolve } from 'node:path'
-import glob from 'glob'
+import * as glob from 'glob'
 
 /**
  * Resolve the requested Enlightenment package from @toolbarthomas/enlightenment
