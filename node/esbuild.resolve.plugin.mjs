@@ -16,6 +16,8 @@ import * as glob from 'glob'
  * @param {String} options.extension Use the optional extension instead.
  * @param {boolean} options.includeExtensions Resolve the optional extensions
  * as well.
+ * @param {boolean} options.excludeFramework Don't include the actual Core
+ * package while resolving the imports.
  * @param {String} options.name Imports from the defined name instead of the
  * default package name.
  * @param {String} options.namespace Optional namespace to assign within the
@@ -24,7 +26,8 @@ import * as glob from 'glob'
 export const resolvePlugin = (options) => ({
   name: 'resolve-plugin',
   setup: (build) => {
-    const { cwd, destination, extension, includeExtensions, name, namespace } = options || {}
+    const { cwd, destination, excludeFramework, extension, includeExtensions, name, namespace } =
+      options || {}
     const suffix = extension || '.js'
     const d = destination || `/Enlightenment${suffix}`
     const packageName = name || /@toolbarthomas\/enlightenment$/
@@ -32,7 +35,7 @@ export const resolvePlugin = (options) => ({
     const { initialOptions } = build || {}
     const { outdir } = initialOptions
 
-    if (d && !existsSync(d)) {
+    if (!excludeFramework && d && !existsSync(d)) {
       const from = resolve(fileURLToPath(import.meta.url), `../../dist/Enlightenment${suffix}`)
 
       const to = join(process.cwd(), outdir || '', d.split('../').join('/'))
