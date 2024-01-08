@@ -9,7 +9,7 @@ import {
 import { eventOptions } from './Mixins'
 
 import { EnlightenmentColorHelper } from './ColorHelper'
-import { Enlightenment } from 'src/Enlightenment'
+import { Enlightenment } from '../Enlightenment'
 
 export class EnlightenmentInputController extends EnlightenmentColorHelper {
   /**
