@@ -1,4 +1,4 @@
-import { createRef, customElement, Enlightenment, html, property, ref } from 'src/Enlightenment'
+import { createRef, customElement, Enlightenment, html, property, ref } from '../Enlightenment'
 import { EnlightenmentInputControllerPointerData } from '../_types/main'
 
 @customElement('treshold-drag')

@@ -30,7 +30,7 @@ import { stylePlugin } from './esbuild.style.plugin.mjs'
   const defaults = {
     bundle: true,
     entryPoints: ['./src/extensions/*.ts'],
-    external: ['@toolbarthomas/enlightenment', cwd],
+    external: ['@toolbarthomas/enlightenment', '*Enlightenment'],
     format,
     keepNames: true,
     metafile: false,

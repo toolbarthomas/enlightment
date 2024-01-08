@@ -6,7 +6,7 @@ import {
   html,
   property,
   ref
-} from 'src/Enlightenment'
+} from '../Enlightenment'
 
 import {
   EnlightenmentDOMResizeOptions,

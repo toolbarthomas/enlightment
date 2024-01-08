@@ -1,6 +1,6 @@
 import { createFocusTrap, FocusTrap } from 'focus-trap'
 
-import { createRef, customElement, Enlightenment, html, property, ref } from 'src/Enlightenment'
+import { createRef, customElement, Enlightenment, html, property, ref } from '../Enlightenment'
 
 @customElement('focus-trap')
 
