@@ -257,3 +257,32 @@ export class Enlightenment extends EnlightenmentExtensionLoader {
     return super.useHost(target) as Enlightenment
   }
 }
+
+/**
+ * Alternative helper function that should be used when the default
+ * 'customElement' class decorator is not available.
+ *
+ * @param instance The expected Custom Element constructor to assign to the
+ * Custom Element Registry.
+ * @param tag The custom tagName to use for the new custom Element.
+ */
+export const defineCustomElement = (tag: string, instance: any) => {
+  let result = false
+
+  if (!instance || !tag) {
+    return result
+  }
+
+  if (!customElements || customElements.get(tag)) {
+    return result
+  }
+
+  try {
+    customElements.define(tag, instance)
+    result = true
+  } catch (exception) {
+    console && console.error(exception)
+  }
+
+  return result
+}
