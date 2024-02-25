@@ -2,7 +2,7 @@
   "name": "@toolbarthomas/enlightenment",
   "version": "0.4.1",
   "description": "Web component workflow with Sass & Lit Element",
-  "main": "dist/enlightenment.js",
+  "main": "dist/Enlightenment.js",
   "type": "module",
   "files": [
     ".browserlistrc",
