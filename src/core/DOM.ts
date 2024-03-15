@@ -145,7 +145,7 @@ export class EnlightenmentDOM extends EnlightenmentParser {
     converter: EnlightenmentParser.isBoolean,
     type: Boolean
   })
-  disabled?: boolean
+  disabled?: boolean = false
 
   // Returns the full Component context when FALSE.
   @property({
@@ -195,7 +195,7 @@ export class EnlightenmentDOM extends EnlightenmentParser {
    * Optional alias that should match with one of the viewport widths to assign
    * as private Property
    */
-  viewport?: string
+  viewport?: string = ''
 
   /**
    * Attaches the defined component to the currentElement global.
@@ -838,7 +838,7 @@ export class EnlightenmentDOM extends EnlightenmentParser {
       return
     }
 
-    if (!Object.keys(this).includes(name)) {
+    if ((this as any)[name] === undefined) {
       return
     }
 
@@ -881,7 +881,7 @@ export class EnlightenmentDOM extends EnlightenmentParser {
    * @param flag Assign the actual property as boolean Attribute.
    */
   protected updateAttributeAlias(property: string, name?: string, flag?: boolean) {
-    if (!Object.keys(this).includes(property)) {
+    if ((this as any)[property] === undefined) {
       return
     }
 
