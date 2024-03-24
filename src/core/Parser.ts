@@ -80,6 +80,10 @@ export class EnlightenmentParser extends EnlightenmentKernel {
       return json as EnlightenmentJSONResponseArray
     }
 
+    if (json instanceof Object) {
+      return json as EnlightenmentJSONResponseObject
+    }
+
     return [json] as EnlightenmentJSONResponseObject
   }
 
