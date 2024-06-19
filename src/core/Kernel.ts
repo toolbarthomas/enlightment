@@ -653,7 +653,7 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
 
         update = true
       } else {
-        if (Object.keys(this).includes(property)) {
+        if ((this as any)[property] !== undefined) {
           //@ts-ignore
           this[property] = handler
 

@@ -122,6 +122,9 @@ export class Enlightenment extends EnlightenmentExtensionLoader {
       // Epose the custom depth related properties.
       Enlightenment.theme.assignElevationProperties(EnlightenmentTheme.stackingContext)
 
+      // Epose the custom depth related properties.
+      Enlightenment.theme.assignEasingProperties()
+
       // Epose the default Device breakpoints
       Enlightenment.theme.assignDocumentProperties(
         Object.entries(EnlightenmentTheme.breakpoints).map(
