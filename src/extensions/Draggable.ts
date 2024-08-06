@@ -442,6 +442,8 @@ export class EnlightenmentDraggable extends Enlightenment {
       reset = true
     }
 
+    console.log('Drag', reset, width, context.offsetWidth)
+
     if (width === context.offsetWidth) {
       width = undefined
       translateX = undefined
