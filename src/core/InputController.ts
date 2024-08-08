@@ -522,7 +522,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     const viewport = this.useBoundingRect()
 
     // Increase the drag precision instead of the a single pixel.
-    const precision = Math.ceil(devicePixelRatio * 2)
+    const precision = Math.ceil(EnlightenmentColorHelper.devicePixelRatio * 2)
 
     // Assign the current edge for both X & Y axis with the defined treshold.
     //          [top]

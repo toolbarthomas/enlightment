@@ -13,7 +13,7 @@ export class EnlightenmentAnimation extends EnlightenmentDOM {
    * @param date Use the Date constructor for the timestamp.
    */
   useTimestamp(date?: boolean) {
-    return date ? Date.now() : window.performance.now()
+    return date ? Date.now() : EnlightenmentDOM.Global.performance.now()
   }
 
   /**
@@ -34,7 +34,7 @@ export class EnlightenmentAnimation extends EnlightenmentDOM {
    * @param args Any optional arguments to use within the dynamic callback.
    */
   useAnimationFrame(handler: Function, options?: RAFRequestOptions) {
-    const limit = Math.round(EnlightenmentAnimation.FPS / devicePixelRatio)
+    const limit = Math.round(EnlightenmentAnimation.FPS / EnlightenmentDOM.devicePixelRatio)
     const { time, frame, args } = options || {}
     let a = args || []
 

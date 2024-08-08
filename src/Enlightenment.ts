@@ -22,7 +22,7 @@ export class Enlightenment extends EnlightenmentExtensionLoader {
    */
   static filterProperty = Enlightenment.filterPropertyValue
   static parseMatrix = Enlightenment.parseMatrixValue
-  static url = Enlightenment.resolveURL
+  static p = Enlightenment.resolveURL
   static useOption = Enlightenment.usePropertyValue
 
   constructor() {

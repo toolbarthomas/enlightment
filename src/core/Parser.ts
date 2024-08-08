@@ -117,15 +117,16 @@ export class EnlightenmentParser extends EnlightenmentKernel {
       return ''
     }
 
-    // Use the AnchorElement interface to verify the initial url.
-    const anchor = document.createElement('a')
-    anchor.href = url
+    const request = new URL(url)
+    const location = EnlightenmentKernel.location
 
-    const port = parseInt(window.location.port || anchor.port) || 80
-    const [protocol, relativeURL] = anchor.href.split(anchor.host)
+    const port = parseInt(location.port || request.port) || 80
+    const [protocol, relativeURL] = request.href.split(request.host)
     const absoluteURL =
       protocol +
-      ([80, 443].includes(port) ? window.location.hostname : window.location.host) +
+      ([80, 443].includes(port)
+        ? EnlightenmentKernel.location.hostname
+        : EnlightenmentKernel.location.host) +
       relativeURL
 
     return absoluteURL

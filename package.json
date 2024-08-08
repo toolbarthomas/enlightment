@@ -1,6 +1,6 @@
 {
   "name": "@toolbarthomas/enlightenment",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "description": "Web component workflow with Sass & Lit Element",
   "main": "dist/Enlightenment.js",
   "type": "module",
@@ -47,8 +47,11 @@
     "build:minify": "node node/esbuild.enlightenment.mjs -n=src/enlightenment -s -m & node node/esbuild.enlightenment.mjs -n=src/enlightenment -s -f=cjs -m",
     "dev": "node node/esbuild.enlightenment.mjs -n=src/enlightenment -s -w & node node/esbuild.extensions.mjs -w & node node/esbuild.serve.mjs",
     "prepublish": "npm run build && npm run build:minify",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "tsc": "tsc --noEmit"
+    "pretest": "npm run build && npm run build:minify",
+    "test": "npm run postprocess & node node/esbuild.mocha.mjs",
+    "posttest": "node node_modules/mocha/bin/mocha.js \"dist/tests/*.test.js\"",
+    "tsc": "tsc --noEmit",
+    "postprocess": "tsc src/_types/main.d.ts --declaration --emitDeclarationOnly --outDir dist/ --skipLibCheck --noEmitOnError false > /dev/null"
   },
   "repository": {
     "type": "git",
@@ -69,19 +72,22 @@
   "homepage": "https://github.com/toolbarthomas/enlightenment#readme",
   "dependencies": {
     "focus-trap": "^7.5.4",
-    "lit": "^3.1.4",
+    "lit": "^3.2.0",
     "simplebar": "^6.2.7"
   },
   "devDependencies": {
-    "autoprefixer": "^10.4.19",
-    "cssnano": "^6.1.0",
-    "esbuild": "^0.21.5",
-    "glob": "^10.4.2",
+    "@types/assert": "^1.5.10",
+    "@types/mocha": "^10.0.7",
+    "autoprefixer": "^10.4.20",
+    "cssnano": "^7.0.4",
+    "esbuild": "^0.23.0",
+    "glob": "^11.0.0",
     "mkdirp": "^3.0.1",
-    "postcss": "^8.4.38",
+    "mocha": "^10.7.0",
+    "postcss": "^8.4.41",
     "postcss-combine-duplicated-selectors": "^10.0.3",
-    "prettier": "^3.3.2",
-    "sass": "^1.77.6",
-    "typescript": "^5.4.5"
+    "prettier": "^3.3.3",
+    "sass": "^1.77.8",
+    "typescript": "^5.5.4"
   }
 }

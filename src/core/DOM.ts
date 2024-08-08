@@ -101,8 +101,10 @@ export class EnlightenmentDOM extends EnlightenmentParser {
     return (
       bounds.top >= 0 &&
       bounds.left >= 0 &&
-      bounds.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-      bounds.right <= (window.innerWidth || document.documentElement.clientWidth)
+      bounds.bottom <=
+        (EnlightenmentParser.Global.innerHeight || document.documentElement.clientHeight) &&
+      bounds.right <=
+        (EnlightenmentParser.Global.innerWidth || document.documentElement.clientWidth)
     )
   }
 
@@ -183,7 +185,7 @@ export class EnlightenmentDOM extends EnlightenmentParser {
   /**
    * Reference to the parent Window Object.
    */
-  root: Window = window
+  root: typeof EnlightenmentParser.Global = EnlightenmentParser.Global
 
   /**
    * Contains the defined Shadowroot slot target contexts, that should hold at
@@ -948,9 +950,9 @@ export class EnlightenmentDOM extends EnlightenmentParser {
   protected useBreakpoint(name: string) {
     const value = EnlightenmentTheme.breakpoints[name]
     const fallback =
-      EnlightenmentTheme.breakpoints[0] >= window.innerWidth
+      EnlightenmentTheme.breakpoints[0] >= EnlightenmentParser.Global.innerWidth
         ? EnlightenmentTheme.breakpoints[0]
-        : window.innerWidth
+        : EnlightenmentParser.Global.innerWidth
 
     return value || fallback
   }

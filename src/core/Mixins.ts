@@ -28,6 +28,12 @@ export const property = _property
 export const ref = _ref
 
 export class EnlightenmentMixins extends LitElement {
+  static Global = globalThis || window
+
+  static location = EnlightenmentMixins.Global.location || new URL('http://127.0.0.1')
+
+  static devicePixelRatio = EnlightenmentMixins.Global.devicePixelRatio || 1
+
   /**
    * Compares the defined values by typing and (nested) values.
    *
@@ -151,7 +157,7 @@ export class EnlightenmentMixins extends LitElement {
     if (
       typeof match[1] === 'string' &&
       match[1].length > 0 &&
-      match[1].toLowerCase() !== location.protocol
+      match[1].toLowerCase() !== EnlightenmentMixins.location.protocol
     ) {
       return true
     }
@@ -160,9 +166,11 @@ export class EnlightenmentMixins extends LitElement {
       typeof match[2] === 'string' &&
       match[2].length > 0 &&
       match[2].replace(
-        new RegExp(':(' + { 'http:': 80, 'https:': 443 }[location.protocol] + ')?$'),
+        new RegExp(
+          ':(' + { 'http:': 80, 'https:': 443 }[EnlightenmentMixins.location.protocol] + ')?$'
+        ),
         ''
-      ) !== location.host
+      ) !== EnlightenmentMixins.location.host
     ) {
       return true
     }

@@ -10,9 +10,9 @@ export class EnlightenmentExtensionLoader extends EnlightenmentInputController {
    * [disableEnlightenmentExtensions] exists within the current URL.
    */
   static canImportExtension() {
-    const disableExtensions = new URL(window.location as any).searchParams.has(
-      'disableEnlightenmentExtensions'
-    )
+    const disableExtensions = new URL(
+      EnlightenmentInputController.location as any
+    ).searchParams.has('disableEnlightenmentExtensions')
 
     return !disableExtensions
   }
