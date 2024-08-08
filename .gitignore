@@ -9,3 +9,4 @@ example/*
 !example/index.mjs
 !example/index.ts
 .vscode
+*.tgz
