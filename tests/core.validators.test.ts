@@ -2,6 +2,7 @@ import assert, { equal } from 'assert'
 import { describe, it } from 'mocha'
 
 import { Enlightenment } from '../dist/Enlightenment'
+const instance = new Enlightenment()
 
 describe('Properties', () => {
   it('Can generate timestamp ID values', () => {
@@ -97,6 +98,20 @@ describe('Parsers', () => {
     assert.equal(Enlightenment.isInteger(invalid), 0)
     assert.equal(Enlightenment.isInteger(obj), NaN)
     assert.equal(Enlightenment.isInteger(''), undefined)
+  })
+
+  const timestamp = instance.useTimestamp()
+  const date = instance.useTimestamp(true)
+
+  it(`Calculates the timestamp in real time: ${timestamp}`, () => {
+    assert.equal(typeof timestamp, 'number')
+    assert.equal(timestamp <= 500, true)
+    assert.notEqual(timestamp, 0)
+  })
+
+  it(`Generates the current Unix timestamp: ${date}`, () => {
+    assert.equal(typeof date, 'number')
+    assert.notEqual(date, 0)
   })
 })
 

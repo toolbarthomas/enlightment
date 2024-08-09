@@ -3,10 +3,10 @@ import { describe, it } from 'mocha'
 
 import { Enlightenment } from '../dist/Enlightenment'
 
-const Animation = new Enlightenment()
+const instance = new Enlightenment()
 
-describe('Core:Animation', () => {
-  const timestamp = Animation.useTimestamp()
+describe('Core:instance', () => {
+  const timestamp = instance.useTimestamp()
   const date = Animation.useTimestamp(true)
 
   it(`Calculates the timestamp in real time: ${timestamp}`, () => {
