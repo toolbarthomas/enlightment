@@ -78,7 +78,8 @@ Enlightenment is also supported within Node & Typescript environments with addit
 #### CommonJS
 
 ```cjs
-const { Enlightenment } = require("@toolbarthomas/Enlightenment/index.cjs");
+//@toolbarthomas/enlightenment/index.cjs => @toolbarthomas/enlightenment/dist/Enlightenment.cjs
+const { Enlightenment } = require("@toolbarthomas/enlightenment");
 
 class MyComponent extends Enlightenment {...}
 
@@ -89,7 +90,8 @@ default Node CJS format is expected within this example.
 #### Ecmascript
 
 ```mjs
-import { Enlightenment } from "@toolbarthomas/Enlightenment/index.mjs";
+// @toolbarthomas/enlightenment/index.mjs => @toolbarthomas/enlightenment/dist/Enlightenment.js
+import { Enlightenment } from "@toolbarthomas/enlightenment";
 
 class MyComponent extends Enlightenment {...}
 
@@ -100,6 +102,7 @@ The ESM format is also supported but resolves to `@toolbarthomas/Enlightenment/i
 #### Typescript
 
 ```ts
+// @toolbarthomas/enlightenment/index.ts
 import { Enlightenment } from "@toolbarthomas/enlightenment";
 
 class MyComponent extends Enlightenment {...}
