@@ -120,6 +120,21 @@ Enlightenment provides multiple Esbuild plugins to setup modular Web Components 
 The resolve plugin is used in order to resolve the actual package path `@toolbarthomas/enlightenment` within your component source to a static path.
 It will resolve to `/Enlightenment.js` by default but a custom destination can be defined. The resolve Plugin will also create a copy of the initial Enlightenment package script to the Esbuild entry destination.
 
+```mjs
+import esbuild from "esbuild"
+
+import { resolvePlugin } from "@toolbarthomas/enlightenment/resolvePlugin"
+
+esbuild.build({
+  ...
+  plugins: [
+    resolvePlugin({...}),
+    ...
+  ],
+  ...
+})
+```
+
 **Note**
 An [example](https://github.com/toolbarthomas/enlightenment/tree/develop/example) is defined within `example/esbuild.mjs` that will transform the defined `example/index.ts` as module within the ESM format and write to `example/dist` directory with the Enlightenment library as `example/dist/framework.js`.
 
@@ -128,7 +143,7 @@ An [example](https://github.com/toolbarthomas/enlightenment/tree/develop/example
 | destination | string | Source to the Enlightenment browser compatible library.       |
 | namespace   | string | Optional Plugin namespace to use within the Esbuild instance. |
 
-### Sass Plugin
+### Style Plugin (Sass)
 
 A standard Web Component will use an internal Stylesheet for the rendered result.
 Enlightenment provides an Esbuild Sass Plugin that enables the import of external `.scss` filetypes within your component while using Esbuild within your environment.
@@ -138,16 +153,18 @@ You need to include the actual plugin from the Enlightenment package: `@toolbart
 The actual requested stylesheet will be transformed with the Sass package during the compilation of the initial entry file. The styling will be inlined within the exported `css` template literal and should be included as `static styles` property from the actual Enlightenment element:
 
 ```mjs
-// ./esbuild.mjs
 import esbuild from "esbuild"
-import { stylePlugin } from "@toolbarthomas/enlightenment/node/esbuild.style.plugin.mjs"
+
+import { stylePlugin } from "@toolbarthomas/enlightenment/stylePlugin"
 
 esbuild.build({
   ...
-  plugins: [stylePlugin, ...],
+  plugins: [
+    stylePlugin,
+    ...
+  ],
   ...
 })
-
 ```
 **Note:** The Sass plugin can resolve from the current working directory, the base directory, the initial entry point or the local node_modules* directory:
 

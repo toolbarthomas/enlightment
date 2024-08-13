@@ -1,21 +1,17 @@
-import esbuild from "esbuild";
-import { stylePlugin } from "@toolbarthomas/enlightenment/node/esbuild.style.plugin.mjs";
-import { resolvePlugin } from "../node/esbuild.resolve.plugin.mjs";
-
-(async () => {
+import esbuild from 'esbuild'
+import { stylePlugin } from '@toolbarthomas/enlightenment/stylePlugin'
+import { resolvePlugin } from '@toolbarthomas/enlightenment/resolvePlugin'
+;(async () => {
   esbuild
     .build({
       bundle: true,
-      entryPoints: ["./index.ts"],
-      format: "esm",
+      entryPoints: ['./index.ts'],
+      format: 'esm',
       keepNames: true,
-      outdir: "dist",
-      plugins: [
-        resolvePlugin({ destination: "./framework.js" }),
-        stylePlugin(),
-      ],
+      outdir: 'dist',
+      plugins: [resolvePlugin({ destination: './framework.js' }), stylePlugin()]
     })
     .then(() => {
-      console.log("Done");
-    });
-})();
+      console.log('Done')
+    })
+})()
