@@ -2,14 +2,23 @@
   "name": "@toolbarthomas/enlightenment",
   "version": "0.7.1",
   "description": "Web component workflow with Sass & Lit Element",
-  "main": "dist/Enlightenment.js",
+  "main": "./dist/Enlightenment.js",
+  "module": "./dist/Enlightenment.mjs",
+  "types": "./src/Enlightenment.ts",
   "type": "module",
   "exports": {
-    "node": "./dist/Enlightenment.cjs",
-    "default": "./dist/Enlightenment.js",
-    "import": "./dist/Enlightenment.mjs",
-    "require": "./dist/Enlightenment.cjs",
-    "types": "./src/Enlightenment.ts"
+    ".": {
+      "main": "./dist/Enlightenment.js",
+      "import": "./index.mjs",
+      "require": "./index.cjs",
+      "types": "./src/Enlightenment.ts"
+    },
+    "./resolvePlugin": {
+      "import": "./node/esbuild.resolve.plugin.mjs"
+    },
+    "./stylePlugin": {
+      "import": "./node/esbuild.style.plugin.mjs"
+    }
   },
   "files": [
     ".browserlistrc",
