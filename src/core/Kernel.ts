@@ -669,7 +669,7 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
           this.hook('commit', { data })
 
           this.log([`${this.namespace} property updated for:`, [property, handler]])
-        } else {
+        } else if (!Object.keys(this).includes(property)) {
           this.log(['Illegal property commit detected.', [property, handler]], 'error')
         }
 

@@ -120,6 +120,7 @@ export class EnlightenmentColorHelper extends EnlightenmentImageHelper {
     }
 
     const style = `
+      ${EnlightenmentTheme.keyframes}
       ${EnlightenmentTheme.component}
 
       :host {

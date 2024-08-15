@@ -110,7 +110,7 @@ export type ThemStackingContexts = { [key: string]: ThemeStackingContext }
  */
 export class EnlightenmentTheme {
   /**
-   * Default component styles that is included for each Component.
+   * Default component utility styles that is included for each Component.
    */
   static component = css`
     *,
@@ -141,7 +141,7 @@ export class EnlightenmentTheme {
   ` as unknown as string
 
   /**
-   * Defines the default document styles for the current application.
+   * Defines the default document styles.
    */
   static document = css`
     html,
@@ -161,9 +161,10 @@ export class EnlightenmentTheme {
   ` as unknown as string
 
   /**
-   * Global Keyframe definition that could be used within the component context.
+   * Keyframe definitions that are included within the Shadow DOM of the
+   * defined Component.
    */
-  static keyframes = css`
+  static keyframes = `
     @keyframes rotate {
       to {
         transform: rotate(1turn);
@@ -715,7 +716,7 @@ export class EnlightenmentTheme {
    * Assigns the static Document stylesheet to current page.
    */
   public assignDefaultStyleSheets() {
-    const raw = [EnlightenmentTheme.document, EnlightenmentTheme.keyframes]
+    const raw = [EnlightenmentTheme.document]
 
     document.adoptedStyleSheets = [
       ...document.adoptedStyleSheets,
@@ -730,7 +731,8 @@ export class EnlightenmentTheme {
   }
 
   /**
-   * Creates a new Component stylesheet and assign it to the defined context.
+   * Creates a new Component stylesheet with the required CSS styles that are
+   * not available from the Shadow DOM context.
    *
    * @param context Assigns the stylesheet to the defined context Element.
    */
@@ -740,7 +742,9 @@ export class EnlightenmentTheme {
     }
 
     const componentStylesheet = new CSSStyleSheet()
-    componentStylesheet.replaceSync(EnlightenmentTheme.component)
+    componentStylesheet.replaceSync(
+      [EnlightenmentTheme.keyframes, EnlightenmentTheme.component].join('\n')
+    )
 
     context.shadowRoot.adoptedStyleSheets = [
       ...context.shadowRoot.adoptedStyleSheets,

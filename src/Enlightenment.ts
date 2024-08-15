@@ -149,7 +149,7 @@ export class Enlightenment extends EnlightenmentExtensionLoader {
     // Create reference of the custom StyleSheets that will update from their
     // component property values.
     const customStylesheet = Enlightenment.theme.assignComponentStyleSheet(this)
-    customStylesheet && this.assignCustomStyleSheet(customStylesheet)
+    this.assignCustomStyleSheet(customStylesheet)
 
     if (this.enableDocumentEvents) {
       this.assignGlobalEvent('click', this.handleGlobalClick)

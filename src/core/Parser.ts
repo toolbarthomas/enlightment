@@ -117,19 +117,24 @@ export class EnlightenmentParser extends EnlightenmentKernel {
       return ''
     }
 
-    const request = new URL(url)
-    const location = EnlightenmentKernel.location
+    let resolved: string = ''
 
-    const port = parseInt(location.port || request.port) || 80
-    const [protocol, relativeURL] = request.href.split(request.host)
-    const absoluteURL =
-      protocol +
-      ([80, 443].includes(port)
-        ? EnlightenmentKernel.location.hostname
-        : EnlightenmentKernel.location.host) +
-      relativeURL
+    try {
+      const request = new URL(url)
+      const location = EnlightenmentKernel.location
 
-    return absoluteURL
+      const port = parseInt(location.port || request.port) || 80
+      const [protocol, relativeURL] = request.href.split(request.host)
+
+      resolved =
+        protocol +
+        ([80, 443].includes(port)
+          ? EnlightenmentKernel.location.hostname
+          : EnlightenmentKernel.location.host) +
+        relativeURL
+    } catch (_) {}
+
+    return resolved
   }
 
   /**
