@@ -64,7 +64,7 @@ export class EnlightenmentColorHelper extends EnlightenmentImageHelper {
    *
    * @param sheet The stylesheet that was defined for the defined component.
    */
-  protected assignCustomStyleSheet(sheet: CSSStyleSheet) {
+  protected assignCustomStyleSheet(sheet?: CSSStyleSheet) {
     if (!sheet) {
       return
     }
