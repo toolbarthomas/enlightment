@@ -161,60 +161,6 @@ export class EnlightenmentTheme {
   ` as unknown as string
 
   /**
-   * Keyframe definitions that are included within the Shadow DOM of the
-   * defined Component.
-   */
-  static keyframes = `
-    @keyframes rotate {
-      to {
-        transform: rotate(1turn);
-      }
-    }
-
-    @keyframes rotateFromCenter {
-      to {
-        transform: translate(-50%, -50%) rotate(1turn);
-      }
-    }
-
-    @keyframes rippleSmall {
-      to {
-        transform: scale(1.6);
-        opacity: 0;
-      }
-    }
-
-    @keyframes rippleMedium {
-      to {
-        transform: scale(4);
-        opacity: 0;
-      }
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-      }
-
-      to {
-        opacity: 1;
-      }
-    }
-
-    @keyframes fadeInFromTop {
-      from {
-        opacity: 0;
-        transform: translateY(-50%);
-      }
-
-      to {
-        opacity: 1;
-        transform: none;
-      }
-    }
-  ` as unknown as string
-
-  /**
    * The delta between each increase of custom properties with matchin names.
    */
   static BASE_DELTA = 4
@@ -742,9 +688,7 @@ export class EnlightenmentTheme {
     }
 
     const componentStylesheet = new CSSStyleSheet()
-    componentStylesheet.replaceSync(
-      [EnlightenmentTheme.keyframes, EnlightenmentTheme.component].join('\n')
-    )
+    componentStylesheet.replaceSync([EnlightenmentTheme.component].join('\n'))
 
     context.shadowRoot.adoptedStyleSheets = [
       ...context.shadowRoot.adoptedStyleSheets,
