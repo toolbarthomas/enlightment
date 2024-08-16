@@ -122,6 +122,13 @@ export class EnlightenmentDOM extends EnlightenmentParser {
   }
 
   /**
+   * Correctly resolve the context Type alias.
+   */
+  static useHost(target?: Element) {
+    return target
+  }
+
+  /**
    * Property reference for the actual ARIA disabled Attribute.
    */
   @property({

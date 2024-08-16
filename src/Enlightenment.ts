@@ -257,7 +257,7 @@ export class Enlightenment extends EnlightenmentExtensionLoader {
       }
     }
 
-    return super.useHost(target) as Enlightenment
+    return EnlightenmentExtensionLoader.useHost(target) as Enlightenment
   }
 }
 
