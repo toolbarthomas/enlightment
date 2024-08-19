@@ -10,6 +10,7 @@ import {
 
 import {
   EnlightenmentDOMResizeOptions,
+  EnlightenmentDraggableDefaults,
   EnlightenmentInputControllerPointerData,
   EnlightenmentInteractionData
 } from '../_types/main'
@@ -46,7 +47,7 @@ import styles from './Draggable.scss'
 export class EnlightenmentDraggable extends Enlightenment {
   static styles = [styles]
 
-  static defaults = {
+  static defaults: EnlightenmentDraggableDefaults = {
     ...Enlightenment.defaults,
     Draggable: {
       type: ['inline', 'absolute', 'fixed', 'static']
@@ -603,8 +604,10 @@ export class EnlightenmentDraggable extends Enlightenment {
       // Convert the Transform position values to the initial absolute or
       // fixed values.
       if (!reset) {
+        const defaultType = EnlightenmentDraggable.defaults.Draggable.type[0]
+
         if (this.isCenterPivot(interactionCache.pivot)) {
-          if (this.type !== EnlightenmentDraggable.defaults.Draggable.type[0]) {
+          if (this.type !== defaultType) {
             //@TODO HANDLEDRAGEDGE
             this.handleDragEdge(interactionCache)
           } else {
@@ -620,7 +623,7 @@ export class EnlightenmentDraggable extends Enlightenment {
             y: interactionCache.context.offsetTop + (translateY || 0)
           })
 
-          if (this.type === EnlightenmentDraggable.defaults.Draggable.type[0]) {
+          if (this.type === defaultType) {
             interactionCache.context.style.top = ''
             interactionCache.context.style.left = ''
           } else {
@@ -809,8 +812,7 @@ export class EnlightenmentDraggable extends Enlightenment {
    * Element.
    */
   render() {
-    const useContent =
-      this.type !== 'static' && this.interactionTarget && this.pivot ? false : false
+    const useContent = this.type !== 'static' && this.interactionTarget && this.pivot ? false : true
 
     return html`<slot
       ?visually-hidden="${!useContent}"

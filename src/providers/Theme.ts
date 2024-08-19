@@ -136,7 +136,6 @@ export class EnlightenmentTheme {
       position: absolute;
       white-space: nowrap;
       width: 1px;
-      clip: rect(0);
     }
   ` as unknown as string
 
