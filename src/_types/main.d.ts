@@ -197,7 +197,7 @@ export type HookOptions = {
 export type ColorMode = 'light' | 'dark'
 
 export const PassiveEvent = ['mousemouve', 'resize', 'scroll', 'touchmove', 'wheel'] as const
-export const DraggableType = ['inline', 'absolute', 'fixed', 'static'] as const
+export const DraggablePosition = ['inline', 'absolute', 'fixed', 'static'] as const
 
 export interface EnlightenmentDefaults {
   slot: string
@@ -220,6 +220,6 @@ export interface EnlightenmentDefaults {
 
 export interface EnlightenmentDraggableDefaults extends EnlightenmentDefaults {
   Draggable: {
-    type: (typeof DraggableType)[]
+    position: (typeof DraggablePosition)[]
   }
 }

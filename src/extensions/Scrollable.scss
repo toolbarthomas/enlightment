@@ -48,12 +48,8 @@
   &--is-grabbed {
     &[data-simplebar] {
       pointer-events: none;
-      -webkit-touch-callout: none;
-      -webkit-user-select: none;
-      -khtml-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
       user-select: none;
+      -webkit-touch-callout: none;
     }
   }
 
@@ -81,9 +77,9 @@
   }
 
   &__offset {
-    direction: inherit !important;
-    box-sizing: inherit !important;
-    resize: none !important;
+    direction: inherit;
+    box-sizing: inherit;
+    resize: none;
     position: absolute;
     top: 0;
     left: 0;
@@ -96,7 +92,7 @@
 
   &__content-wrapper {
     direction: inherit;
-    box-sizing: border-box !important;
+    box-sizing: border-box;
     position: relative;
     display: block;
     height: 100%; /* Required for horizontal native scrollbar to not appear if parent is taller than natural height */
@@ -125,24 +121,6 @@
   // pointer-events: none;
 }
 
-.simplebar-height-auto-observer-wrapper {
-  box-sizing: inherit !important;
-  height: 100%;
-  width: 100%;
-  max-width: 1px;
-  position: relative;
-  float: left;
-  max-height: 1px;
-  overflow: hidden;
-  z-index: -1;
-  padding: 0;
-  margin: 0;
-  pointer-events: none;
-  flex-grow: inherit;
-  flex-shrink: 0;
-  flex-basis: 0;
-}
-
 .simplebar-height-auto-observer {
   box-sizing: inherit;
   display: block;
@@ -159,15 +137,29 @@
   z-index: -1;
 }
 
+.simplebar-height-auto-observer-wrapper {
+  box-sizing: inherit;
+  height: 100%;
+  width: 100%;
+  max-width: 1px;
+  position: relative;
+  float: left;
+  max-height: 1px;
+  overflow: hidden;
+  z-index: -1;
+  padding: 0;
+  margin: 0;
+  pointer-events: none;
+  flex-grow: inherit;
+  flex-shrink: 0;
+  flex-basis: 0;
+}
+
 .scrollable-element__track {
-  // .simplebar-track {}
-  // z-index: 1;
   position: absolute;
   right: 0;
   bottom: 0;
   border-radius: 400px;
-  // pointer-events: none;
-  // overflow: hidden;
 
   &::before {
     position: absolute;
@@ -205,10 +197,6 @@
     left: 100%;
     right: auto;
     width: calc(var(--track-size) * 2);
-
-    // .scrollable-element__track--is-horizontal ~ & {
-    //   bottom: calc(var(--track-size) * 2);
-    // }
   }
 
   &--is-horizontal {
@@ -216,7 +204,6 @@
     right: 0;
     top: 100%;
     bottom: auto;
-    // right: calc(var(--track-size) * 3);
     height: calc(var(--track-size) * 2);
 
     &::before {
@@ -243,10 +230,6 @@
   [data-simplebar].scrollable-element--is-grabbed & {
     pointer-events: none;
     -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
     user-select: none;
   }
 
@@ -258,16 +241,12 @@
 }
 
 .scrollable-element__scrollbar {
-  // .simplebar-scrollbar {
-  // }
   position: absolute;
   left: 0;
   right: 0;
   min-height: 10px;
 
   &::before {
-    // .simplebar-scrollbar:before {
-    // }
     position: absolute;
     content: '';
     background: var(--grey-700);
@@ -318,17 +297,6 @@
       }
     }
   }
-
-  // &::after {
-  //   display: block;
-  //   position: absolute;
-  //   content: ' ';
-  //   background-color: red;
-  //   top: 0;
-  //   bottom: 0;
-  //   left: calc(var(--space-0) - var(--track-size));
-  //   right: calc(var(--space-0) - var(--track-size));
-  // }
 
   .scrollable-element__track--is-horizontal & {
     right: auto;

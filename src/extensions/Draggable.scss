@@ -2,18 +2,6 @@
   --pivot-size: var(--space-8);
 }
 
-// [visually-hidden]::slotted(:first-child) {
-//   visibility: hidden;
-//   clip: rect(0 0 0 0);
-//   clip-path: inset(50%);
-//   height: 1px;
-//   overflow: hidden;
-//   position: absolute;
-//   white-space: nowrap;
-//   width: 1px;
-//   clip: rect(0);
-// }
-
 :host(:not([pivot])) {
   pointer-events: none;
   will-change: transform;
@@ -23,12 +11,10 @@
   }
 }
 
+// Resolves ghost-trace during interaction movement
 :host([aria-grabbed]),
 [aria-grabbed] :host(*) {
-  backface-visibility: hidden; // Resolves ghost-trace during interaction movement
-  // background-color: red;
-  // visibility: hidden;
-  // user-select: none;
+  backface-visibility: hidden;
 }
 
 slot {

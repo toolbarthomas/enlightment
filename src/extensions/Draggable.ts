@@ -50,7 +50,7 @@ export class EnlightenmentDraggable extends Enlightenment {
   static defaults: EnlightenmentDraggableDefaults = {
     ...Enlightenment.defaults,
     Draggable: {
-      type: ['inline', 'absolute', 'fixed', 'static']
+      position: ['inline', 'absolute', 'fixed', 'static']
     }
   }
 
@@ -112,10 +112,10 @@ export class EnlightenmentDraggable extends Enlightenment {
    */
   @property({
     converter: (value) =>
-      Enlightenment.filterProperty(value, EnlightenmentDraggable.defaults.Draggable.type),
+      Enlightenment.filterProperty(value, EnlightenmentDraggable.defaults.Draggable.position),
     type: String
   })
-  type: string = EnlightenmentDraggable.defaults.Draggable.type[0]
+  position: string = EnlightenmentDraggable.defaults.Draggable.position[0]
 
   /**
    * Apply the requested interaction on the defined target selector.
@@ -190,7 +190,7 @@ export class EnlightenmentDraggable extends Enlightenment {
     if (this.currentInteraction.context) {
       if (this.isCenterPivot(this.currentInteraction.pivot)) {
         this.handleDragUpdateMove(this.currentInteraction.context, deltaX, deltaY)
-      } else if (['absolute', 'fixed'].includes(this.type)) {
+      } else if (['absolute', 'fixed'].includes(this.position)) {
         this.handleDragUpdateResize(
           this.currentInteraction.context,
           deltaX,
@@ -211,16 +211,16 @@ export class EnlightenmentDraggable extends Enlightenment {
     if (this.interactionTarget) {
       const { position, top, left, width, height } = this.interactionTarget.style
 
-      if (!top && this.type !== EnlightenmentDraggable.defaults.Draggable.type[0]) {
+      if (!top && this.position !== EnlightenmentDraggable.defaults.Draggable.position[0]) {
         this.interactionTarget.style.top = `${this.interactionTarget.offsetTop}px`
       }
 
-      if (!left && this.type !== EnlightenmentDraggable.defaults.Draggable.type[0]) {
+      if (!left && this.position !== EnlightenmentDraggable.defaults.Draggable.position[0]) {
         this.interactionTarget.style.left = `${this.interactionTarget.offsetLeft}px`
       }
 
-      if (!position && this.type !== EnlightenmentDraggable.defaults.Draggable.type[0]) {
-        this.interactionTarget.style.position = this.type === 'fixed' ? 'fixed' : 'absolute'
+      if (!position && this.position !== EnlightenmentDraggable.defaults.Draggable.position[0]) {
+        this.interactionTarget.style.position = this.position === 'fixed' ? 'fixed' : 'absolute'
       }
 
       const viewport = this.useBoundingRect()
@@ -277,7 +277,7 @@ export class EnlightenmentDraggable extends Enlightenment {
     const bounds = this.isOutsideViewport(context) || {}
     const viewport = this.useBoundingRect()
 
-    if (this.type !== 'fixed') {
+    if (this.position !== 'fixed') {
       // Limit the context transformation within the visible viewport.
       if (bounds.left) {
         if (x + context.offsetLeft < viewport.left) {
@@ -474,7 +474,7 @@ export class EnlightenmentDraggable extends Enlightenment {
       return
     }
 
-    if (this.type === 'static') {
+    if (this.position === 'static') {
       return
     }
 
@@ -516,7 +516,7 @@ export class EnlightenmentDraggable extends Enlightenment {
 
     // Maintain the final position for a fixed Drag interaction that has not
     // reached any viewport corner.
-    if (this.type === 'fixed' && !interaction.edgeX && !interaction.edgeY) {
+    if (this.position === 'fixed' && !interaction.edgeX && !interaction.edgeY) {
       const [translateX, translateY] = EnlightenmentDraggable.parseMatrix(
         interaction.context.style.transform
       )
@@ -604,13 +604,13 @@ export class EnlightenmentDraggable extends Enlightenment {
       // Convert the Transform position values to the initial absolute or
       // fixed values.
       if (!reset) {
-        const defaultType = EnlightenmentDraggable.defaults.Draggable.type[0]
+        const defaultType = EnlightenmentDraggable.defaults.Draggable.position[0]
 
         if (this.isCenterPivot(interactionCache.pivot)) {
-          if (this.type !== defaultType) {
+          if (this.position !== defaultType) {
             //@TODO HANDLEDRAGEDGE
             this.handleDragEdge(interactionCache)
-          } else {
+          } else if (this.position !== 'inline') {
             // Ensure the final position is within the visible viewport
             // regardless of the position type.
             const { x, y } = this.restorePosition(interactionCache.context)
@@ -623,7 +623,7 @@ export class EnlightenmentDraggable extends Enlightenment {
             y: interactionCache.context.offsetTop + (translateY || 0)
           })
 
-          if (this.type === defaultType) {
+          if (this.position === defaultType) {
             interactionCache.context.style.top = ''
             interactionCache.context.style.left = ''
           } else {
@@ -812,7 +812,10 @@ export class EnlightenmentDraggable extends Enlightenment {
    * Element.
    */
   render() {
-    const useContent = this.type !== 'static' && this.interactionTarget && this.pivot ? false : true
+    const useContent =
+      this.position !== 'static' && this.interactionTarget && this.pivot
+        ? false
+        : this.position === 'inline'
 
     return html`<slot
       ?visually-hidden="${!useContent}"

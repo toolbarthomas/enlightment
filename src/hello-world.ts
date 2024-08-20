@@ -157,7 +157,7 @@ class HelloWorld extends Enlightenment {
             <button>Drag</button>
           </draggable-element>
 
-          <draggable-element type="fixed">
+          <draggable-element position="fixed">
             <button>X</button>
           </draggable-element>
 
@@ -171,7 +171,7 @@ class HelloWorld extends Enlightenment {
 
           ${Array.from({ length: 9 }).map((_, index) => {
             return html`
-              <draggable-element pivot="${index + 1}" type="fixed">
+              <draggable-element pivot="${index + 1}" position="fixed">
                 <button>${index + 1}</button>
               </draggable-element>
             `
