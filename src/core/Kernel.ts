@@ -35,7 +35,7 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
       dragEnd: 'dragend',
       dragStart: 'dragstart'
     },
-    passiveEventTypes: ['mousemove', 'resize', 'scroll', 'touchmove', 'wheel', 'wheel']
+    passiveEventTypes: ['mousemove', 'resize', 'scroll', 'touchmove', 'wheel']
   }
 
   static MAX_THREADS = 128

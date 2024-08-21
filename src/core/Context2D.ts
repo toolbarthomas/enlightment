@@ -115,8 +115,15 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
    *
    * @param context The context Element to validate.
    * @param viewport Check from the optional viewport Element instead.
+   * @param xOffset Include additional offset to ignore the initial X position.
+   * @param yOffset Include additional offset to ignore the initial Y position.
    */
-  protected isOutsideViewport(context: HTMLElement, viewport?: EnlightenmentViewport) {
+  protected isOutsideViewport(
+    context: HTMLElement,
+    viewport?: EnlightenmentViewport,
+    xOffset?: number,
+    yOffset?: number
+  ) {
     const bounds = this.useBoundingRect(viewport)
 
     if (!context) {
@@ -139,11 +146,11 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
       result.left = true
     }
 
-    if (x + context.offsetWidth > bounds.left + bounds.width) {
+    if (x + context.offsetWidth > bounds.left + bounds.width - (xOffset || 0)) {
       result.right = true
     }
 
-    if (y + context.offsetHeight > bounds.top + bounds.height) {
+    if (y + context.offsetHeight > bounds.top + bounds.height - (yOffset || 0)) {
       result.bottom = true
     }
 
