@@ -530,6 +530,14 @@ export class EnlightenmentDraggable extends Enlightenment {
     const [stretchX, stretchY] = this.useStretched(interaction.context)
     const viewport = this.useBoundingRect()
 
+    if (viewport.width && width > viewport.width) {
+      return
+    }
+
+    if (viewport.height && height > viewport.height) {
+      return
+    }
+
     let save = false
 
     if (interaction.edgeY) {

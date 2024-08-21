@@ -175,7 +175,7 @@ class HelloWorld extends Enlightenment {
 
           ${Array.from({ length: 9 }).map((_, index) => {
             return html`
-              <draggable-element pivot="${index + 1}" position="fixed">
+              <draggable-element pivot="${index + 1}" position="absolute">
                 <button>${index + 1}</button>
               </draggable-element>
             `
