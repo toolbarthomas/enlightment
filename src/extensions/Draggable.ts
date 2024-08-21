@@ -66,10 +66,10 @@ export class EnlightenmentDraggable extends Enlightenment {
   }
 
   /**
-   * Converts the defined value to a valid X and optional Y treshold.
+   * Converts the defined value to a valid X and optional Y threshold.
    * @param value
    */
-  static isTreshold(value: string | null) {
+  static isThreshold(value: string | null) {
     if (!value) {
       return []
     }
@@ -107,16 +107,16 @@ export class EnlightenmentDraggable extends Enlightenment {
 
   /**
    * Will dispatch additional Events to the host component when the defined
-   * X and/or Y delta values exceeds the optional treshold values that is
+   * X and/or Y delta values exceeds the optional threshold values that is
    * assigned as comma separated value:
    *  - 100 = x 100 & y 100
    *  - 100,200 = x 100 & y 200
    */
   @property({
-    converter: (value) => EnlightenmentDraggable.isTreshold(value),
+    converter: (value) => EnlightenmentDraggable.isThreshold(value),
     type: Array
   })
-  treshold: number[] = []
+  threshold: number[] = []
 
   /**
    * Apply the requested interaction on the actual component while TRUE.
@@ -141,7 +141,7 @@ export class EnlightenmentDraggable extends Enlightenment {
    * instead. This should apply any DOM mutation on the selected target instead
    * within the Component context.
    */
-  protected useContext() {
+  public useContext() {
     const context = super.useContext()
 
     if (!this.interactionTarget) {
@@ -286,19 +286,18 @@ export class EnlightenmentDraggable extends Enlightenment {
     }
 
     const host = this.useHost(this)
-    const stage = host && host.useContext && host.useContext()
-    const xOffset = this.static && stage ? stage.offsetLeft : 0
-    const yOffset = this.static && stage ? stage.offsetLeft : 0
+    const stage = host && host.useContext && (host.useContext() as HTMLElement)
+    const offsetX = this.static && stage ? stage.offsetLeft : 0
+    const offsetY = this.static && stage ? stage.offsetTop : 0
 
-    const bounds = this.isOutsideViewport(context, this.static && stage, xOffset, yOffset) || {}
-    const viewport = this.useBoundingRect(this.static && stage)
+    const bounds =
+      this.isOutsideViewport(context, this.static ? stage : undefined, offsetX, offsetY) || {}
+    const viewport = this.useBoundingRect(this.static ? stage : undefined)
 
     if (this.static) {
       viewport.top = 0
       viewport.left = 0
     }
-
-    console.log('BOUNDS', bounds)
 
     if (this.position !== 'fixed') {
       // Limit the context transformation within the visible viewport.
@@ -389,6 +388,8 @@ export class EnlightenmentDraggable extends Enlightenment {
 
     const bounds = this.useScreenBounds(context, initialTranslateX, initialTranslateY)
 
+    // console.log('BOUNDS', bounds)
+
     if (bounds.top || bounds.right || bounds.bottom || bounds.left) {
       this.assignCurrentDragTimeout()
     } else if (this.isWithinViewport(x, y)) {
@@ -456,24 +457,35 @@ export class EnlightenmentDraggable extends Enlightenment {
         (previousPointerY || 0) >= context.offsetTop + tY + context.offsetHeight)
 
     let reset = false
-    if (resetX && this.currentInteraction.velocityX) {
+
+    const activeX =
+      (this.currentInteraction.velocityX !== 1 &&
+        [1, 4, 7].includes(this.currentInteraction.pivot || 0)) ||
+      (this.currentInteraction.velocityX !== -1 &&
+        [3, 6, 9].includes(this.currentInteraction.pivot || 0))
+
+    const activeY =
+      (this.currentInteraction.velocityY !== 1 &&
+        [1, 2, 3].includes(this.currentInteraction.pivot || 0)) ||
+      (this.currentInteraction.velocityY !== -1 &&
+        [7, 8, 9].includes(this.currentInteraction.pivot || 0))
+
+    if (resetX && activeX) {
       width = this.currentInteraction.width
       reset = true
     }
 
-    if (resetY && this.currentInteraction.velocityY) {
+    if (resetY && activeY) {
       height = this.currentInteraction.height
       reset = true
     }
 
-    console.log('Drag', reset, width, context.offsetWidth)
-
-    if (width === context.offsetWidth) {
+    if (activeX && width === context.offsetWidth) {
       width = undefined
       translateX = undefined
     }
 
-    if (height === context.offsetHeight) {
+    if (activeY && height === context.offsetHeight) {
       height = undefined
       translateY = undefined
     }
@@ -482,6 +494,16 @@ export class EnlightenmentDraggable extends Enlightenment {
 
     if (flipX || flipY) {
       this.transform(context, translateX, translateY)
+    }
+
+    if (velocityX && !activeX && width && width !== context.offsetWidth) {
+      reset = true
+      // console.log('aa', width, context.offsetWidth)
+    }
+
+    if (velocityY && !activeY && height && height !== context.offsetHeight) {
+      // this.handleDragEnd()
+      reset = true
     }
 
     // Release the current Interaction while the reset flag is TRUE.
@@ -582,78 +604,71 @@ export class EnlightenmentDraggable extends Enlightenment {
         interactionCache.context.style.transform
       )
 
-      const [tresholdX, tresholdY] = this.treshold
-
-      let reset = false
-      // Reset the current interaction if the current transformation value
-      // is not higher than the optional X & Y treshold values.
-      // @TODO Should test support for [static & inline]
-      if (
-        (this.isCenterPivot(interactionCache.pivot) || this.position === 'static') &&
-        !this.static &&
-        (tresholdX || tresholdY)
-      ) {
-        if (
-          tresholdX !== undefined &&
-          tresholdY !== undefined &&
-          Math.abs(translateX) <= tresholdX &&
-          Math.abs(translateY) <= tresholdY
-        ) {
-          reset = true
-        } else if (
-          tresholdX !== undefined &&
-          Math.abs(translateX) <= tresholdX &&
-          Math.abs(translateY) <= tresholdX
-        ) {
-          reset = true
-        }
-
-        if (reset && interactionCache.context) {
-          interactionCache.context.addEventListener(
-            'transitionend',
-            () => {
-              if (interactionCache.context) {
-                interactionCache.context.style.transition = ''
-              }
-            },
-            { once: true }
-          )
-
-          interactionCache.context.style.transition = 'transform 200ms ease-in-out'
-          interactionCache.context.style.transform = 'none'
-        } else {
-          interactionCache.context.style.transition = ''
-        }
-      } else {
-        interactionCache.context.style.transition = ''
-      }
-
       // Convert the Transform position values to the initial absolute or
       // fixed values.
-      if (!reset) {
-        if (this.isCenterPivot(interactionCache.pivot)) {
-          if (this.position !== 'inline') {
-            //@TODO HANDLEDRAGEDGE
-            this.handleDragEdge(interactionCache)
-          } else if (['static', 'absolute', 'fixed'].includes(this.position)) {
-            // Ensure the final position is within the visible viewport
-            // regardless of the position type.
-            const { x, y } = this.restorePosition(interactionCache.context)
+      if (this.isCenterPivot(interactionCache.pivot)) {
+        if (this.position !== 'inline') {
+          //@TODO HANDLEDRAGEDGE
+          this.handleDragEdge(interactionCache)
+        } else if (['absolute', 'fixed'].includes(this.position)) {
+          // Ensure the final position is within the visible viewport
+          // regardless of the position type.
+          const { x, y } = this.restorePosition(interactionCache.context)
 
-            this.transform(interactionCache.context, x, y)
+          this.transform(interactionCache.context, x, y)
+        }
+      } else {
+        const x = interactionCache.context.offsetLeft + (translateX || 0)
+        const y = interactionCache.context.offsetTop + (translateY || 0)
+
+        this.resize(interactionCache.context, {
+          x,
+          y
+        })
+
+        if (
+          interactionCache &&
+          interactionCache.context &&
+          !this.isCenterPivot(interactionCache.pivot)
+        ) {
+          const host = this.useHost(this)
+          const stage = host && host.useContext && (host.useContext() as HTMLElement)
+          const bounds =
+            this.isOutsideViewport(interactionCache.context, this.static ? stage : undefined) || {}
+          const viewport = this.useBoundingRect(this.static ? stage : undefined)
+
+          // Ensure the context element cannot exceed outside the visible
+          // viewport after a resize operation has been triggered.
+          if ([1, 4, 7].includes(this.pivot || 0) && bounds.left) {
+            const maxWidth =
+              (interactionCache.width || interactionCache.context.offsetLeft) +
+              (interactionCache.left || 0)
+
+            this.resize(interactionCache.context, { x: 0, width: maxWidth })
+          } else if ([3, 6, 9].includes(this.pivot || 0) && bounds.right) {
+            const maxWidth = viewport.width - (interactionCache.left || 0)
+
+            this.resize(interactionCache.context, { width: maxWidth })
           }
+
+          if ([1, 2, 3].includes(this.pivot || 0) && bounds.top) {
+            const maxHeight =
+              (interactionCache.height || interactionCache.context.offsetHeight) +
+              (interactionCache.top || 0)
+
+            this.resize(interactionCache.context, { y: 0, height: maxHeight })
+          } else if ([7, 8, 9].includes(this.pivot || 0) && bounds.bottom) {
+            const maxHeight = viewport.height - (interactionCache.top || 0)
+
+            this.resize(interactionCache.context, { height: maxHeight })
+          }
+        }
+
+        if (this.position === 'inline') {
+          interactionCache.context.style.top = ''
+          interactionCache.context.style.left = ''
         } else {
-          this.resize(interactionCache.context, {
-            x: interactionCache.context.offsetLeft + (translateX || 0),
-            y: interactionCache.context.offsetTop + (translateY || 0)
-          })
-
-          if (this.position === 'inline') {
-            interactionCache.context.style.top = ''
-            interactionCache.context.style.left = ''
-          } else {
-            interactionCache.context.style.transform = ''
-          }
+          interactionCache.context.style.transform = ''
         }
       }
 

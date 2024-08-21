@@ -824,14 +824,14 @@ export class EnlightenmentTheme {
    * TRUE
    */
   useColorFrom(hue: number, saturation?: number, lightness?: number, useSelection?: boolean) {
-    // Only accept colors that are within the color radius treshold.
-    const treshold =
+    // Only accept colors that are within the color radius threshold.
+    const threshold =
       Math.round((360 / Object.keys(EnlightenmentTheme.colorChart.colors).length) * 100) / 100
 
-    // Should contain any color within the defined treshold.
+    // Should contain any color within the defined threshold.
     const colors: ThemeColorMatch[] = []
 
-    // Should contain any color within the double defined treshold value.
+    // Should contain any color within the double defined threshold value.
     const fallback: ThemeColorMatch[] = []
 
     this.useColorChart((color, value, index) => {
@@ -864,9 +864,9 @@ export class EnlightenmentTheme {
         weight: index * 100 + 100
       }
 
-      if (hueDelta <= treshold) {
+      if (hueDelta <= threshold) {
         colors.push(candidate)
-      } else if (hueDelta <= treshold * 2) {
+      } else if (hueDelta <= threshold * 2) {
         fallback.push(candidate)
       }
     })

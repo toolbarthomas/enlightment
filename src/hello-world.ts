@@ -17,7 +17,7 @@ class HelloWorld extends Enlightenment {
 
   enableDocumentEvents = true
   enableFragments = true
-  extensions = ['Draggable', 'TresholdDrag']
+  extensions = ['Draggable']
 
   // @property({
   //   attribute: '@callback',
@@ -153,8 +153,12 @@ class HelloWorld extends Enlightenment {
           <h1>Hello ${this.name}</h1>
           <button @click=${this.start}>Start</button>
 
-          <draggable-element static>
-            <button>Drag</button>
+          <draggable-element position="inline" static>
+            <button>Inline</button>
+          </draggable-element>
+
+          <draggable-element position="static">
+            <button>Static</button>
           </draggable-element>
 
           <draggable-element position="fixed">

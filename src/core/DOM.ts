@@ -1000,7 +1000,7 @@ export class EnlightenmentDOM extends EnlightenmentParser {
   /**
    * Returns the root node of the defined Enlightenment instance.
    */
-  protected useContext() {
+  public useContext() {
     return this.context && this.context.value ? this.context.value : this
   }
 

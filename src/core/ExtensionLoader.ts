@@ -36,9 +36,6 @@ export class EnlightenmentExtensionLoader extends EnlightenmentInputController {
   static importScrollable = () =>
     EnlightenmentExtensionLoader.canImportExtension() && import('../extensions/Scrollable')
 
-  static importTresholdDrag = () =>
-    EnlightenmentExtensionLoader.canImportExtension() && import('../extensions/TresholdDrag')
-
   /**
    * Preload the required Enlightenment extensions that can be requested by any
    * Enlightenment constructor.

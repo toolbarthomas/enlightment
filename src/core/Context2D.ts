@@ -133,10 +133,12 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
     const [translateX, translateY] = EnlightenmentContext2D.parseMatrixValue(
       context.style.transform
     )
-    const x = context.offsetLeft + (translateX || 0)
-    const y = context.offsetTop + (translateY || 0)
+    const x = context.offsetLeft
+    const y = context.offsetTop
 
     const result: EnlightenmentContext2DBounds = {}
+
+    console.log('bound', bounds, translateX, context.offsetLeft)
 
     if (y <= bounds.top) {
       result.top = true
