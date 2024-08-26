@@ -42,7 +42,7 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
   static MAX_THREADS = 128
 
   // Defines the static namespace from the given sourcepath.
-  static NAMESPACE = EnlightenmentMixins.generateNamespace()
+  static NAMESPACE = EnlightenmentMixins.generateNamespace(Enlightenment.constructor.name)
 
   // Defines the default interval for a single frame render.
   static FPS = 1000 / 60

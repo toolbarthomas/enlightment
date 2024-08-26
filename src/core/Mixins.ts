@@ -120,10 +120,14 @@ export class EnlightenmentMixins extends LitElement {
    * @param name Use the defined name instead of the basename.
    */
   static generateNamespace(name?: string) {
-    const namespace = (name || import.meta.url).split('/').pop()
+    if (!name) {
+      return ''
+    }
+
+    const namespace = name.split('/').pop()
 
     if (!namespace || !namespace.length) {
-      return name || undefined
+      return name || ''
     }
 
     const period = '.'
