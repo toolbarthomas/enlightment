@@ -19,6 +19,7 @@ import { EnlightenmentTheme } from '../providers/Theme'
  * Defines the actual Enlightenment Class entry point with the required
  * constants and helper functions.
  */
+
 export class EnlightenmentKernel extends EnlightenmentMixins {
   static defaults = {
     slot: '_content',
@@ -40,7 +41,8 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
 
   static MAX_THREADS = 128
 
-  static NAMESPACE = 'NLGHTNMNT'
+  // Defines the static namespace from the given sourcepath.
+  static NAMESPACE = EnlightenmentMixins.generateNamespace()
 
   // Defines the default interval for a single frame render.
   static FPS = 1000 / 60

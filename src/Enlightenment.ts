@@ -76,7 +76,9 @@ export class Enlightenment extends EnlightenmentExtensionLoader {
     this.updateAttributeAlias('isExpanded', 'aria-expanded')
     this.updateAttributeAlias('pending', 'aria-busy')
 
-    !this.currentElement && this.throttle(this.handleDragEnd)
+    if (!this.currentElement) {
+      this.currentElement && this.throttle(this.handleDragEnd)
+    }
 
     this.updateCustomStyleSheet()
     this.updatePreventEvent()

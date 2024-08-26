@@ -17,6 +17,10 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
    *    [7][8][9]
    */
   static pivots = {
+    bottom: [7, 8, 9],
+    left: [1, 4, 7],
+    right: [3, 6, 9],
+    top: [1, 2, 3],
     x: [1, 3, 4, 6, 7, 9],
     y: [1, 2, 3, 7, 8, 9]
   }
@@ -137,8 +141,6 @@ export class EnlightenmentContext2D extends EnlightenmentAnimation {
     const y = context.offsetTop
 
     const result: EnlightenmentContext2DBounds = {}
-
-    console.log('bound', bounds, translateX, context.offsetLeft)
 
     if (y <= bounds.top) {
       result.top = true

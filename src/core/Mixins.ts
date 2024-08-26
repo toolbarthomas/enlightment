@@ -113,6 +113,23 @@ export class EnlightenmentMixins extends LitElement {
     return options.includes(value) ? value : fallbackOption
   }
 
+  static generateNamespace(name?: string) {
+    const namespace = (name || import.meta.url).split('/').pop()
+
+    if (!namespace || !namespace.length) {
+      return name || undefined
+    }
+
+    const period = '.'
+
+    return namespace
+      .split(period)
+      .slice(0, -1)
+      .join(period)
+      .replace(/[aeiouAEIOU]/g, '')
+      .toUpperCase()
+  }
+
   /**
    * Returns a timestamp generated ID value in base64 format,
    * without validation.
