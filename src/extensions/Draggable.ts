@@ -396,8 +396,8 @@ export class EnlightenmentDraggable extends Enlightenment {
       this.clearCurrentDragTimeout()
     }
 
-    const flipX = resizeX && velocityX && [1, 4, 7].includes(pivot)
-    const flipY = resizeY && velocityY && [1, 2, 3].includes(pivot)
+    const flipX = resizeX && velocityX && Enlightenment.pivots.left.includes(pivot)
+    const flipY = resizeY && velocityY && Enlightenment.pivots.top.includes(pivot)
 
     if (flipX) {
       width = (this.currentInteraction.width || context.offsetWidth) - (resizeX ? x : 0)
@@ -460,15 +460,15 @@ export class EnlightenmentDraggable extends Enlightenment {
 
     const activeX =
       (this.currentInteraction.velocityX !== 1 &&
-        [1, 4, 7].includes(this.currentInteraction.pivot || 0)) ||
+        Enlightenment.pivots.left.includes(this.currentInteraction.pivot || 0)) ||
       (this.currentInteraction.velocityX !== -1 &&
-        [3, 6, 9].includes(this.currentInteraction.pivot || 0))
+        Enlightenment.pivots.right.includes(this.currentInteraction.pivot || 0))
 
     const activeY =
       (this.currentInteraction.velocityY !== 1 &&
-        [1, 2, 3].includes(this.currentInteraction.pivot || 0)) ||
+        Enlightenment.pivots.top.includes(this.currentInteraction.pivot || 0)) ||
       (this.currentInteraction.velocityY !== -1 &&
-        [7, 8, 9].includes(this.currentInteraction.pivot || 0))
+        Enlightenment.pivots.bottom.includes(this.currentInteraction.pivot || 0))
 
     if (resetX && activeX) {
       width = this.currentInteraction.width
@@ -647,25 +647,25 @@ export class EnlightenmentDraggable extends Enlightenment {
 
           // Ensure the context element cannot exceed outside the visible
           // viewport after a resize operation has been triggered.
-          if ([1, 4, 7].includes(this.pivot || 0) && bounds.left) {
+          if (Enlightenment.pivots.left.includes(this.pivot || 0) && bounds.left) {
             const maxWidth =
               (interactionCache.width || interactionCache.context.offsetLeft) +
               (interactionCache.left || 0)
 
             this.resize(interactionCache.context, { x: 0, width: maxWidth })
-          } else if ([3, 6, 9].includes(this.pivot || 0) && bounds.right) {
+          } else if (Enlightenment.pivots.right.includes(this.pivot || 0) && bounds.right) {
             const maxWidth = viewport.width - (interactionCache.left || 0)
 
             this.resize(interactionCache.context, { width: maxWidth })
           }
 
-          if ([1, 2, 3].includes(this.pivot || 0) && bounds.top) {
+          if (Enlightenment.pivots.top.includes(this.pivot || 0) && bounds.top) {
             const maxHeight =
               (interactionCache.height || interactionCache.context.offsetHeight) +
               (interactionCache.top || 0)
 
             this.resize(interactionCache.context, { y: 0, height: maxHeight })
-          } else if ([7, 8, 9].includes(this.pivot || 0) && bounds.bottom) {
+          } else if (Enlightenment.pivots.bottom.includes(this.pivot || 0) && bounds.bottom) {
             const maxHeight = viewport.height - (interactionCache.top || 0)
 
             this.resize(interactionCache.context, { height: maxHeight })
