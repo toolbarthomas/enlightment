@@ -113,6 +113,12 @@ export class EnlightenmentMixins extends LitElement {
     return options.includes(value) ? value : fallbackOption
   }
 
+  /**
+   * Generates the namespace value from the given string or use the internal
+   * basename instead.
+   *
+   * @param name Use the defined name instead of the basename.
+   */
   static generateNamespace(name?: string) {
     const namespace = (name || import.meta.url).split('/').pop()
 
