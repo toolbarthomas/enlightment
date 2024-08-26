@@ -97,20 +97,20 @@ export class EnlightenmentMixins extends LitElement {
    * collection or return the first option as fallback value.
    *
    * @param value Return the value when defined in the options parameter.
-   * @param options The options parameter to filter from.
+   * @param properties The options parameter to filter from.
    */
-  static filterPropertyValue(value: string | null, options: string[]) {
-    if (!options || !options.length) {
+  static filterPropertyValue(value: string | null, properties: string[]) {
+    if (!properties || !properties.length) {
       return
     }
 
-    const [fallbackOption] = options
+    const [defaultProperty] = properties
 
     if (typeof value !== 'string') {
-      return fallbackOption
+      return defaultProperty
     }
 
-    return options.includes(value) ? value : fallbackOption
+    return properties.includes(value) ? value : defaultProperty
   }
 
   /**

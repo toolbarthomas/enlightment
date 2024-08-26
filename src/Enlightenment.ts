@@ -65,6 +65,13 @@ export class Enlightenment extends EnlightenmentExtensionLoader {
     // Defines the current Color mode from the Component context or it's host.
     this.useMode(undefined, Enlightenment)
 
+
+    if (!this.viewport) {
+      this.handleCurrentViewport()
+    } else {
+      this.updateAttribute('viewport', this.viewport)
+    }
+
     // Reflect the updated properties or attributes vice versa only once.
     this.updateAttribute('accent', this.accent)
     this.updateAttribute('mode', this.mode, true)

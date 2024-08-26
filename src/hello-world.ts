@@ -157,7 +157,7 @@ class HelloWorld extends Enlightenment {
             <button>Inline</button>
           </draggable-element>
 
-          <draggable-element position="static">
+          <draggable-element position="static" axis="">
             <button>Static</button>
           </draggable-element>
 
@@ -165,11 +165,7 @@ class HelloWorld extends Enlightenment {
             <button>X</button>
           </draggable-element>
 
-          <button
-            data-axis="y"
-            @mousedown=${this.handleDragStart}
-            @touchstart=${this.handleDragStart}
-          >
+          <button axis="y" @mousedown=${this.handleDragStart} @touchstart=${this.handleDragStart}>
             Y
           </button>
 

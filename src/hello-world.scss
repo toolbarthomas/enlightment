@@ -103,52 +103,52 @@ div {
   // transition: all 200ms ease-in-out;
 }
 
-button[data-pivot] {
+button[pivot] {
   position: absolute;
 }
 
 button {
-  &[data-pivot='1'] {
+  &[pivot='1'] {
     top: 0;
     left: 0;
   }
 
-  &[data-pivot='2'] {
+  &[pivot='2'] {
     top: 0;
     left: 50%;
   }
 
-  &[data-pivot='3'] {
+  &[pivot='3'] {
     top: 0;
     right: 0;
   }
 
-  &[data-pivot='4'] {
+  &[pivot='4'] {
     top: 50%;
     left: 0;
   }
 
-  &[data-pivot='6'] {
+  &[pivot='6'] {
     top: 50;
     right: 0%;
   }
 
-  &[data-pivot='7'] {
+  &[pivot='7'] {
     bottom: 0;
     left: 0;
   }
 
-  &[data-pivot='8'] {
+  &[pivot='8'] {
     bottom: 0;
     left: 50%;
   }
 
-  &[data-pivot='9'] {
+  &[pivot='9'] {
     bottom: 0;
     right: 0;
   }
 
-  &[data-pivot='3'] {
+  &[pivot='3'] {
     top: 0;
     right: 0;
   }

@@ -24,11 +24,11 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
   static defaults = {
     slot: '_content',
     attr: {
-      axis: 'data-axis',
+      axis: 'axis',
       edgeX: 'edge-x',
       edgeY: 'edge-y',
       grabbed: 'aria-grabbed',
-      pivot: 'data-pivot',
+      pivot: 'pivot',
       stretchX: 'stretch-x',
       stretchY: 'stretch-y'
     },
@@ -42,7 +42,7 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
   static MAX_THREADS = 128
 
   // Defines the static namespace from the given sourcepath.
-  static NAMESPACE = EnlightenmentMixins.generateNamespace(Enlightenment.constructor.name)
+  static NAMESPACE = EnlightenmentMixins.generateNamespace('Enlightenment')
 
   // Defines the default interval for a single frame render.
   static FPS = 1000 / 60
@@ -267,7 +267,7 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
       'info'
     )
 
-    this.hook('addglobalevent')
+    this.hook('global', { context: ctx, data: options })
   }
 
   /**

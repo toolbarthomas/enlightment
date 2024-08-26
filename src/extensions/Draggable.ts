@@ -725,12 +725,6 @@ export class EnlightenmentDraggable extends Enlightenment {
 
     const slot = this.useSlot()
 
-    if (!slot) {
-      this.setAttribute(Enlightenment.defaults.attr.pivot, String(this.pivot))
-    } else {
-      this.removeAttribute(Enlightenment.defaults.attr.pivot)
-    }
-
     this.assignGlobalEvent('keydown', this.handleDragExit, { once: true })
 
     this.hook(Enlightenment.defaults.customEvents.dragStart, {
@@ -867,7 +861,7 @@ export class EnlightenmentDraggable extends Enlightenment {
 
     return html`<slot
       ?visually-hidden="${!useContent}"
-      data-pivot="${this.pivot}"
+      pivot="${this.pivot}"
       @touchstart=${this.handleDragStart}
       @mousedown=${this.handleDragStart}
     ></slot>`

@@ -590,6 +590,10 @@ export class EnlightenmentDOM extends EnlightenmentParser {
     const children = this.shadowRoot.children as unknown as HTMLElement[]
     const widths: number[] = []
 
+    if (!children || !children.length) {
+      return
+    }
+
     const each = (elements: HTMLElement[]) => {
       const children: HTMLElement[] = []
 
@@ -625,7 +629,7 @@ export class EnlightenmentDOM extends EnlightenmentParser {
       }
     })
 
-    if (this.viewport !== device) {
+    if (device && this.viewport !== device) {
       this.commit('viewport', device)
     }
   }
