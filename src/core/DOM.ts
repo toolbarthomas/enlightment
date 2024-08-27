@@ -8,6 +8,7 @@ import { createRef, property } from './Mixins'
 import { EnlightenmentParser } from './Parser'
 
 import { EnlightenmentTheme } from '../providers/Theme'
+import { Enlightenment } from 'src/Enlightenment'
 
 export class EnlightenmentDOM extends EnlightenmentParser {
   static getElements(context: Element, tags: string[]) {
@@ -579,7 +580,7 @@ export class EnlightenmentDOM extends EnlightenmentParser {
    * Defines the viewport Attribute from the rendered shadowRoot width to
    * enable container like queries instead of Media queries.
    */
-  protected handleCurrentViewport(context?: Element) {
+  protected handleCurrentViewport(context?: HTMLElement) {
     const widths: number[] = []
 
     if (!this.offsetWidth && context && context.offsetWidth) {
@@ -649,9 +650,8 @@ export class EnlightenmentDOM extends EnlightenmentParser {
       }
     })
 
-    const host = this.useHost(context) || this
-
-    host.commit('viewport', device)
+    const host = (this.useHost(context) || this) as Enlightenment
+    host && host.commit('viewport', device)
   }
 
   /**
