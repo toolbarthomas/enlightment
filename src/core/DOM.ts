@@ -1,4 +1,8 @@
-import { EnlightenmentDOMResizeOptions, EnlightenmentTarget } from '../_types/main'
+import {
+  BreakpointHandler,
+  EnlightenmentDOMResizeOptions,
+  EnlightenmentTarget
+} from '../_types/main'
 
 import { createRef, property } from './Mixins'
 import { EnlightenmentParser } from './Parser'
@@ -575,48 +579,59 @@ export class EnlightenmentDOM extends EnlightenmentParser {
    * Defines the viewport Attribute from the rendered shadowRoot width to
    * enable container like queries instead of Media queries.
    */
-  protected handleCurrentViewport() {
-    if (!this.shadowRoot) {
+  protected handleCurrentViewport(context?: Element) {
+    const widths: number[] = []
+
+    if (!this.offsetWidth && context && context.offsetWidth) {
+      widths.push(context.offsetWidth)
+    }
+
+    if (!widths.length && !context && !this.shadowRoot) {
       return
     }
 
-    if (!this.enableDocumentEvents) {
+    if (!widths.length && context && !context.shadowRoot) {
+      return
+    }
+
+    if (!widths.length && !this.enableDocumentEvents) {
       return
     }
 
     let selectedWidth = 0
     let device = ''
 
-    const children = this.shadowRoot.children as unknown as HTMLElement[]
-    const widths: number[] = []
+    if (!widths.length) {
+      const children = this.shadowRoot && (this.shadowRoot.children as unknown as HTMLElement[])
 
-    if (!children || !children.length) {
-      return
-    }
-
-    const each = (elements: HTMLElement[]) => {
-      const children: HTMLElement[] = []
-
-      Object.values(elements).forEach((element) => {
-        if (element instanceof HTMLElement === false) {
-          return
-        }
-
-        children.push(...(Array.from(element.children) as HTMLElement[]))
-
-        if (element.offsetWidth || element.scrollWidth) {
-          widths.push(element.offsetWidth || element.scrollWidth)
-        }
-      })
-
-      if (!widths.length && children.length) {
-        each(children)
-
+      if (!children || !children.length) {
         return
       }
-    }
 
-    each(children)
+      const each = (elements: HTMLElement[]) => {
+        const children: HTMLElement[] = []
+
+        Object.values(elements).forEach((element) => {
+          if (element instanceof HTMLElement === false) {
+            return
+          }
+
+          children.push(...(Array.from(element.children) as HTMLElement[]))
+
+          if (element.offsetWidth || element.scrollWidth) {
+            widths.push(element.offsetWidth || element.scrollWidth)
+          }
+        })
+
+        if (!widths.length && children.length) {
+          each(children)
+
+          return
+        }
+      }
+
+      each(children)
+    }
 
     const width = Math.max(...widths)
 
@@ -627,11 +642,16 @@ export class EnlightenmentDOM extends EnlightenmentParser {
         device = name
         selectedWidth = breakpoint
       }
+
+      if (width >= minWidth && width >= maxWidth) {
+        device = name
+        selectedWidth = width
+      }
     })
 
-    if (device && this.viewport !== device) {
-      this.commit('viewport', device)
-    }
+    const host = this.useHost(context) || this
+
+    host.commit('viewport', device)
   }
 
   /**
@@ -973,7 +993,7 @@ export class EnlightenmentDOM extends EnlightenmentParser {
    *EnlightenmentTheme
    * @param handler The handler to use for each Theme breakpoint.
    */
-  protected useBreakpoints(handler?: (name: string, value: number, delta: number[]) => void) {
+  protected useBreakpoints(handler?: BreakpointHandler) {
     const breakpoints = EnlightenmentTheme.breakpoints
 
     if (typeof handler !== 'function') {

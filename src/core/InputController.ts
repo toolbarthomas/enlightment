@@ -225,11 +225,14 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
             // visible viewport.
             this.clearAnimationFrame(this.currentInteraction.response)
 
-            this.currentInteraction.response = this.useAnimationFrame(
-              () =>
+            this.currentInteraction.response = this.useAnimationFrame(() => {
+              this.handleCurrentViewport(this.currentInteraction.context)
+
+              return (
                 this.currentInteraction.context &&
                 this.handleDragEndCallback(this.currentInteraction.context, resolve, options)
-            )
+              )
+            })
           }
         }
 
@@ -276,6 +279,7 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
 
     this.currentInteraction.event &&
       this.throttle(() => {
+        console.log('DONE', this.currentInteraction.host)
         resolve(true)
       })
   }

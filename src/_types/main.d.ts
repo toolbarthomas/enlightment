@@ -228,3 +228,5 @@ export interface EnlightenmentDraggableDefaults extends EnlightenmentDefaults {
     ]
   }
 }
+
+export type BreakpointHandler = (name: string, value: number, delta: number[]) => void

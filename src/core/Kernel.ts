@@ -240,7 +240,7 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
 
     const { context, once, passive, thisArg } = options || {}
 
-    const ctx = context || document
+    const ctx = (context || document) as Element
 
     const exists = this.listeners.filter(([t, _, c, h]) => t === type && h === handler && c === ctx)
 
