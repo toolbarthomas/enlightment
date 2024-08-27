@@ -1,6 +1,6 @@
 {
   "name": "@toolbarthomas/enlightenment",
-  "version": "0.9.1",
+  "version": "0.10.0",
   "description": "Web component workflow with Sass & Lit Element",
   "main": "./dist/Enlightenment.js",
   "module": "./dist/Enlightenment.mjs",
