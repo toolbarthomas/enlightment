@@ -439,6 +439,8 @@ export class EnlightenmentInputController extends EnlightenmentColorHelper {
     const position: undefined | string = (this as any).position
     if (position && ['absolute', 'fixed'].includes(position)) {
       this.stretch(context, this.currentInteraction.pivot)
+
+      this.throttle(() => this.requestGlobalUpdate(!this.enableDocumentEvents))
     }
   }
 
