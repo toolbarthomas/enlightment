@@ -197,12 +197,11 @@ export class Enlightenment extends EnlightenmentExtensionLoader {
 
       const slots = this.shadowRoot && this.shadowRoot.querySelectorAll('slot')
 
+      // Clear the assigned Slotchange event manually since the slotchange
+      // Event can be ignored at this point and ensure the attached Slot Events
+      // are removed.
       if (slots && slots.length) {
-        // Clear the assigned Slotchange event manually since the slotchange
-        // Event can be ignored at this point.
         this.clearGlobalEvent('slotchange', slots)
-
-        // Ensure the Slotted Events are removed.
         Object.values(slots).forEach((slot) => this.clearSlottedEvents(slot))
       }
 
