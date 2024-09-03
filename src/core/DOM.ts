@@ -8,7 +8,7 @@ import { createRef, property } from './Mixins'
 import { EnlightenmentParser } from './Parser'
 
 import { EnlightenmentTheme } from '../providers/Theme'
-import { Enlightenment } from 'src/Enlightenment'
+import { Enlightenment } from '../Enlightenment'
 
 export class EnlightenmentDOM extends EnlightenmentParser {
   static getElements(context: Element, tags: string[]) {
@@ -192,7 +192,7 @@ export class EnlightenmentDOM extends EnlightenmentParser {
    */
   isCollapsed?: boolean = false
   isExpanded?: boolean = false
-  isFullScreen?: boolean = false
+  isFullscreen?: boolean = false
 
   /**
    * Reference to the parent Window Object.

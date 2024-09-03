@@ -45,7 +45,7 @@
     "dist/Enlightenment.min.cjs",
     "dist/Enlightenment.min.js",
     "dist/FocusTrap.extension.cjs",
-    "dist/FocusTrap.extension.js",
+    "dist/FocusTrap.extension.js", 
     "dist/FocusTrap.extension.min.cjs",
     "dist/FocusTrap.extension.min.js",
     "dist/Scrollable.extension.cjs",
