@@ -1,6 +1,6 @@
 {
   "name": "@toolbarthomas/enlightenment",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "description": "Web component workflow with Sass & Lit Element",
   "main": "./dist/Enlightenment.js",
   "module": "./dist/Enlightenment.mjs",
@@ -45,7 +45,7 @@
     "dist/Enlightenment.min.cjs",
     "dist/Enlightenment.min.js",
     "dist/FocusTrap.extension.cjs",
-    "dist/FocusTrap.extension.js", 
+    "dist/FocusTrap.extension.js",
     "dist/FocusTrap.extension.min.cjs",
     "dist/FocusTrap.extension.min.js",
     "dist/Scrollable.extension.cjs",
@@ -98,23 +98,24 @@
   },
   "homepage": "https://github.com/toolbarthomas/enlightenment#readme",
   "dependencies": {
-    "focus-trap": "^7.5.4",
-    "lit": "^3.2.0",
-    "simplebar": "^6.2.7"
-  },
-  "devDependencies": {
-    "@types/assert": "^1.5.10",
-    "@types/mocha": "^10.0.7",
     "autoprefixer": "^10.4.20",
     "cssnano": "^7.0.5",
-    "esbuild": "^0.23.1",
+    "focus-trap": "^7.5.4",
     "glob": "^11.0.0",
+    "lit": "^3.2.0",
     "mkdirp": "^3.0.1",
     "mocha": "^10.7.3",
-    "postcss": "^8.4.44",
     "postcss-combine-duplicated-selectors": "^10.0.3",
+    "postcss": "^8.4.44",
     "prettier": "^3.3.3",
-    "sass": "^1.77.8",
+    "simplebar": "^6.2.7",
+    "sass": "^1.77.8"
+
+  },
+  "devDependencies": {
+    "esbuild": "^0.23.1",
+    "@types/assert": "^1.5.10",
+    "@types/mocha": "^10.0.7",
     "typescript": "^5.5.4"
   }
 }
