@@ -43,7 +43,11 @@ import { stylePlugin } from './esbuild.style.plugin.mjs'
     }, {}),
     platform: 'browser',
     plugins: [
-      resolvePlugin({ cwd: './', extension: outExtension['.js'], name: /..\/Enlightenment$/ }),
+      resolvePlugin({
+        destination: `./Enlightenment${suffix}${outExtension['.js']}`,
+        name: /..\/Enlightenment$/,
+        excludeFramework: true
+      }),
       stylePlugin({ destination: `./Enlightenment${outExtension}`, name: cwd })
     ]
   }

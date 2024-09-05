@@ -68,7 +68,7 @@ export const resolvePlugin = (options) => ({
 
     build.onResolve({ filter: packageName }, (args) => {
       return {
-        path: cwd ? `${cwd}${join(cwd, d)}` : d,
+        path: cwd ? `${cwd}/${d}` : d,
         external: true,
         namespace: n
       }

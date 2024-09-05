@@ -1,6 +1,6 @@
 {
   "name": "@toolbarthomas/enlightenment",
-  "version": "0.14.3",
+  "version": "0.15.0",
   "description": "Web component workflow with Sass & Lit Element",
   "main": "./dist/Enlightenment.js",
   "module": "./dist/Enlightenment.mjs",
@@ -70,7 +70,7 @@
     "prebuild": "npm run tsc",
     "postbuild": "node node/esbuild.extensions.mjs -n=src/enlightenment & node node/esbuild.extensions.mjs -f=cjs -n=src/enlightenment",
     "build": "node node/esbuild.enlightenment.mjs -n=src/enlightenment -s & node node/esbuild.enlightenment.mjs -f=cjs -n=src/enlightenment -s",
-    "postbuild:minify": "node node/esbuild.extensions.mjs -m& node node/esbuild.extensions.mjs -f=cjs -m",
+    "postbuild:minify": "node node/esbuild.extensions.mjs -m & node node/esbuild.extensions.mjs -f=cjs -m",
     "build:minify": "node node/esbuild.enlightenment.mjs -n=src/enlightenment -s -m & node node/esbuild.enlightenment.mjs -n=src/enlightenment -s -f=cjs -m",
     "dev": "node node/esbuild.enlightenment.mjs -n=src/enlightenment -s -w & node node/esbuild.extensions.mjs -w & node node/esbuild.serve.mjs",
     "prepublish": "npm run build && npm run build:minify",
@@ -92,7 +92,7 @@
     "webcomponents"
   ],
   "author": "Thomas van der velde <contact@toolbarthomas.net>",
-  "license": "BSD 3-Clause",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/toolbarthomas/enlightenment/issues"
   },
