@@ -655,6 +655,26 @@ export class EnlightenmentDOM extends EnlightenmentParser {
   }
 
   /**
+   * Initiate the ready state for the selected Web component instance.
+   */
+  handleDomReady() {
+    if (this.domReady) {
+      return
+    }
+
+    Object.defineProperty(this, 'domReady', {
+      configurable: false,
+      writable: false,
+      value: true
+    })
+
+    this.throttle(() => {
+      this.requestUpdate()
+      this.dispatchUpdate('ready')
+    })
+  }
+
+  /**
    * Defines the global click Event listener for the element context.
    *
    * Marks the constructed Enlightenment element as currentElement when the
@@ -716,18 +736,7 @@ export class EnlightenmentDOM extends EnlightenmentParser {
 
     this.handleCurrentViewport()
 
-    if (!this.domReady) {
-      Object.defineProperty(this, 'domReady', {
-        configurable: false,
-        writable: false,
-        value: true
-      })
-
-      this.throttle(() => {
-        this.requestUpdate()
-        this.dispatchUpdate('ready')
-      })
-    }
+    this.handleDomReady()
   }
 
   /**

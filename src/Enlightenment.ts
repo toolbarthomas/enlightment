@@ -47,7 +47,7 @@ export class Enlightenment extends EnlightenmentExtensionLoader {
    * @param event Event context of the dispatched ready hook.
    */
   protected handleReady(event: Event) {
-    if (this.domReady || !this.useSlot()) {
+    if (this.domReady) {
       this.throttle(() => {
         this.updateAttributeAlias('domReady', 'ready', true)
 
@@ -172,8 +172,12 @@ export class Enlightenment extends EnlightenmentExtensionLoader {
     this.dispatchUpdate('connected')
 
     this.assignGlobalEvent('ready', this.handleReady, { context: this })
-
     this.throttle(this.assignListeners)
+
+    // Flag slotless components as ready directly.
+    if (!this.useSlot()) {
+      this.throttle(this.handleDomReady)
+    }
   }
 
   /**
