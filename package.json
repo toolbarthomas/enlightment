@@ -1,6 +1,6 @@
 {
   "name": "@toolbarthomas/enlightenment",
-  "version": "0.14.0",
+  "version": "0.14.1",
   "description": "Web component workflow with Sass & Lit Element",
   "main": "./dist/Enlightenment.js",
   "module": "./dist/Enlightenment.mjs",
@@ -92,7 +92,7 @@
     "webcomponents"
   ],
   "author": "Thomas van der velde <contact@toolbarthomas.net>",
-  "license": "MIT",
+  "license": "BSD 3-Clause",
   "bugs": {
     "url": "https://github.com/toolbarthomas/enlightenment/issues"
   },
