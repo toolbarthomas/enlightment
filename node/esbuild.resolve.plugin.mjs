@@ -46,7 +46,7 @@ export const resolvePlugin = (options) => ({
 
       try {
         if (existsSync(from)) {
-          mkdirpSync(dirname(from))
+          mkdirpSync(dirname(to))
           copyFileSync(from, to)
         }
 
