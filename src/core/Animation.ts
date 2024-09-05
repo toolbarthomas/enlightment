@@ -13,9 +13,7 @@ export class EnlightenmentAnimation extends EnlightenmentDOM {
    * @param date Use the Date constructor for the timestamp.
    */
   useTimestamp(date?: boolean) {
-    return date
-      ? Date.now()
-      : EnlightenmentDOM.Global.performance.timeOrigin + EnlightenmentDOM.Global.performance.now()
+    return date ? Date.now() : EnlightenmentDOM.Global.performance.now()
   }
 
   /**

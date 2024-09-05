@@ -47,7 +47,7 @@ export class Enlightenment extends EnlightenmentExtensionLoader {
    * @param event Event context of the dispatched ready hook.
    */
   protected handleReady(event: Event) {
-    if (this.domReady) {
+    if (this.domReady || !this.useSlot()) {
       this.throttle(() => {
         this.updateAttributeAlias('domReady', 'ready', true)
 

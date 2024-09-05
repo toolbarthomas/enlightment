@@ -7,7 +7,7 @@ const instance = new Enlightenment()
 
 describe('Core:instance', () => {
   const timestamp = instance.useTimestamp()
-  const date = Animation.useTimestamp(true)
+  const date = instance.useTimestamp(true)
 
   it(`Calculates the timestamp in real time: ${timestamp}`, () => {
     assert.equal(typeof timestamp, 'number')
