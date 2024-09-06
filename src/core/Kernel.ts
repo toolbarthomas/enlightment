@@ -439,9 +439,6 @@ export class EnlightenmentKernel extends EnlightenmentMixins {
 
     const [t, fn, ctx] = this.filterGlobalEvent(type, handler)
 
-    if (type === 'click') {
-      console.log('OMIT', type, handler.name, this.listeners)
-    }
     if (!t || !fn || !ctx) {
       this.log(`Unable to omit undefined global ${type} Event`, 'warning')
 

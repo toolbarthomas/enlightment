@@ -4,7 +4,8 @@ import path from 'node:path'
 import { stylePlugin } from './esbuild.style.plugin.mjs'
 import { extensionPlugin } from './esbuild.extension.plugin.mjs'
 
-import { argv } from './argv.mjs'
+import { parse } from '@toolbarthomas/argumentje'
+const argv = parse()
 
 /*
  * Creates a new Enlightenment bundle with optional styles that will be included

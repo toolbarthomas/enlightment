@@ -46,6 +46,14 @@ export type ThemeEasingChart = {
   easeInOutBack: ThemeEasingBezier
 }
 
+export type ThemeTimingChart = {
+  instant: number
+  slow: number
+  slower: number
+  fast: number
+  faster: number
+}
+
 /**
  * Contains the configuration to generate the actual color chart with the
  * required colors, shades and optional opacity variants.
@@ -438,6 +446,14 @@ export class EnlightenmentTheme {
     easeInOutBack: [0.68, -0.55, 0.265, 1.55]
   }
 
+  static timingChart: ThemeTimingChart = {
+    instant: 0,
+    fast: 60,
+    faster: Math.round(1000 / 0.6) / 100,
+    slow: 250,
+    slower: 625
+  }
+
   /**
    * Defines the current computed Document styles that have been defined after
    * a Document Stylesheet is assigned.
@@ -648,6 +664,20 @@ export class EnlightenmentTheme {
       length
     }).forEach((_, index) => {
       rules.push(`--space-${index * delta}: ${(1 / fontSize) * delta * index}${unit};`)
+    })
+
+    if (!rules.length) {
+      return
+    }
+
+    this.assignDocumentProperties(rules)
+  }
+
+  public assignTimingProperties() {
+    const rules: string[] = []
+
+    Object.entries(EnlightenmentTheme.timingChart).forEach(([name, value]) => {
+      rules.push(`--timing-${name}: ${value}ms;`)
     })
 
     if (!rules.length) {

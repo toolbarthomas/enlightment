@@ -7,7 +7,9 @@ import combineDuplicateSelectors from 'postcss-combine-duplicated-selectors'
 import cssnano from 'cssnano'
 import postcss from 'postcss'
 
-import { argv } from './argv.mjs'
+import { parse } from '@toolbarthomas/argumentje'
+const argv = parse()
+
 import * as glob from 'glob'
 import { fileURLToPath } from 'node:url'
 

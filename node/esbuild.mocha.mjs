@@ -1,8 +1,8 @@
 import esbuild from 'esbuild'
 import path from 'node:path'
 
-import { argv } from './argv.mjs'
-
+import { parse } from '@toolbarthomas/argumentje'
+const argv = parse()
 /*
  * Creates a new Enlightenment bundle with optional styles that will be included
  * on classes that are extending from the Enlightenment package. Enlightenment

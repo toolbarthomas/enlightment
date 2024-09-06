@@ -122,13 +122,16 @@ export class Enlightenment extends EnlightenmentExtensionLoader {
       // Expose the custom space properties.
       Enlightenment.theme.assignSpaceProperties()
 
-      // Epose the custom depth related properties.
+      // Define the custom depth related properties.
       Enlightenment.theme.assignElevationProperties(EnlightenmentTheme.stackingContext)
 
-      // Epose the custom depth related properties.
+      // Define the easing related properties for transition and animations.
       Enlightenment.theme.assignEasingProperties()
 
-      // Epose the default Device breakpoints
+      // Define the timing related properties for transition and animations.
+      Enlightenment.theme.assignTimingProperties()
+
+      // Define the default Device breakpoints
       Enlightenment.theme.assignDocumentProperties(
         Object.entries(EnlightenmentTheme.breakpoints).map(
           ([name, breakpoint]) => `--breakpoint-${name}: ${breakpoint}px;`

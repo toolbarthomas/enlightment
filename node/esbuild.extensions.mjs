@@ -1,7 +1,8 @@
 import esbuild from 'esbuild'
 import path from 'node:path'
 
-import { argv } from './argv.mjs'
+import { parse } from '@toolbarthomas/argumentje'
+const argv = parse()
 
 import { resolvePlugin } from './esbuild.resolve.plugin.mjs'
 import { stylePlugin } from './esbuild.style.plugin.mjs'
