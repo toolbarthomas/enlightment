@@ -104,10 +104,8 @@
     "glob": "^11.0.0",
     "lit": "^3.2.0",
     "mkdirp": "^3.0.1",
-    "mocha": "^10.7.3",
     "postcss-combine-duplicated-selectors": "^10.0.3",
     "postcss": "^8.4.45",
-    "prettier": "^3.3.3",
     "simplebar": "^6.2.7",
     "sass": "^1.78.0"
 
@@ -116,6 +114,8 @@
     "esbuild": "^0.23.1",
     "@types/assert": "^1.5.10",
     "@types/mocha": "^10.0.7",
+    "mocha": "^10.7.3",
+    "prettier": "^3.3.3",
     "typescript": "^5.5.4"
   }
 }
