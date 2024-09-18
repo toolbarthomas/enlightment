@@ -1,6 +1,8 @@
 import { PropertyValueMap, PropertyValues } from 'lit'
 
-import { EnlightenmentTheme } from './providers/Theme'
+import { EnlightenmentTheme as _EnlightenmentTheme } from './providers/Theme'
+
+export const EnlightenmentTheme = _EnlightenmentTheme
 
 export {
   createRef,
@@ -220,57 +222,6 @@ export class Enlightenment extends EnlightenmentExtensionLoader {
     } catch (exception) {
       exception && this.log(exception, 'error')
     }
-  }
-
-  /**
-   * Traverse from the defined context and return the host Component
-   *
-   * @param context The existing context Element to traverse from.
-   */
-  public useHost(context: any): undefined | Enlightenment {
-    if (!context) {
-      return
-    }
-
-    let target: Element | undefined = undefined
-
-    if (!target) {
-      let current: any = context
-
-      while (current.parentNode && !target) {
-        if (context.parentNode instanceof Enlightenment) {
-          target = context.parentNode
-        }
-
-        if (context.host && context.host instanceof Enlightenment) {
-          target = context.host
-        }
-
-        if (current && current.host && !Object.values(current).length) {
-          target = current.host || current
-        }
-
-        if (!target && current && current.host !== context) {
-          target = current.host
-        }
-
-        if (target) {
-          break
-        }
-
-        current = current.parentNode as Element
-
-        if (!target && current && current instanceof Enlightenment && current !== (this as any)) {
-          target = current
-        }
-      }
-
-      if (!target && current && current.host !== context) {
-        target = current.host
-      }
-    }
-
-    return EnlightenmentExtensionLoader.useHost(target)
   }
 }
 

@@ -199,6 +199,12 @@ export class EnlightenmentTheme {
   static DIRECTIONS = ['ltr', 'rtl']
 
   /**
+   * Defines the expected usable webfont style should load the correct font-face
+   * declarations.
+   */
+  static FONT_FORMATS = ['monospace', 'sans', 'serif']
+
+  /**
    * Defines the default Device widths in pixels that are used within the
    * optional CSS Media query. Pixel value is expected to ensure full browser
    * support.

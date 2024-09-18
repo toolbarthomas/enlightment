@@ -13,7 +13,6 @@ import {
 import { EnlightenmentMixins, property } from './Mixins'
 
 import { EnlightenmentGlobals } from '../providers/Globals'
-import { EnlightenmentTheme } from '../providers/Theme'
 
 /**
  * Defines the actual Enlightenment Class entry point with the required
