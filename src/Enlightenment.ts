@@ -259,6 +259,10 @@ export class Enlightenment extends EnlightenmentExtensionLoader {
         }
 
         current = current.parentNode as Element
+
+        if (!target && current && current instanceof Enlightenment && current !== (this as any)) {
+          target = current
+        }
       }
 
       if (!target && current && current.host !== context) {
@@ -266,7 +270,7 @@ export class Enlightenment extends EnlightenmentExtensionLoader {
       }
     }
 
-    return EnlightenmentExtensionLoader.useHost(target) as Enlightenment
+    return EnlightenmentExtensionLoader.useHost(target)
   }
 }
 

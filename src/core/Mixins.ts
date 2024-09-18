@@ -16,6 +16,7 @@ import {
 } from 'lit/decorators.js'
 
 import { createRef as _createRef, ref as _ref, Ref } from 'lit/directives/ref.js'
+import { Enlightenment } from 'src/Enlightenment'
 
 export const createRef = _createRef
 export const css = _css
@@ -221,18 +222,5 @@ export class EnlightenmentMixins extends LitElement {
    */
   static isInteger(value: any) {
     return value ? parseInt(value) : undefined
-  }
-
-  /**
-   * Type reference to expose the method for all Class extensions.
-   *
-   * @param target The actual defined host element to return.
-   */
-  public useHost(target: any) {
-    if (!target) {
-      return
-    }
-
-    return target as EnlightenmentMixins
   }
 }

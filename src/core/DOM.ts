@@ -269,9 +269,10 @@ export class EnlightenmentDOM extends EnlightenmentParser {
 
         //@ts-ignore
         const fn: Function = this[name.split('(')[0]]
+        const host = this.useHost(element)
 
-        if (typeof fn === 'function' && this.useHost(element) === this) {
-          this.assignGlobalEvent(type, fn, {
+        if (typeof fn === 'function' && host && host === (this as any)) {
+          host.assignGlobalEvent(type, fn, {
             context: element
           })
         }
@@ -444,7 +445,8 @@ export class EnlightenmentDOM extends EnlightenmentParser {
 
       let [type, name] = value.split(':')
 
-      if (this.useHost(element) !== this) {
+      const host = this.useHost(element)
+      if (!host || host !== (this as any)) {
         return
       }
 
@@ -453,7 +455,7 @@ export class EnlightenmentDOM extends EnlightenmentParser {
         type = 'click'
       }
 
-      this.clearGlobalEvent(type, element)
+      host.clearGlobalEvent(type, element)
     })
   }
 
