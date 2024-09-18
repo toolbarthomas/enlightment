@@ -139,6 +139,7 @@ class HelloWorld extends Enlightenment {
     super.firstUpdated()
 
     this.assignFragments('optional')
+    this.assignFragments('table')
 
     // setTimeout(() => {
     //   this.omitFragments('optional')
@@ -152,6 +153,8 @@ class HelloWorld extends Enlightenment {
         <div class="container" ref="${ref(this.context)}">
           <h1>Hello ${this.name}</h1>
           <button @click=${this.start}>Start</button>
+
+          <div fragment="table"></div>
 
           <draggable-element position="inline" static>
             <button>Inline</button>
@@ -199,6 +202,7 @@ class HelloWorld extends Enlightenment {
           <div fragment="optional"></div>
         </div>
         <slot name="optional"></slot>
+        <slot name="table"></slot>
       </focus-trap>
     `
   }

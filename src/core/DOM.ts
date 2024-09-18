@@ -344,6 +344,7 @@ export class EnlightenmentDOM extends EnlightenmentParser {
     })
 
     slot.style.display = 'none'
+    slot.ariaHidden = 'true'
   }
 
   /**
