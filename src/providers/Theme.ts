@@ -615,8 +615,15 @@ export class EnlightenmentTheme {
   public assignEasingProperties() {
     const rules: string[] = []
 
-    Object.entries(EnlightenmentTheme.easingChart).forEach(([name, bezier]) => {
-      rules.push(`--${name}: cubic-bezier(${bezier.join(', ')});`)
+    Object.entries(EnlightenmentTheme.easingChart).forEach(([key, bezier]) => {
+      const name = key
+        .split(/(?<![A-Z])(?=[A-Z])/)
+        .join('-')
+        .toLowerCase()
+
+      if (name && name.length) {
+        name && rules.push(`--${name}: cubic-bezier(${bezier.join(', ')});`)
+      }
     })
 
     if (!rules.length) {
