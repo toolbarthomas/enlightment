@@ -47,11 +47,12 @@ export type ThemeEasingChart = {
 }
 
 export type ThemeTimingChart = {
+  default: number
+  fast: number
+  faster: number
   instant: number
   slow: number
   slower: number
-  fast: number
-  faster: number
 }
 
 /**
@@ -454,6 +455,7 @@ export class EnlightenmentTheme {
 
   static timingChart: ThemeTimingChart = {
     instant: 0,
+    default: 144,
     fast: 60,
     faster: Math.round(1000 / 0.6) / 100,
     slow: 250,
