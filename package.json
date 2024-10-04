@@ -106,7 +106,7 @@
     "mkdirp": "^3.0.1",
     "postcss": "^8.4.47",
     "postcss-combine-duplicated-selectors": "^10.0.3",
-    "sass": "^1.79.3",
+    "sass": "^1.79.4",
     "simplebar": "^6.2.7"
   },
   "devDependencies": {
