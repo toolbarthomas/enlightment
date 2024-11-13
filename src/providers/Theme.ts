@@ -136,6 +136,7 @@ export class EnlightenmentTheme {
       display: block;
     }
 
+    [visually-hidden],
     [visually-hidden]::slotted(:first-child) {
       visibility: hidden;
       clip: rect(0 0 0 0);

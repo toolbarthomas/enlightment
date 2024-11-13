@@ -152,6 +152,7 @@ class HelloWorld extends Enlightenment {
       <focus-trap ?active=${this.hasActiveFocusTrap}>
         <div class="container" ref="${ref(this.context)}">
           <h1>Hello ${this.name}</h1>
+          <h2 visually-hidden>Not visible</h2>
           <button @click=${this.start}>Start</button>
 
           <div fragment="table"></div>
