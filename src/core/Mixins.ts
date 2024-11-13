@@ -16,7 +16,6 @@ import {
 } from 'lit/decorators.js'
 
 import { createRef as _createRef, ref as _ref, Ref } from 'lit/directives/ref.js'
-import { Enlightenment } from 'src/Enlightenment'
 
 export const createRef = _createRef
 export const css = _css
