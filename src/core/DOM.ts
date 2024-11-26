@@ -970,11 +970,21 @@ export class EnlightenmentDOM extends EnlightenmentParser {
 
     const host = target instanceof Enlightenment ? target : this.useHost(target)
 
-    if (!host) {
+    if (
+      !host ||
+      typeof host.commit !== 'function' ||
+      typeof host.requestGlobalUpdate !== 'function'
+    ) {
       return
     }
 
-    this.detachCurrentElement()
+    if (host === (this as any)) {
+      return
+    }
+
+    if (this.currentElement) {
+      this.detachCurrentElement()
+    }
 
     host.commit('currentElement', true)
     host.requestGlobalUpdate(true)
