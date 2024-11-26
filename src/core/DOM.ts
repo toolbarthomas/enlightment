@@ -959,6 +959,28 @@ export class EnlightenmentDOM extends EnlightenmentParser {
   }
 
   /**
+   * Flags the selected Enlightenment instance as currentElement.
+   *
+   * @param target The Element to update.
+   */
+  protected updateCurrentElement(target?: Event['target']) {
+    if (!target) {
+      return
+    }
+
+    const host = target instanceof Enlightenment ? target : this.useHost(target)
+
+    if (!host || host === this) {
+      return
+    }
+
+    this.detachCurrentElement()
+
+    host.commit('currentElement', true)
+    host.requestGlobalUpdate(true)
+  }
+
+  /**
    * Callback handler that checks the changed slot Elements and clears the
    * filled fragments.
    */
