@@ -970,7 +970,7 @@ export class EnlightenmentDOM extends EnlightenmentParser {
 
     const host = target instanceof Enlightenment ? target : this.useHost(target)
 
-    if (!host || host === this) {
+    if (!host) {
       return
     }
 
