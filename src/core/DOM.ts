@@ -519,8 +519,10 @@ export class EnlightenmentDOM extends EnlightenmentParser {
    * within the initial or any parent ShadowDOM.
    *
    * @param selector Requires a valid querySelector value.
+   * @param strict Use the optional DOM parent selector instead if no element
+   * was found.
    */
-  protected findParentElement(selector: string) {
+  protected findParentElement(selector: string, strict?: boolean) {
     if (typeof selector !== 'string') {
       return
     }
@@ -528,7 +530,7 @@ export class EnlightenmentDOM extends EnlightenmentParser {
     let host = this.useHost(this) as EnlightenmentDOM
 
     if (!host || !host.useContext) {
-      return
+      return undefined
     }
 
     let context = host.useContext()
@@ -552,7 +554,7 @@ export class EnlightenmentDOM extends EnlightenmentParser {
     }
 
     if (!context || context.tagName !== selector.toUpperCase()) {
-      return
+      return (strict && selector && this.closest(selector)) || undefined
     }
 
     return context
