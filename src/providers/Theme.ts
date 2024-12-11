@@ -748,24 +748,22 @@ export class EnlightenmentTheme {
    * correctly.
    */
   public assignViewport() {
-    const meta = {
-      content: 'width=device-width, initial-scale=1.0',
-      name: 'viewport'
+    if (!document.querySelector('meta[name=viewport]')) {
+      const viewport = this.useMeta({
+        content: 'width=device-width, initial-scale=1.0',
+        name: 'viewport'
+      })
+
+      viewport && document.head.insertAdjacentElement('afterbegin', viewport)
     }
 
-    const viewport = this.useMeta(meta)
+    if (!document.querySelector('meta[charset]')) {
+      const charset = this.useMeta({
+        charset: 'utf-8'
+      })
 
-    viewport && document.head.insertAdjacentElement('afterbegin', viewport)
-
-    const charset = this.useMeta({
-      charset: 'utf-8'
-    })
-
-    if (document.querySelector(`meta[name="${meta.name}"][content="${meta.content}"]`)) {
-      return
+      charset && document.head.insertAdjacentElement('afterbegin', charset)
     }
-
-    charset && document.head.insertAdjacentElement('afterbegin', charset)
   }
 
   /**

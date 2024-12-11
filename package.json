@@ -1,6 +1,6 @@
 {
   "name": "@toolbarthomas/enlightenment",
-  "version": "0.22.1",
+  "version": "0.22.2",
   "description": "Web component workflow with Sass & Lit Element",
   "main": "./dist/Enlightenment.js",
   "module": "./dist/Enlightenment.mjs",
@@ -105,17 +105,18 @@
     "glob": "^11.0.0",
     "lit": "^3.2.1",
     "mkdirp": "^3.0.1",
-    "postcss-combine-duplicated-selectors": "^10.0.3",
     "postcss": "^8.4.49",
-    "sass": "^1.81.0",
-    "simplebar": "^6.2.7"
+    "postcss-combine-duplicated-selectors": "^10.0.3",
+    "sass": "^1.82.0",
+    "simplebar": "^6.3.0"
   },
   "devDependencies": {
     "@types/assert": "^1.5.11",
+    "@types/lodash": "^4.17.13",
     "@types/mocha": "^10.0.10",
     "esbuild": "^0.24.0",
-    "mocha": "^10.8.2",
-    "prettier": "^3.4.0",
+    "mocha": "^11.0.1",
+    "prettier": "^3.4.2",
     "typescript": "^5.7.2"
   }
 }
