@@ -1,4 +1,5 @@
-declare module "*.css";
-declare module "*.scss";
-declare module "*.svg";
-declare module "@toolbarthomas/enlightenment";
+declare module '*.css'
+declare module '*.scss'
+declare module '*.svg'
+declare module '@toolbarthomas/enlightenment'
+declare module 'lodash'
