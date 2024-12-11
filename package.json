@@ -99,6 +99,7 @@
   "homepage": "https://github.com/toolbarthomas/enlightenment#readme",
   "dependencies": {
     "@toolbarthomas/argumentje": "^0.1.4",
+    "@types/lodash": "^4.17.13",
     "autoprefixer": "^10.4.20",
     "cssnano": "^7.0.6",
     "focus-trap": "^7.6.2",
@@ -112,7 +113,6 @@
   },
   "devDependencies": {
     "@types/assert": "^1.5.11",
-    "@types/lodash": "^4.17.13",
     "@types/mocha": "^10.0.10",
     "esbuild": "^0.24.0",
     "mocha": "^11.0.1",
