@@ -1,6 +1,6 @@
 {
   "name": "@toolbarthomas/enlightenment",
-  "version": "0.22.5",
+  "version": "0.22.6",
   "description": "Web component workflow with Sass & Lit Element",
   "main": "./dist/Enlightenment.js",
   "module": "./dist/Enlightenment.mjs",
@@ -108,7 +108,7 @@
     "mkdirp": "^3.0.1",
     "postcss": "^8.4.49",
     "postcss-combine-duplicated-selectors": "^10.0.3",
-    "sass": "^1.82.0",
+    "sass": "^1.83.0",
     "simplebar": "^6.3.0"
   },
   "devDependencies": {

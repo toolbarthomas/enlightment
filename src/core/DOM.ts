@@ -1154,9 +1154,13 @@ export class EnlightenmentDOM extends EnlightenmentParser {
    *
    * @param name Returns the initial Slot with the defined name Attribute.
    */
-  protected useInitialSlot(name: string) {
+  protected useInitialSlot(name?: string) {
     if (!this.shadowRoot) {
       return
+    }
+
+    if (!name) {
+      return this.shadowRoot.querySelector('slot')
     }
 
     const slots = this.shadowRoot.querySelectorAll(
